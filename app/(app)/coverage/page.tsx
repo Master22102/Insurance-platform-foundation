@@ -109,7 +109,7 @@ export default function CoveragePage() {
 
       setTrips(enriched);
       setLoading(false);
-    });.catch((err) => { console.error("[fetch] error:", err); setLoading(false); });
+    }).catch((err) => { console.error("[fetch] error:", err); setLoading(false); });
   }, [user]);
 
   const activeTrips = trips.filter(isTripActive);

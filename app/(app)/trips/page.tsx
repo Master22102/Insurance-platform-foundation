@@ -326,7 +326,7 @@ export default function TripsPage() {
       setTrips(enriched);
       setArchivedTrips(archivedRes.data || []);
       setLoading(false);
-    });.catch((err) => { console.error("[fetch] error:", err); setLoading(false); });
+    }).catch((err) => { console.error("[fetch] error:", err); setLoading(false); });
   }, [user]);
 
   return (

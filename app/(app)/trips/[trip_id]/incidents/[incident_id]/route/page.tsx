@@ -52,7 +52,7 @@ export default function ClaimRoutingPage() {
       setPolicies(polRes.data || []);
       setEvidence(evRes.data || []);
       setLoading(false);
-    });.catch((err) => { console.error("[fetch] error:", err); setLoading(false); });
+    }).catch((err) => { console.error("[fetch] error:", err); setLoading(false); });
   }, [user, incidentId, tripId]);
 
   const handleSubmit = async () => {

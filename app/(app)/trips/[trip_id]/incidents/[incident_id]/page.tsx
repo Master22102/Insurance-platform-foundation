@@ -153,7 +153,7 @@ export default function IncidentDetailPage() {
       setEvidence(evRes.data || []);
       setEvents(ledgerRes.data || []);
       setLoading(false);
-    });.catch((err) => { console.error("[fetch] error:", err); setLoading(false); });
+    }).catch((err) => { console.error("[fetch] error:", err); setLoading(false); });
   }, [user, incidentId]);
 
   if (loading) {

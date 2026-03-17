@@ -81,7 +81,7 @@ export default function IncidentsPage() {
 
       setGrouped(Object.values(tripMap).filter((t) => t.incidents.length > 0));
       setLoading(false);
-    });.catch((err) => { console.error("[fetch] error:", err); setLoading(false); });
+    }).catch((err) => { console.error("[fetch] error:", err); setLoading(false); });
   }, [user]);
 
   const totalIncidents = grouped.reduce((s, t) => s + t.incidents.length, 0);

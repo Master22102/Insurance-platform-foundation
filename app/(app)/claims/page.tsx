@@ -97,7 +97,7 @@ export default function ClaimsPage() {
 
       setIncidents(enriched);
       setLoading(false);
-    });.catch((err) => { console.error("[fetch] error:", err); setLoading(false); });
+    }).catch((err) => { console.error("[fetch] error:", err); setLoading(false); });
   }, [user]);
 
   const ready = incidents.filter((i) => i.canonical_status === 'CLAIM_ROUTING_READY');
