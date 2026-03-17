@@ -70,13 +70,13 @@
     "tailwindcss-animate": "^1.0.7",
     "typescript": "5.2.2",
     "vaul": "^0.9.9",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "pdf-parse-fork": "^1.2.0"
   },
   "devDependencies": {
     "@types/jsdom": "^28.0.0",
     "@types/node": "^25.3.5",
     "pdf-parse": "^2.4.5",
-    "pdf-parse-fork": "^1.2.0",
     "playwright": "^1.58.2"
   }
 }
