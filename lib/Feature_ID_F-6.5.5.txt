@@ -1,0 +1,341 @@
+﻿Feature ID
+F-6.5.5
+Name
+Claim Routing & Sequencing Engine
+Phase
+Phase 1 (MVP)
+________________
+
+
+1. Extracted Context from Prior Discussions
+Prior discussions established that travelers frequently hold multiple overlapping forms of protection, including airline obligations, credit card benefits, travel insurance, and sometimes home or renter’s insurance. When disruptions occur, users often act under stress and file claims without understanding sequencing, primacy, or downstream effects.
+Key risks identified:
+* Filing the wrong claim first can trigger denial cascades due to secondary coverage clauses or “other insurance” language.
+
+* Accepting airline compensation (refunds, vouchers, credits, rebooking) can change how other providers later evaluate the loss.
+
+* Premium, eligibility, or relationship consequences may arise when filing small or unnecessary claims against long-term policies.
+
+* In some cases, waiting, documenting, or not filing at all may preserve more options than immediate action.
+
+* Airline resolutions accepted too early may unintentionally limit credit card or insurance benefits.
+
+The platform’s role is to slow users down, surface tradeoffs, and make consequences legible — without guaranteeing outcomes or providing legal advice.
+________________
+
+
+2. Purpose
+To help travelers understand how and when to route claims across airlines, credit cards, insurers, and long-term policies in order to reduce avoidable denials, preserve eligibility, and minimize friction.
+This feature provides decision support only. It does not submit claims, determine outcomes, or replace provider judgment.
+________________
+
+
+3. Scope (In-Scope Capabilities)
+   * Identify all potential claim paths relevant to an incident.
+
+   * Surface sequencing considerations, including:
+
+      * Airline → card → insurer → long-term policy norms
+
+      * Situations where alternative sequencing may apply
+
+         * Explicitly flag:
+
+            * Denial-cascade risk
+
+            * Secondary coverage conflicts
+
+            * Settlement and mitigation implications
+
+               * Provide guidance on:
+
+                  * When waiting or documenting is prudent
+
+                  * When claim size may not justify long-term risk
+
+                     * Support both solo travelers and group organizers.
+
+________________
+
+
+4. Non-Scope (Explicitly Excluded)
+                        * Submitting or managing claims on behalf of users
+
+                        * Guaranteeing approval or reimbursement
+
+                        * Providing legal, regulatory, or financial advice
+
+                        * Modeling premiums or insurer behavior
+
+                        * Negotiating with providers
+
+                        * Enforcing outcomes
+
+________________
+
+
+5. Inputs
+                           * Coverage Graph & Overlap Resolution output (F-6.5.2)
+
+                           * Airline Disruption Intelligence output (F-6.5.4)
+
+                           * User-declared context:
+
+                              * Incident details
+
+                              * Expenses incurred
+
+                              * Actions already taken
+
+                                 * Parsed policy and benefit metadata:
+
+                                    * Primary/secondary language
+
+                                    * Exclusions
+
+                                    * Dependency clauses
+
+________________
+
+
+6. Outputs
+                                       * Plain-language routing guidance
+
+                                       * Sequencing cautions and tradeoff explanations
+
+                                       * Explicit uncertainty statements
+
+                                       * Action-oriented options without directives
+
+                                       * Reminder:
+
+
+“We can’t predict what will happen, but we can help you move through it with the least friction possible.”
+
+
+________________
+
+
+7. Decision Logic (plain language, no code)
+The engine evaluates claim routing through the following steps:
+7.1 Acceptance Checkpoint (Mandatory)
+The system explicitly asks whether the user has already accepted any of the following:
+                                          * Refund
+
+                                          * Rebooking
+
+                                          * Voucher
+
+                                          * Credit
+
+                                          * Partial reimbursement or goodwill compensation
+
+If yes, routing logic adjusts immediately.
+Acceptance does not automatically bar further benefits, but it changes how the loss is evaluated later. Other providers may consider accepted compensation when determining eligibility or reimbursement amounts.
+________________
+
+
+7.2 Cause Classification
+The incident is classified as one of the following:
+                                             * Clear airline responsibility
+
+                                             * Shared or ambiguous cause
+
+                                             * External or systemic cause
+
+                                             * User- or itinerary-driven cause
+
+Cause classification determines confidence level and language framing.
+________________
+
+
+7.3 Coverage Layer Evaluation
+The system identifies:
+                                                * Airline obligations and remedies
+
+                                                * Credit card benefit applicability
+
+                                                * Travel insurance coverage and exclusions
+
+                                                * Long-term policy relevance (home/renter)
+
+Primary vs secondary language and dependency clauses are surfaced.
+________________
+
+
+7.4 Small Claim Warning Band
+When all of the following apply:
+                                                   * Claim value is relatively small
+
+                                                   * Target policy has long-term consequences
+
+                                                   * Alternative resolution paths exist
+
+The system presents a cautionary framing:
+“This claim appears relatively small.
+Some policies treat any claim as part of your long-term history.
+You may want to weigh the value of this claim against potential future eligibility or premium considerations.”
+No recommendation is made.
+________________
+
+
+7.5 User-Initiated Action Forks
+If the user does not want to wait for provider resolution, the system presents choice-forward options:
+Example:
+“If you don’t want to wait for airline resolution, you may arrange your own transportation.
+This may affect reimbursement depending on provider rules.
+What would you like to do?”
+The system explains consequences without blocking action.
+7.6 Guidance Posture & Confidence Framing
+The system does not present guidance as binary “covered” or “not covered,” nor does it defer interpretive responsibility back to the user. Instead, it frames guidance using graduated guidance postures, reflecting both policy language and real-world procedural realities.
+This framing is designed to be especially useful when users are operating under stress, time constraints, or outside carrier business hours.
+Direct Guidance
+Used when policy language, incident classification, and typical carrier procedures align clearly.
+The system provides a straightforward recommended path.
+Expected coverage boundaries are explained in plain language.
+Documentation requirements are explicitly listed and queued.
+Where applicable, the system identifies the correct carrier or provider reporting channel (e.g., specific disruption or verification portals), rather than generic contact links.
+Language example:
+“Based on the policy language and the event described, this expense is typically eligible up to the stated limit. Here’s what to document and where to report it when you’re ready.”
+Conditional Guidance
+Used when coverage applicability depends on specific conditions such as timing thresholds, sequencing choices, or overlapping policies.
+The system explains why multiple paths exist.
+Tradeoffs are clearly described.
+The user is not told to “wait and see,” but is guided on how to preserve options.
+Documentation is proactively requested, not deferred.
+Language example:
+“Coverage here depends on how this event is classified by the carrier. To protect your options, we recommend capturing the following documentation now. You can decide on the filing sequence once this is in place.”
+Protected Guidance
+Used when external variables (e.g., jurisdictional differences, carrier discretion, or conflicting policy language) materially affect outcomes.
+The system still performs interpretive analysis and explains what the policy language supports.
+Uncertainty is framed around external acceptance, not internal understanding.
+The system emphasizes safeguarding the user’s position by:
+documenting thoroughly
+avoiding irreversible actions prematurely
+Carrier-specific reporting procedures are highlighted when known.
+Language example:
+“The policy language supports coverage for this type of expense, but outcomes can vary based on how the carrier classifies the event. To protect your position, here’s exactly what to document and the appropriate channel to report through.”
+General Principles
+Guidance posture affects language, pacing, and emphasis, not user autonomy.
+The system never withholds interpretation; it contextualizes it.
+Documentation is always framed as a proactive safeguard, not a delay tactic.
+The platform explicitly acknowledges that users may be operating outside business hours and designs guidance accordingly.
+________________
+Representative Routing Scenarios
+                                                      * Airline delay with lodging costs → airline first, card second, insurer third
+
+                                                      * System-wide outage → airline resolution + card documentation emphasized
+
+                                                      * Accepted voucher → downstream reimbursement caution activated
+
+                                                      * Small loss + long-term policy → warning band surfaced
+
+                                                      * Group disruption → coordination risks highlighted
+
+________________
+
+
+8. Failure Modes & Safe Defaults
+When certainty is low or information is incomplete, the system:
+                                                         * Defaults to transparency over confidence
+
+                                                         * Explicitly states uncertainty
+
+                                                         * Encourages documentation before filing
+
+                                                         * Treats waiting as a valid outcome
+
+                                                         * Avoids ranking options as “best” or “correct”
+
+                                                         * Never pressures immediate filing
+
+Acceptance-related uncertainty is framed as evaluation change, not prohibition.
+________________
+
+
+9. UX Surfaces
+                                                            * Incident flow decision screens
+
+                                                            * Expandable explanations (“Why this matters”)
+
+                                                            * Progressive disclosure layers
+
+                                                            * Action forks for self-directed decisions
+
+                                                            * Calm, non-alarmist language throughout
+
+________________
+
+
+10. Evidence & Documentation Implications
+                                                               * Identifies documentation likely required per route
+
+                                                               * Flags when evidence should be collected before action
+
+                                                               * Passes context to downstream features
+
+                                                               * Does not judge evidence sufficiency
+
+________________
+
+
+11. Privacy & Security Requirements (Feature-Specific)
+                                                                  * Uses only user-provided and parsed data
+
+                                                                  * No outbound sharing with providers
+
+                                                                  * No automated submissions
+
+                                                                  * View-only guidance
+
+________________
+
+
+12. Logging & Audit Requirements
+Logs include:
+                                                                     * Inputs used
+
+                                                                     * Routing paths presented
+
+                                                                     * Warnings and disclosures shown
+
+Logs exist for transparency and user reference only.
+________________
+
+
+13. Test Scenarios
+The feature is validated against 50 scenarios, including:
+                                                                        * Airline IT failures
+
+                                                                        * System-wide ATC outages
+
+                                                                        * Weather-driven mass cancellations
+
+                                                                        * Voucher acceptance before claims
+
+                                                                        * Secondary coverage denial cascades
+
+                                                                        * Small claims against long-term policies
+
+                                                                        * Group booking splits
+
+                                                                        * Documentation gaps
+
+                                                                        * Mixed fare class disruptions
+
+                                                                        * User-directed self-rebooking
+
+Scenarios are labeled as historical-patterned or synthetic edge cases.
+________________
+
+
+14. Phase Notes (What is explicitly deferred to Phase 2+)
+                                                                           * Automated claim packet generation
+
+                                                                           * Outcome-based optimization
+
+                                                                           * Premium modeling
+
+                                                                           * Regulatory jurisdiction logic
+
+                                                                           * Active claim tracking

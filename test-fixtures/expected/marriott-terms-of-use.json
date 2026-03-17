@@ -1,0 +1,27 @@
+{
+  "target_name": "marriott-terms-of-use",
+  "source_url": "https://www.marriott.com/about/terms-of-use.mi",
+  "expected_clause_types": {
+    "required": [
+      "hotel_cancellation_window",
+      "refund_eligibility_rule"
+    ],
+    "optional": [
+      "payment_method_requirement",
+      "requires_receipts",
+      "claim_deadline_days"
+    ],
+    "prohibited": [
+      "baggage_liability_limit",
+      "carrier_liability_cap",
+      "trip_delay_threshold"
+    ]
+  },
+  "min_sections": 5,
+  "min_candidates": 2,
+  "notes": [
+    "Hotel terms of use - focus on reservations and cancellations",
+    "Should detect cancellation windows and refund policies",
+    "Should not detect airline/carrier specific clauses"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "target_name": "alaska-contract-of-carriage",
+  "source_url": "https://www.alaskaair.com/content/legal/contract-of-carriage",
+  "expected_clause_types": {
+    "required": [
+      "baggage_liability_limit",
+      "carrier_liability_cap",
+      "refund_eligibility_rule"
+    ],
+    "optional": [
+      "trip_delay_threshold",
+      "trip_delay_limit",
+      "claim_deadline_days",
+      "requires_police_report",
+      "payment_method_requirement"
+    ],
+    "prohibited": [
+      "hotel_cancellation_window"
+    ]
+  },
+  "min_sections": 10,
+  "min_candidates": 3,
+  "notes": [
+    "Airline contract of carriage - comprehensive legal document",
+    "Should detect baggage limits, liability caps, refund rules",
+    "Montreal Convention references expected",
+    "Should not detect hotel-specific clauses"
+  ]
+}

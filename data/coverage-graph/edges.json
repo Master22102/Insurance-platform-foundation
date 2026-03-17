@@ -1,0 +1,4737 @@
+[
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2025-2026-umass-international-travel-insurance-brochure.pdf",
+    "target": "R-0001"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0001",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0001",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0001",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2025-2026-umass-international-travel-insurance-brochure.pdf",
+    "target": "R-0002"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0002",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0002",
+    "target": "CT:personal_effects_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0002",
+    "target": "CT:personal_effects_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2025-2026-umass-international-travel-insurance-brochure.pdf",
+    "target": "R-0003"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0003",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0003",
+    "target": "CT:cruise_cancellation_window"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0003",
+    "target": "CT:cruise_cancellation_window"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026 amex _Platinum_TermsandConditions.pdf",
+    "target": "R-0004"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0004",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0004",
+    "target": "CT:trip_delay_threshold"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0004",
+    "target": "CT:trip_delay_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026 amex _Platinum_TermsandConditions.pdf",
+    "target": "R-0005"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0005",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0005",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0005",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026 amex _Platinum_TermsandConditions.pdf",
+    "target": "R-0006"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0006",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0006",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0006",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026 amex _Platinum_TermsandConditions.pdf",
+    "target": "R-0007"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0007",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0007",
+    "target": "CT:medical_emergency_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0007",
+    "target": "CT:medical_emergency_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026 amex _Platinum_TermsandConditions.pdf",
+    "target": "R-0008"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0008",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0008",
+    "target": "CT:dental_emergency_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0008",
+    "target": "CT:dental_emergency_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026 amex _Platinum_TermsandConditions.pdf",
+    "target": "R-0009"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0009",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0009",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0009",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026 amex _Platinum_TermsandConditions.pdf",
+    "target": "R-0010"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0010",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0010",
+    "target": "CT:rental_car_damage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0010",
+    "target": "CT:rental_car_damage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026 amex _Platinum_TermsandConditions.pdf",
+    "target": "R-0011"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0011",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0011",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0011",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026 amex _Platinum_TermsandConditions.pdf",
+    "target": "R-0012"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0012",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0012",
+    "target": "CT:final_payment_deadline"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0012",
+    "target": "CT:final_payment_deadline"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026 amex _Platinum_TermsandConditions.pdf",
+    "target": "R-0013"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0013",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0013",
+    "target": "CT:check_in_deadline"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0013",
+    "target": "CT:check_in_deadline"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026 amex _Platinum_TermsandConditions.pdf",
+    "target": "R-0014"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0014",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0014",
+    "target": "CT:eu_cancellation_compensation"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026-2027-ACIS-International-Protection-Plans.pdf",
+    "target": "R-0015"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0015",
+    "target": "FAM:other"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0015",
+    "target": "CT:baggage_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0015",
+    "target": "CT:baggage_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026-2027-ACIS-International-Protection-Plans.pdf",
+    "target": "R-0016"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0016",
+    "target": "FAM:other"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0016",
+    "target": "CT:carrier_liability_cap"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0016",
+    "target": "CT:carrier_liability_cap"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026-2027-ACIS-International-Protection-Plans.pdf",
+    "target": "R-0017"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0017",
+    "target": "FAM:other"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0017",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0017",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026-2027-ACIS-International-Protection-Plans.pdf",
+    "target": "R-0018"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0018",
+    "target": "FAM:other"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0018",
+    "target": "CT:medical_evacuation_cost_estimate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026-2027-ACIS-International-Protection-Plans.pdf",
+    "target": "R-0019"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0019",
+    "target": "FAM:other"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0019",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0019",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:2026-2027-ACIS-International-Protection-Plans.pdf",
+    "target": "R-0020"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0020",
+    "target": "FAM:other"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0020",
+    "target": "CT:eu_care_obligation"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:American Airlines Conditions of Carriage.txt",
+    "target": "R-0021"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0021",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0021",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0021",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:American Airlines Conditions of Carriage.txt",
+    "target": "R-0022"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0022",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0022",
+    "target": "CT:payment_method_requirement"
+  },
+  {
+    "edge_type": "rule_depends_on_payment_method",
+    "source": "R-0022",
+    "target": "CT:payment_method_requirement"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:American Airlines Conditions of Carriage.txt",
+    "target": "R-0023"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0023",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0023",
+    "target": "CT:check_in_deadline"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0023",
+    "target": "CT:check_in_deadline"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:American Express 2026 Benefit Guide.pdf",
+    "target": "R-0024"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0024",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0024",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0024",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:American Express 2026 Benefit Guide.pdf",
+    "target": "R-0025"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0025",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0025",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0025",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:American Express 2026 Benefit Guide.pdf",
+    "target": "R-0026"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0026",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0026",
+    "target": "CT:personal_effects_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0026",
+    "target": "CT:personal_effects_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:California NorwegianCare Ver. 260101.pdf",
+    "target": "R-0027"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0027",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0027",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0027",
+    "target": "JUR:US-CA"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0027",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:California NorwegianCare Ver. 260101.pdf",
+    "target": "R-0028"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0028",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0028",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0028",
+    "target": "JUR:US-CA"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0028",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:California NorwegianCare Ver. 260101.pdf",
+    "target": "R-0029"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0029",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0029",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0029",
+    "target": "JUR:US-CA"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0029",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:California NorwegianCare Ver. 260101.pdf",
+    "target": "R-0030"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0030",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0030",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0030",
+    "target": "JUR:US-CA"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0030",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:California NorwegianCare Ver. 260101.pdf",
+    "target": "R-0031"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0031",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0031",
+    "target": "CT:medical_evacuation_cost_estimate"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0031",
+    "target": "JUR:US-CA"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:California NorwegianCare Ver. 260101.pdf",
+    "target": "R-0032"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0032",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0032",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0032",
+    "target": "JUR:US-CA"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0032",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:California State University.pdf",
+    "target": "R-0033"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0033",
+    "target": "FAM:academic"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0033",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0033",
+    "target": "JUR:US-CA"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0033",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:California State University.pdf",
+    "target": "R-0034"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0034",
+    "target": "FAM:academic"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0034",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0034",
+    "target": "JUR:US-CA"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0034",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:California State University.pdf",
+    "target": "R-0035"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0035",
+    "target": "FAM:academic"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0035",
+    "target": "CT:payment_method_requirement"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0035",
+    "target": "JUR:US-CA"
+  },
+  {
+    "edge_type": "rule_depends_on_payment_method",
+    "source": "R-0035",
+    "target": "CT:payment_method_requirement"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Chase Sapphire Preferred Visa Signature benefit coverage.pdf",
+    "target": "R-0036"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0036",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0036",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0036",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Chase Sapphire Preferred Visa Signature benefit coverage.pdf",
+    "target": "R-0037"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0037",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0037",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0037",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Chase Sapphire Preferred Visa Signature benefit coverage.pdf",
+    "target": "R-0038"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0038",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0038",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0038",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Chase Sapphire Preferred Visa Signature benefit coverage.pdf",
+    "target": "R-0039"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0039",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0039",
+    "target": "CT:baggage_delay_threshold"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0039",
+    "target": "CT:baggage_delay_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Chase Sapphire Preferred Visa Signature benefit coverage.pdf",
+    "target": "R-0040"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0040",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0040",
+    "target": "CT:eu_refund_deadline"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0040",
+    "target": "CT:eu_refund_deadline"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Chase Sapphire Reserve Visa Infinite Coverage Benefits Guide.pdf",
+    "target": "R-0041"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0041",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0041",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0041",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Chase Sapphire Reserve Visa Infinite Coverage Benefits Guide.pdf",
+    "target": "R-0042"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0042",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0042",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0042",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Chase Sapphire Reserve Visa Infinite Coverage Benefits Guide.pdf",
+    "target": "R-0043"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0043",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0043",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0043",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Chase Sapphire Reserve Visa Infinite Coverage Benefits Guide.pdf",
+    "target": "R-0044"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0044",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0044",
+    "target": "CT:medical_evacuation_cost_estimate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Conditions of Carriage _ Ethiopian Airlines United States of America _ US.pdf",
+    "target": "R-0045"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0045",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0045",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0045",
+    "target": "JUR:US"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0045",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Conditions of Carriage _ Ethiopian Airlines United States of America _ US.pdf",
+    "target": "R-0046"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0046",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0046",
+    "target": "CT:baggage_liability_limit"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0046",
+    "target": "JUR:US"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0046",
+    "target": "CT:baggage_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Conditions of Carriage _ Ethiopian Airlines United States of America _ US.pdf",
+    "target": "R-0047"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0047",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0047",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0047",
+    "target": "JUR:US"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0047",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Conditions of Carriage _ Ethiopian Airlines United States of America _ US.pdf",
+    "target": "R-0048"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0048",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0048",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0048",
+    "target": "JUR:US"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0048",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Conditions of Carriage _ Ethiopian Airlines United States of America _ US.pdf",
+    "target": "R-0049"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0049",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0049",
+    "target": "CT:dental_emergency_limit"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0049",
+    "target": "JUR:US"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0049",
+    "target": "CT:dental_emergency_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Conditions of Carriage _ Ethiopian Airlines United States of America _ US.pdf",
+    "target": "R-0050"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0050",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0050",
+    "target": "CT:cruise_cancellation_window"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0050",
+    "target": "JUR:US"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0050",
+    "target": "CT:cruise_cancellation_window"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Conditions of Carriage _ Ethiopian Airlines United States of America _ US.pdf",
+    "target": "R-0051"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0051",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0051",
+    "target": "CT:check_in_deadline"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0051",
+    "target": "JUR:US"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0051",
+    "target": "CT:check_in_deadline"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Conditions of Carriage _ Ethiopian Airlines United States of America _ US.pdf",
+    "target": "R-0052"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0052",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0052",
+    "target": "CT:eu_refund_deadline"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0052",
+    "target": "JUR:US"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0052",
+    "target": "CT:eu_refund_deadline"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Conditions of Carriage _ Ethiopian Airlines United States of America _ US.pdf",
+    "target": "R-0053"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0053",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0053",
+    "target": "CT:eu_cancellation_compensation"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0053",
+    "target": "JUR:US"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Delt Contract of Carriage.pdf",
+    "target": "R-0054"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0054",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0054",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0054",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Delt Contract of Carriage.pdf",
+    "target": "R-0055"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0055",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0055",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0055",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Delt Contract of Carriage.pdf",
+    "target": "R-0056"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0056",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0056",
+    "target": "CT:emergency_evacuation_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0056",
+    "target": "CT:emergency_evacuation_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Delt Contract of Carriage.pdf",
+    "target": "R-0057"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0057",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0057",
+    "target": "CT:check_in_deadline"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0057",
+    "target": "CT:check_in_deadline"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Delt Contract of Carriage.pdf",
+    "target": "R-0058"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0058",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0058",
+    "target": "CT:cruise_cancellation_window"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0058",
+    "target": "CT:cruise_cancellation_window"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Delt Contract of Carriage.pdf",
+    "target": "R-0059"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0059",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0059",
+    "target": "CT:baggage_delay_threshold"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0059",
+    "target": "CT:baggage_delay_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Delt Contract of Carriage.pdf",
+    "target": "R-0060"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0060",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0060",
+    "target": "CT:eu_refund_deadline"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0060",
+    "target": "CT:eu_refund_deadline"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Does Renters Insurance Cover Theft_ _ Progressive.pdf",
+    "target": "R-0061"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0061",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0061",
+    "target": "CT:baggage_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0061",
+    "target": "CT:baggage_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Does Renters Insurance Cover Theft_ _ Progressive.pdf",
+    "target": "R-0062"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0062",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0062",
+    "target": "CT:repatriation_remains_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Does Renters Insurance Cover Theft_ _ Progressive.pdf",
+    "target": "R-0063"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0063",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0063",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0063",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Does Renters Insurance Cover Theft_ _ Progressive.pdf",
+    "target": "R-0064"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0064",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0064",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0064",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Does Renters Insurance Cover Theft_ _ Progressive.pdf",
+    "target": "R-0065"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0065",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0065",
+    "target": "CT:eu_delay_compensation_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:EW-Benefit-Guide_314-399_EDT-10.20_REV_4.24_a11y2.pdf",
+    "target": "R-0066"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0066",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0066",
+    "target": "CT:trip_cancellation_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0066",
+    "target": "CT:trip_cancellation_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:EW-Benefit-Guide_314-399_EDT-10.20_REV_4.24_a11y2.pdf",
+    "target": "R-0067"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0067",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0067",
+    "target": "CT:trip_interruption_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0067",
+    "target": "CT:trip_interruption_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:EW-Benefit-Guide_314-399_EDT-10.20_REV_4.24_a11y2.pdf",
+    "target": "R-0068"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0068",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0068",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0068",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:EW-Benefit-Guide_314-399_EDT-10.20_REV_4.24_a11y2.pdf",
+    "target": "R-0069"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0069",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0069",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0069",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:EW-Benefit-Guide_314-399_EDT-10.20_REV_4.24_a11y2.pdf",
+    "target": "R-0070"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0070",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0070",
+    "target": "CT:medical_emergency_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0070",
+    "target": "CT:medical_emergency_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:EW-Benefit-Guide_314-399_EDT-10.20_REV_4.24_a11y2.pdf",
+    "target": "R-0071"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0071",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0071",
+    "target": "CT:emergency_evacuation_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0071",
+    "target": "CT:emergency_evacuation_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:EW-Benefit-Guide_314-399_EDT-10.20_REV_4.24_a11y2.pdf",
+    "target": "R-0072"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0072",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0072",
+    "target": "CT:dental_emergency_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0072",
+    "target": "CT:dental_emergency_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:EW-Benefit-Guide_314-399_EDT-10.20_REV_4.24_a11y2.pdf",
+    "target": "R-0073"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0073",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0073",
+    "target": "CT:repatriation_remains_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:EW-Benefit-Guide_314-399_EDT-10.20_REV_4.24_a11y2.pdf",
+    "target": "R-0074"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0074",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0074",
+    "target": "CT:rental_car_damage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0074",
+    "target": "CT:rental_car_damage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:EW-Benefit-Guide_314-399_EDT-10.20_REV_4.24_a11y2.pdf",
+    "target": "R-0075"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0075",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0075",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0075",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:EW-Benefit-Guide_314-399_EDT-10.20_REV_4.24_a11y2.pdf",
+    "target": "R-0076"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0076",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0076",
+    "target": "CT:personal_effects_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0076",
+    "target": "CT:personal_effects_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:EW-Benefit-Guide_314-399_EDT-10.20_REV_4.24_a11y2.pdf",
+    "target": "R-0077"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0077",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0077",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0077",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:EW-Benefit-Guide_314-399_EDT-10.20_REV_4.24_a11y2.pdf",
+    "target": "R-0078"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0078",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0078",
+    "target": "CT:medical_evacuation_cost_estimate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:FLorida NorwegianCare Ver. 260101.pdf",
+    "target": "R-0079"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0079",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0079",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0079",
+    "target": "JUR:US-FL"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0079",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:FLorida NorwegianCare Ver. 260101.pdf",
+    "target": "R-0080"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0080",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0080",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0080",
+    "target": "JUR:US-FL"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0080",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:FLorida NorwegianCare Ver. 260101.pdf",
+    "target": "R-0081"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0081",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0081",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0081",
+    "target": "JUR:US-FL"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0081",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:FLorida NorwegianCare Ver. 260101.pdf",
+    "target": "R-0082"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0082",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0082",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0082",
+    "target": "JUR:US-FL"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0082",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:FLorida NorwegianCare Ver. 260101.pdf",
+    "target": "R-0083"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0083",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0083",
+    "target": "CT:medical_evacuation_cost_estimate"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0083",
+    "target": "JUR:US-FL"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:FLorida NorwegianCare Ver. 260101.pdf",
+    "target": "R-0084"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0084",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0084",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0084",
+    "target": "JUR:US-FL"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0084",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Florida Royal Caribbean Travel Protection document.pdf",
+    "target": "R-0085"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0085",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0085",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0085",
+    "target": "JUR:US-FL"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0085",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Florida Royal Caribbean Travel Protection document.pdf",
+    "target": "R-0086"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0086",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0086",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0086",
+    "target": "JUR:US-FL"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0086",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Florida Royal Caribbean Travel Protection document.pdf",
+    "target": "R-0087"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0087",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0087",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0087",
+    "target": "JUR:US-FL"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0087",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Florida Royal Caribbean Travel Protection document.pdf",
+    "target": "R-0088"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0088",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0088",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0088",
+    "target": "JUR:US-FL"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0088",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Florida Royal Caribbean Travel Protection document.pdf",
+    "target": "R-0089"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0089",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0089",
+    "target": "CT:medical_evacuation_cost_estimate"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0089",
+    "target": "JUR:US-FL"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Florida Royal Caribbean Travel Protection document.pdf",
+    "target": "R-0090"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0090",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0090",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0090",
+    "target": "JUR:US-FL"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0090",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:General_Conditions_of_Carriage_for_Passengers_and_Baggage_(flight_ticket_GCC).pdf",
+    "target": "R-0091"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0091",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0091",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0091",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:General_Conditions_of_Carriage_for_Passengers_and_Baggage_(flight_ticket_GCC).pdf",
+    "target": "R-0092"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0092",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0092",
+    "target": "CT:repatriation_remains_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:General_Conditions_of_Carriage_for_Passengers_and_Baggage_(flight_ticket_GCC).pdf",
+    "target": "R-0093"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0093",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0093",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0093",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:General_Conditions_of_Carriage_for_Passengers_and_Baggage_(flight_ticket_GCC).pdf",
+    "target": "R-0094"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0094",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0094",
+    "target": "CT:personal_effects_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0094",
+    "target": "CT:personal_effects_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Loyalty_Program_Terms_and_Conditions.mhtml",
+    "target": "R-0095"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0095",
+    "target": "FAM:hotel"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0095",
+    "target": "CT:payment_method_requirement"
+  },
+  {
+    "edge_type": "rule_depends_on_payment_method",
+    "source": "R-0095",
+    "target": "CT:payment_method_requirement"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Melia Rewards _ Terms and Conditions.pdf",
+    "target": "R-0096"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0096",
+    "target": "FAM:hotel"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0096",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0096",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:NY NorwegianCare Ver. 260101.pdf",
+    "target": "R-0097"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0097",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0097",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0097",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:NY NorwegianCare Ver. 260101.pdf",
+    "target": "R-0098"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0098",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0098",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0098",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:NY NorwegianCare Ver. 260101.pdf",
+    "target": "R-0099"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0099",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0099",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0099",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:NY NorwegianCare Ver. 260101.pdf",
+    "target": "R-0100"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0100",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0100",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0100",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:NY NorwegianCare Ver. 260101.pdf",
+    "target": "R-0101"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0101",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0101",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0101",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:NY NorwegianCare Ver. 260101.pdf",
+    "target": "R-0102"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0102",
+    "target": "FAM:cruise"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0102",
+    "target": "CT:medical_evacuation_cost_estimate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:New York Royal Carribean Protection.pdf",
+    "target": "R-0103"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0103",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0103",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0103",
+    "target": "JUR:US-NY"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0103",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:New York Royal Carribean Protection.pdf",
+    "target": "R-0104"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0104",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0104",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0104",
+    "target": "JUR:US-NY"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0104",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:New York Royal Carribean Protection.pdf",
+    "target": "R-0105"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0105",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0105",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0105",
+    "target": "JUR:US-NY"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0105",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:New York Royal Carribean Protection.pdf",
+    "target": "R-0106"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0106",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0106",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0106",
+    "target": "JUR:US-NY"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0106",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:New York Royal Carribean Protection.pdf",
+    "target": "R-0107"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0107",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0107",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0107",
+    "target": "JUR:US-NY"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0107",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:New York Royal Carribean Protection.pdf",
+    "target": "R-0108"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0108",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0108",
+    "target": "CT:medical_evacuation_cost_estimate"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0108",
+    "target": "JUR:US-NY"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Philippine airlines general conditions of carriage full version.pdf",
+    "target": "R-0109"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0109",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0109",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0109",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Philippine airlines general conditions of carriage full version.pdf",
+    "target": "R-0110"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0110",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0110",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0110",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Royal_Caribbean_booklet_.pdf",
+    "target": "R-0111"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0111",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0111",
+    "target": "CT:trip_delay_threshold"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0111",
+    "target": "CT:trip_delay_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Royal_Caribbean_booklet_.pdf",
+    "target": "R-0112"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0112",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0112",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0112",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Royal_Caribbean_booklet_.pdf",
+    "target": "R-0113"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0113",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0113",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0113",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Royal_Caribbean_booklet_.pdf",
+    "target": "R-0114"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0114",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0114",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0114",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Royal_Caribbean_booklet_.pdf",
+    "target": "R-0115"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0115",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0115",
+    "target": "CT:repatriation_remains_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Royal_Caribbean_booklet_.pdf",
+    "target": "R-0116"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0116",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0116",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0116",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Royal_Caribbean_booklet_.pdf",
+    "target": "R-0117"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0117",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0117",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0117",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Royal_Caribbean_booklet_.pdf",
+    "target": "R-0118"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0118",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0118",
+    "target": "CT:final_payment_deadline"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0118",
+    "target": "CT:final_payment_deadline"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Royal_Caribbean_booklet_.pdf",
+    "target": "R-0119"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0119",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0119",
+    "target": "CT:eu_denied_boarding_compensation"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Standard_Contract_of_carriage_-_Alaska_Airlines.mhtml",
+    "target": "R-0120"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0120",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0120",
+    "target": "CT:refund_eligibility_rule"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Terms & Conditions.pdf",
+    "target": "R-0121"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0121",
+    "target": "FAM:other"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0121",
+    "target": "CT:payment_method_requirement"
+  },
+  {
+    "edge_type": "rule_depends_on_payment_method",
+    "source": "R-0121",
+    "target": "CT:payment_method_requirement"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Terms and Conditions of Carriage for KT Flights _ AirAsia MOVE.pdf",
+    "target": "R-0122"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0122",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0122",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0122",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Terms and Conditions of Carriage for KT Flights _ AirAsia MOVE.pdf",
+    "target": "R-0123"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0123",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0123",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0123",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Terms and Conditions of Carriage for KT Flights _ AirAsia MOVE.pdf",
+    "target": "R-0124"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0124",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0124",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0124",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Terms and Conditions of Carriage for KT Flights _ AirAsia MOVE.pdf",
+    "target": "R-0125"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0125",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0125",
+    "target": "CT:cruise_cancellation_window"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0125",
+    "target": "CT:cruise_cancellation_window"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:Terms and Conditions of Carriage for KT Flights _ AirAsia MOVE.pdf",
+    "target": "R-0126"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0126",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0126",
+    "target": "CT:eu_refund_deadline"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0126",
+    "target": "CT:eu_refund_deadline"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:United Contract of Carriage.txt",
+    "target": "R-0127"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0127",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0127",
+    "target": "CT:trip_delay_threshold"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0127",
+    "target": "CT:trip_delay_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:United Contract of Carriage.txt",
+    "target": "R-0128"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0128",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0128",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0128",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:United Contract of Carriage.txt",
+    "target": "R-0129"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0129",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0129",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0129",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:United Contract of Carriage.txt",
+    "target": "R-0130"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0130",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0130",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0130",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:United Contract of Carriage.txt",
+    "target": "R-0131"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0131",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0131",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0131",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:United Contract of Carriage.txt",
+    "target": "R-0132"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0132",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0132",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0132",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:United Contract of Carriage.txt",
+    "target": "R-0133"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0133",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0133",
+    "target": "CT:check_in_deadline"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0133",
+    "target": "CT:check_in_deadline"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:United Contract of Carriage.txt",
+    "target": "R-0134"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0134",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0134",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0134",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:United Contract of Carriage.txt",
+    "target": "R-0135"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0135",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0135",
+    "target": "CT:eu_denied_boarding_compensation"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:WKS_#U00d6AMTC_2026_Englisch.pdf",
+    "target": "R-0136"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0136",
+    "target": "FAM:other"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0136",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0136",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:WKS_#U00d6AMTC_2026_Englisch.pdf",
+    "target": "R-0137"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0137",
+    "target": "FAM:other"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0137",
+    "target": "CT:repatriation_remains_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:WKS_#U00d6AMTC_2026_Englisch.pdf",
+    "target": "R-0138"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0138",
+    "target": "FAM:other"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0138",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0138",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:WKS_#U00d6AMTC_2026_Englisch.pdf",
+    "target": "R-0139"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0139",
+    "target": "FAM:other"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0139",
+    "target": "CT:personal_effects_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0139",
+    "target": "CT:personal_effects_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:WKS_#U00d6AMTC_2026_Englisch.pdf",
+    "target": "R-0140"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0140",
+    "target": "FAM:other"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0140",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0140",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:air-new-zealand-modern-slavery-act-statement-2023.pdf",
+    "target": "R-0141"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0141",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0141",
+    "target": "CT:eu_refund_deadline"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0141",
+    "target": "CT:eu_refund_deadline"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex return protection.pdf",
+    "target": "R-0142"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0142",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0142",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0142",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex return protection.pdf",
+    "target": "R-0143"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0143",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0143",
+    "target": "CT:baggage_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0143",
+    "target": "CT:baggage_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex return protection.pdf",
+    "target": "R-0144"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0144",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0144",
+    "target": "CT:trip_cancellation_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0144",
+    "target": "CT:trip_cancellation_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex return protection.pdf",
+    "target": "R-0145"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0145",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0145",
+    "target": "CT:trip_interruption_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0145",
+    "target": "CT:trip_interruption_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex return protection.pdf",
+    "target": "R-0146"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0146",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0146",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0146",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex return protection.pdf",
+    "target": "R-0147"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0147",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0147",
+    "target": "CT:medical_emergency_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0147",
+    "target": "CT:medical_emergency_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex return protection.pdf",
+    "target": "R-0148"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0148",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0148",
+    "target": "CT:emergency_evacuation_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0148",
+    "target": "CT:emergency_evacuation_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex return protection.pdf",
+    "target": "R-0149"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0149",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0149",
+    "target": "CT:dental_emergency_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0149",
+    "target": "CT:dental_emergency_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex return protection.pdf",
+    "target": "R-0150"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0150",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0150",
+    "target": "CT:repatriation_remains_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex return protection.pdf",
+    "target": "R-0151"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0151",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0151",
+    "target": "CT:rental_car_damage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0151",
+    "target": "CT:rental_car_damage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex return protection.pdf",
+    "target": "R-0152"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0152",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0152",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0152",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex return protection.pdf",
+    "target": "R-0153"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0153",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0153",
+    "target": "CT:personal_effects_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0153",
+    "target": "CT:personal_effects_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex return protection.pdf",
+    "target": "R-0154"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0154",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0154",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0154",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex travel protection-Benefit-Guide_316-404_EDT_10.20_REV_4.24_a11y.pdf",
+    "target": "R-0155"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0155",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0155",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0155",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex travel protection-Benefit-Guide_316-404_EDT_10.20_REV_4.24_a11y.pdf",
+    "target": "R-0156"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0156",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0156",
+    "target": "CT:trip_interruption_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0156",
+    "target": "CT:trip_interruption_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex travel protection-Benefit-Guide_316-404_EDT_10.20_REV_4.24_a11y.pdf",
+    "target": "R-0157"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0157",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0157",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0157",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex travel protection-Benefit-Guide_316-404_EDT_10.20_REV_4.24_a11y.pdf",
+    "target": "R-0158"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0158",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0158",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0158",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex travel protection-Benefit-Guide_316-404_EDT_10.20_REV_4.24_a11y.pdf",
+    "target": "R-0159"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0159",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0159",
+    "target": "CT:emergency_evacuation_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0159",
+    "target": "CT:emergency_evacuation_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:amex travel protection-Benefit-Guide_316-404_EDT_10.20_REV_4.24_a11y.pdf",
+    "target": "R-0160"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0160",
+    "target": "FAM:credit_card"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0160",
+    "target": "CT:repatriation_remains_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:budget-us-protections-coverages-brochure-010224.pdf",
+    "target": "R-0161"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0161",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0161",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0161",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:budget-us-protections-coverages-brochure-010224.pdf",
+    "target": "R-0162"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0162",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0162",
+    "target": "CT:cruise_cancellation_window"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0162",
+    "target": "CT:cruise_cancellation_window"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:budget-us-protections-coverages-brochure-010224.pdf",
+    "target": "R-0163"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0163",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0163",
+    "target": "CT:eu_delay_compensation_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:budget-us-protections-coverages-brochure-010224.pdf",
+    "target": "R-0164"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0164",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0164",
+    "target": "CT:eu_denied_boarding_compensation"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:budget-us-protections-coverages-brochure-010224.pdf",
+    "target": "R-0165"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0165",
+    "target": "FAM:rental"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0165",
+    "target": "CT:eu_cancellation_compensation"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:ca-booking-conditions-jan-2025.pdf",
+    "target": "R-0166"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0166",
+    "target": "FAM:hotel"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0166",
+    "target": "CT:baggage_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0166",
+    "target": "CT:baggage_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:ca-booking-conditions-jan-2025.pdf",
+    "target": "R-0167"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0167",
+    "target": "FAM:hotel"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0167",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0167",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:ca-booking-conditions-jan-2025.pdf",
+    "target": "R-0168"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0168",
+    "target": "FAM:hotel"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0168",
+    "target": "CT:repatriation_remains_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:ca-booking-conditions-jan-2025.pdf",
+    "target": "R-0169"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0169",
+    "target": "FAM:hotel"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0169",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0169",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:ca-booking-conditions-jan-2025.pdf",
+    "target": "R-0170"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0170",
+    "target": "FAM:hotel"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0170",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0170",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:cellar_2f65bf46-8f8a-11ee-8aa6-01aa75ed71a1.0001.02_DOC_1.pdf",
+    "target": "R-0171"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0171",
+    "target": "FAM:eu_jurisdiction"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0171",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0171",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:cellar_2f65bf46-8f8a-11ee-8aa6-01aa75ed71a1.0001.02_DOC_1.pdf",
+    "target": "R-0172"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0172",
+    "target": "FAM:eu_jurisdiction"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0172",
+    "target": "CT:final_payment_deadline"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0172",
+    "target": "CT:final_payment_deadline"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:ctp_accident-report-form.pdf",
+    "target": "R-0173"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0173",
+    "target": "FAM:other"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0173",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0173",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:ctp_accident-report-form.pdf",
+    "target": "R-0174"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0174",
+    "target": "FAM:other"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0174",
+    "target": "CT:round_trip_requirement"
+  },
+  {
+    "edge_type": "rule_depends_on_round_trip",
+    "source": "R-0174",
+    "target": "CT:round_trip_requirement"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:eu Documents..pdf",
+    "target": "R-0175"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0175",
+    "target": "FAM:eu_jurisdiction"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0175",
+    "target": "CT:eu_delay_compensation_threshold"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0175",
+    "target": "JUR:EU"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:eu Documents..pdf",
+    "target": "R-0176"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0176",
+    "target": "FAM:eu_jurisdiction"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0176",
+    "target": "CT:eu_denied_boarding_compensation"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0176",
+    "target": "JUR:EU"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:eu Documents..pdf",
+    "target": "R-0177"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0177",
+    "target": "FAM:eu_jurisdiction"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0177",
+    "target": "CT:eu_cancellation_compensation"
+  },
+  {
+    "edge_type": "rule_applies_to_jurisdiction",
+    "source": "R-0177",
+    "target": "JUR:EU"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:factsheet_package_holidays_2018.06_en_web.pdf",
+    "target": "R-0178"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0178",
+    "target": "FAM:eu_jurisdiction"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0178",
+    "target": "CT:trip_delay_threshold"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0178",
+    "target": "CT:trip_delay_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:factsheet_package_holidays_2018.06_en_web.pdf",
+    "target": "R-0179"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0179",
+    "target": "FAM:eu_jurisdiction"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0179",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0179",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:factsheet_package_holidays_2018.06_en_web.pdf",
+    "target": "R-0180"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0180",
+    "target": "FAM:eu_jurisdiction"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0180",
+    "target": "CT:medical_evacuation_cost_estimate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:frontier contract of carriage.pdf",
+    "target": "R-0181"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0181",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0181",
+    "target": "CT:trip_cancellation_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0181",
+    "target": "CT:trip_cancellation_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:frontier contract of carriage.pdf",
+    "target": "R-0182"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0182",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0182",
+    "target": "CT:trip_interruption_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0182",
+    "target": "CT:trip_interruption_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:frontier contract of carriage.pdf",
+    "target": "R-0183"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0183",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0183",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0183",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:frontier contract of carriage.pdf",
+    "target": "R-0184"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0184",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0184",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0184",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:frontier contract of carriage.pdf",
+    "target": "R-0185"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0185",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0185",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0185",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:frontier contract of carriage.pdf",
+    "target": "R-0186"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0186",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0186",
+    "target": "CT:medical_emergency_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0186",
+    "target": "CT:medical_emergency_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:frontier contract of carriage.pdf",
+    "target": "R-0187"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0187",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0187",
+    "target": "CT:emergency_evacuation_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0187",
+    "target": "CT:emergency_evacuation_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:frontier contract of carriage.pdf",
+    "target": "R-0188"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0188",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0188",
+    "target": "CT:dental_emergency_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0188",
+    "target": "CT:dental_emergency_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:frontier contract of carriage.pdf",
+    "target": "R-0189"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0189",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0189",
+    "target": "CT:rental_car_damage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0189",
+    "target": "CT:rental_car_damage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:frontier contract of carriage.pdf",
+    "target": "R-0190"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0190",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0190",
+    "target": "CT:personal_effects_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0190",
+    "target": "CT:personal_effects_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:frontier contract of carriage.pdf",
+    "target": "R-0191"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0191",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0191",
+    "target": "CT:baggage_delay_threshold"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0191",
+    "target": "CT:baggage_delay_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:frontier contract of carriage.pdf",
+    "target": "R-0192"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0192",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0192",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0192",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:frontier contract of carriage.pdf",
+    "target": "R-0193"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0193",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0193",
+    "target": "CT:eu_delay_compensation_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:premier world discovery travel protction.pdf",
+    "target": "R-0194"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0194",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0194",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0194",
+    "target": "CT:hotel_cancellation_window"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:premier world discovery travel protction.pdf",
+    "target": "R-0195"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0195",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0195",
+    "target": "CT:trip_cancellation_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0195",
+    "target": "CT:trip_cancellation_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:premier world discovery travel protction.pdf",
+    "target": "R-0196"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0196",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0196",
+    "target": "CT:trip_interruption_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0196",
+    "target": "CT:trip_interruption_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:premier world discovery travel protction.pdf",
+    "target": "R-0197"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0197",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0197",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0197",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:premier world discovery travel protction.pdf",
+    "target": "R-0198"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0198",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0198",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0198",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:premier world discovery travel protction.pdf",
+    "target": "R-0199"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0199",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0199",
+    "target": "CT:medical_emergency_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0199",
+    "target": "CT:medical_emergency_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:premier world discovery travel protction.pdf",
+    "target": "R-0200"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0200",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0200",
+    "target": "CT:emergency_evacuation_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0200",
+    "target": "CT:emergency_evacuation_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:premier world discovery travel protction.pdf",
+    "target": "R-0201"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0201",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0201",
+    "target": "CT:repatriation_remains_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:premier world discovery travel protction.pdf",
+    "target": "R-0202"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0202",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0202",
+    "target": "CT:rental_car_damage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0202",
+    "target": "CT:rental_car_damage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:premier world discovery travel protction.pdf",
+    "target": "R-0203"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0203",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0203",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0203",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:premier world discovery travel protction.pdf",
+    "target": "R-0204"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0204",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0204",
+    "target": "CT:personal_effects_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0204",
+    "target": "CT:personal_effects_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:premier world discovery travel protction.pdf",
+    "target": "R-0205"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0205",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0205",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0205",
+    "target": "CT:supplemental_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:premier world discovery travel protction.pdf",
+    "target": "R-0206"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0206",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0206",
+    "target": "CT:deposit_requirement"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:premier world discovery travel protction.pdf",
+    "target": "R-0207"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0207",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0207",
+    "target": "CT:eu_delay_compensation_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:southwest contract-of-carriage.pdf",
+    "target": "R-0208"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0208",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0208",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0208",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:southwest contract-of-carriage.pdf",
+    "target": "R-0209"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0209",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0209",
+    "target": "CT:trip_delay_threshold"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0209",
+    "target": "CT:trip_delay_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:southwest contract-of-carriage.pdf",
+    "target": "R-0210"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0210",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0210",
+    "target": "CT:baggage_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0210",
+    "target": "CT:baggage_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:southwest contract-of-carriage.pdf",
+    "target": "R-0211"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0211",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0211",
+    "target": "CT:requires_baggage_pir"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0211",
+    "target": "CT:requires_baggage_pir"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:southwest contract-of-carriage.pdf",
+    "target": "R-0212"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0212",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0212",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0212",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:southwest contract-of-carriage.pdf",
+    "target": "R-0213"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0213",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0213",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0213",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:southwest contract-of-carriage.pdf",
+    "target": "R-0214"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0214",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0214",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0214",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:southwest contract-of-carriage.pdf",
+    "target": "R-0215"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0215",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0215",
+    "target": "CT:eu_delay_compensation_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:southwest contract-of-carriage.pdf",
+    "target": "R-0216"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0216",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0216",
+    "target": "CT:eu_denied_boarding_compensation"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:sun country airlines_Contract_of_Carriage.pdf",
+    "target": "R-0217"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0217",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0217",
+    "target": "CT:baggage_liability_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0217",
+    "target": "CT:baggage_liability_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:sun country airlines_Contract_of_Carriage.pdf",
+    "target": "R-0218"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0218",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0218",
+    "target": "CT:carrier_liability_cap"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0218",
+    "target": "CT:carrier_liability_cap"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:sun country airlines_Contract_of_Carriage.pdf",
+    "target": "R-0219"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0219",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0219",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0219",
+    "target": "CT:requires_medical_certificate"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:sun country airlines_Contract_of_Carriage.pdf",
+    "target": "R-0220"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0220",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0220",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0220",
+    "target": "CT:requires_receipts"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:sun country airlines_Contract_of_Carriage.pdf",
+    "target": "R-0221"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0221",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0221",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "rule_requires_documentation",
+    "source": "R-0221",
+    "target": "CT:requires_police_report"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:sun country airlines_Contract_of_Carriage.pdf",
+    "target": "R-0222"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0222",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0222",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0222",
+    "target": "CT:personal_accident_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:sun country airlines_Contract_of_Carriage.pdf",
+    "target": "R-0223"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0223",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0223",
+    "target": "CT:baggage_delay_threshold"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0223",
+    "target": "CT:baggage_delay_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:sun country airlines_Contract_of_Carriage.pdf",
+    "target": "R-0224"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0224",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0224",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "rule_has_threshold",
+    "source": "R-0224",
+    "target": "CT:missed_connection_threshold"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:sun country airlines_Contract_of_Carriage.pdf",
+    "target": "R-0225"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0225",
+    "target": "FAM:airline"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0225",
+    "target": "CT:eu_refund_deadline"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0225",
+    "target": "CT:eu_refund_deadline"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:vacation express.pdf",
+    "target": "R-0226"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0226",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0226",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0226",
+    "target": "CT:claim_deadline_days"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:vacation express.pdf",
+    "target": "R-0227"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0227",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0227",
+    "target": "CT:medical_emergency_coverage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0227",
+    "target": "CT:medical_emergency_coverage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:vacation express.pdf",
+    "target": "R-0228"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0228",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0228",
+    "target": "CT:dental_emergency_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0228",
+    "target": "CT:dental_emergency_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:vacation express.pdf",
+    "target": "R-0229"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0229",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0229",
+    "target": "CT:rental_car_damage_limit"
+  },
+  {
+    "edge_type": "rule_has_limit",
+    "source": "R-0229",
+    "target": "CT:rental_car_damage_limit"
+  },
+  {
+    "edge_type": "document_contains_rule",
+    "source": "DOC:vacation express.pdf",
+    "target": "R-0230"
+  },
+  {
+    "edge_type": "rule_originates_from_source_family",
+    "source": "R-0230",
+    "target": "FAM:insurance"
+  },
+  {
+    "edge_type": "rule_belongs_to_clause_type",
+    "source": "R-0230",
+    "target": "CT:eu_refund_deadline"
+  },
+  {
+    "edge_type": "rule_has_deadline",
+    "source": "R-0230",
+    "target": "CT:eu_refund_deadline"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0007",
+    "target": "R-0006",
+    "relationship": "medical_emergency_coverage_limit depends on requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0053",
+    "target": "R-0052",
+    "relationship": "eu_cancellation_compensation depends on eu_refund_deadline"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0066",
+    "target": "R-0068",
+    "relationship": "trip_cancellation_limit depends on requires_receipts"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0067",
+    "target": "R-0068",
+    "relationship": "trip_interruption_limit depends on requires_receipts"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0067",
+    "target": "R-0069",
+    "relationship": "trip_interruption_limit depends on requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0070",
+    "target": "R-0069",
+    "relationship": "medical_emergency_coverage_limit depends on requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0144",
+    "target": "R-0146",
+    "relationship": "trip_cancellation_limit depends on requires_receipts"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0145",
+    "target": "R-0146",
+    "relationship": "trip_interruption_limit depends on requires_receipts"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0156",
+    "target": "R-0157",
+    "relationship": "trip_interruption_limit depends on requires_receipts"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0156",
+    "target": "R-0158",
+    "relationship": "trip_interruption_limit depends on requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0181",
+    "target": "R-0185",
+    "relationship": "trip_cancellation_limit depends on requires_receipts"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0182",
+    "target": "R-0185",
+    "relationship": "trip_interruption_limit depends on requires_receipts"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0182",
+    "target": "R-0184",
+    "relationship": "trip_interruption_limit depends on requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0186",
+    "target": "R-0184",
+    "relationship": "medical_emergency_coverage_limit depends on requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0195",
+    "target": "R-0197",
+    "relationship": "trip_cancellation_limit depends on requires_receipts"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0196",
+    "target": "R-0197",
+    "relationship": "trip_interruption_limit depends on requires_receipts"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0196",
+    "target": "R-0198",
+    "relationship": "trip_interruption_limit depends on requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0199",
+    "target": "R-0198",
+    "relationship": "medical_emergency_coverage_limit depends on requires_medical_certificate"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0210",
+    "target": "R-0211",
+    "relationship": "baggage_liability_limit depends on requires_baggage_pir"
+  },
+  {
+    "edge_type": "rule_depends_on",
+    "source": "R-0217",
+    "target": "R-0221",
+    "relationship": "baggage_liability_limit depends on requires_police_report"
+  }
+]

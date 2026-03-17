@@ -1,0 +1,322 @@
+﻿Feature ID
+F-6.5.6
+Name
+Evidence & Documentation Management
+Phase
+Phase 1 (MVP)
+________________
+
+
+1. Extracted Context from Prior Discussions
+Prior discussions consistently surfaced that travelers experience significant confusion around what documentation is required when disruptions occur, especially when multiple providers (airlines, credit cards, insurers) may later be involved.
+Users described high stress during and immediately after incidents, when attention is divided between logistics, safety, rebooking, and communication. In these moments, evidence is often missed, lost, or captured incompletely, even though it may later be critical.
+It was emphasized that capturing evidence early is important even if the user is unsure whether they will file a claim. Documentation collected in the moment preserves future options and reduces regret, regardless of whether a claim is ultimately pursued.
+Discussions also highlighted that documentation expectations vary by carrier and provider. What one airline, card issuer, or insurer requests may differ in format, timing, or specificity, creating uncertainty and rework for users.
+The platform’s role is to reduce this uncertainty by helping users understand what to capture and when, without asserting sufficiency, validating authenticity, or forcing action.
+If provider-specific requirements cannot be clearly inferred from available data, this is treated as:
+[UNSPECIFIED — requires founder decision]
+________________
+
+
+2. Purpose
+To help travelers capture, organize, and retain relevant evidence during or after an incident in a way that reduces stress, preserves future options, and minimizes downstream friction when interacting with airlines, credit card issuers, or insurers.
+This feature provides guidance only.
+It does not submit claims, determine approval, validate evidence, or replace provider judgment.
+________________
+
+
+3. Scope (In-Scope Capabilities)
+* Provide plain-language guidance on documentation that is commonly requested for different incident types
+
+* Support evidence capture during and after an incident (photos, screenshots, receipts, confirmations)
+
+* Allow users to upload, store, and categorize documentation by incident
+
+* Surface provider- and route-specific documentation expectations when known
+
+* Encourage early capture even when no claim decision has been made
+
+* Maintain evidence availability across solo and group contexts
+
+* Pass organized documentation context to downstream features without evaluation
+
+* Optional Email Inbox Import (OAuth-based, read-only)
+
+* On-demand email search for incident-related messages
+
+* Optional 24-hour time-boxed polling after airline verification request
+
+* Attachment extraction and artifact preservation
+
+* Secure linking of imported messages to incident timeline
+
+* Source tagging aligned with Causality Classification Object (CCO)
+
+________________
+
+
+4. Non-Scope (Explicitly Excluded)
+   * Submitting evidence or claims to any provider
+
+   * Determining whether documentation is sufficient for approval
+
+   * Authenticating, verifying, or validating evidence
+
+   * Enforcing deadlines or compliance requirements
+
+   * Initiating or conducting communications with airlines, insurers, or credit card issuers on the user’s behalf.
+   * This feature may reference provider documentation, published benefit terms, contracts of carriage, and policy clauses to explain how guidance was derived, without asserting authority, interpretation guarantees, or outcomes.
+   * Providing legal or regulatory advice
+
+________________
+
+
+5. Inputs
+      * Incident details (type, timing, location)
+
+      * Coverage paths identified by Coverage Graph & Overlap Resolution (F-6.5.2)
+
+      * Claim routing context from Claim Routing & Sequencing Engine (F-6.5.5)
+
+      * User-uploaded materials (photos, PDFs, screenshots, notes)
+
+      * Provider metadata when available (carrier, card issuer, insurer)
+
+      * OAuth-based email access token (scoped, read-only)
+
+      * Airline sender domain registry
+
+      * Incident fingerprint (flight number, route, date, PNR, case ID)
+
+      * Verification request subject template (when platform-submitted)
+
+
+________________
+
+
+6. Outputs
+         * Organized evidence sets linked to an incident
+
+         * Plain-language prompts describing what documentation may be useful
+
+         * Provider-specific documentation notes when available
+
+         * Clear uncertainty statements when expectations are ambiguous
+
+         * Persistent reminder:
+“We can’t predict what will happen, but we can help you move through it with the least friction possible.”
+
+________________
+
+
+7. Decision Logic (plain language, no code)
+The feature operates by aligning incident context with known documentation patterns, while explicitly avoiding judgments about sufficiency or outcome.
+Proactive Documentation Guidance
+            * When an incident is identified, the system surfaces documentation categories that are commonly requested for similar situations
+
+            * Guidance emphasizes capturing evidence before decisions are made, especially when sequencing may matter
+
+            * If multiple claim routes are possible, the system highlights overlapping documentation needs to reduce duplicate effort
+
+            * When provider-specific requirements are unclear or variable, the system states this explicitly and defaults to broader capture guidance
+
+            * Users are never told that documentation is “required,” only that it is often requested
+
+Email Import Flow (MVP)
+When user selects “Import from Email”:
+               1. User grants OAuth read-only permission.
+
+               2. System performs metadata-only search using:
+
+                  * Known airline sender domains
+
+                  * Incident identifiers
+
+                  * Platform-generated subject template (if applicable)
+
+                     3. Only matching messages are opened.
+
+                     4. Attachments and relevant message bodies are extracted.
+
+                     5. Artifacts are:
+
+                        * Timestamped
+
+                        * Linked to incident
+
+                        * Tagged with source type
+
+                           6. User confirms import with single tap.
+
+No full inbox indexing.
+No background scanning beyond allowed window.
+Optional Time-Boxed Polling (24 Hours)
+If user enables “Auto-check for reply”:
+                              * System polls mailbox at defined interval (e.g., every 30–60 minutes)
+
+                              * Polling limited to:
+
+                                 * This incident
+
+                                 * 24-hour duration
+
+                                    * Polling automatically stops after:
+
+                                       * 24 hours
+
+                                       * Successful import
+
+                                       * User revocation
+
+Transparency message displayed:
+“We’ll check for the airline’s reply for the next 24 hours and attach it automatically if it arrives. You can turn this off at any time.”
+________________
+
+
+8. Failure Modes & Safe Defaults
+When information is incomplete or uncertain, the system:
+                                          * Defaults to suggesting documentation capture rather than action
+
+                                          * When provider handling varies or depends on internal evaluation, the system uses resolution-oriented language that explains variability without diminishing user confidence.
+                                          * Ambiguity is framed as differences in provider handling patterns and is always paired with concrete next steps that preserve flexibility.
+                                          * Avoids implying that missing evidence guarantees denial
+
+                                          * Preserves partially uploaded or incomplete evidence without penalty
+
+                                          * Allows users to stop and return later without loss of context
+If OAuth connection fails:
+                                             * Provide manual upload and forwarding fallback.
+
+If matching logic returns no results:
+                                                * Offer “Upload manually” option.
+
+                                                * Allow user to expand search scope.
+
+If airline reply format is unreadable:
+                                                   * Preserve raw artifact.
+
+                                                   * Mark extraction confidence as “Unparsed — manual review.”
+
+If polling fails due to token expiration:
+                                                      * Notify user calmly.
+
+                                                      * Provide reconnect option.
+________________
+
+
+9. UX Surfaces
+                                                         * Incident flow evidence prompts
+
+                                                         * Evidence upload and organization screens
+
+                                                         * Expandable “Why this might matter later” explanations
+
+                                                         * Group-aware views for organizers and participants
+
+                                                         * Calm, non-urgent language throughout
+
+________________
+
+
+10. Evidence Capture & Validation Principles
+                                                            * Capture early, decide later
+
+                                                            * Guidance over enforcement
+
+                                                            * Organization without judgment
+
+                                                            * Preservation without interpretation
+
+                                                            * Clarity without certainty
+
+                                                            * Internal Rule: Always Preserve Narrative Coherence
+Evidence capture, organization, and guidance must preserve a clear, chronological narrative linking the incident, user actions, and resulting expenses. The system prioritizes timestamped artifacts, sequence context, and cause-and-effect clarity over volume or format. This rule ensures that evidence remains interpretable by third parties even when providers rely on manual review or fragmented documentation.
+
+                                                               * Internal Rule: Never Rank Evidence as “Enough.” The system does not evaluate, score, or declare evidence sufficient, complete, or claim-ready. Evidence is treated as additive and contextual. The platform may explain how providers typically weigh different forms of documentation, but it never asserts that any collection guarantees approval, denial, or readiness. This rule exists to avoid false reassurance, preserve provider discretion, and maintain user trust under uncertainty.
+
+                                                               * Internal Rule: Never Assume Jurisdiction
+Evidence & Documentation Management must operate without assuming a specific country, regulatory regime, or consumer protection framework. All guidance, categorization, and documentation prompts are derived from the user’s stated policy terms, provider materials, and incident context, rather than default national standards. When provider practices vary by region, the system frames guidance in relation to the user’s policy language and documented handling patterns, not universal rules.
+________________
+
+
+11. Privacy & Security Requirements (Feature-Specific)
+                                                                  * All evidence remains user-controlled
+
+                                                                  * No automatic sharing with providers
+
+                                                                  * No external transmission without explicit user action
+
+                                                                  * Secure storage aligned with platform-wide encryption standards
+
+                                                                  * Evidence visibility governed by role-based permissions in group contexts
+The feature must remain compatible with multilingual evidence ingestion and delegated access models defined elsewhere in the Product Bible.
+
+                                                                  * Evidence ownership, access, and visibility remain user-controlled, including the ability to grant limited, revocable access to trusted contacts or guardians in future phases.
+
+                                                                  * Email Inbox access is strictly read-only.
+
+                                                                  * No email sending capability.
+
+                                                                  * No deletion or modification rights.
+
+                                                                  * No full inbox indexing.
+
+                                                                  * No background scanning outside active incident context.
+
+                                                                  * OAuth tokens encrypted at rest.
+
+                                                                  * Tokens automatically expire when trip ends or user revokes.
+
+Explicit Statement:
+“The system never reads your entire inbox. It searches only for messages related to this specific travel incident.”
+                                                                     * ________________
+
+
+12. Logging & Audit Requirements
+The system logs:
+                                                                     * Evidence upload timestamps
+
+                                                                     * Categorization actions
+
+                                                                     * Guidance shown to the user
+
+                                                                     * Disclaimers and uncertainty statements displayed
+
+Logs exist for transparency and user reference only.
+________________
+
+
+13. Test Scenarios
+                                                                        1. User captures photos during a delay but files no claim
+
+                                                                        2. Partial documentation uploaded, later completed
+
+                                                                        3. Evidence uploaded days after the incident
+
+                                                                        4. User abandons evidence capture mid-flow
+
+                                                                        5. Group trip where only organizer uploads documentation
+
+                                                                        6. Conflicting provider documentation expectations
+
+                                                                        7. Missing receipts but alternative proof available
+
+                                                                        8. Multiple incidents within one trip
+
+                                                                        9. Offline capture with delayed sync
+
+                                                                        10. User intentionally chooses not to upload evidence
+
+________________
+
+
+14. Phase Notes (What is explicitly deferred to Phase 2+)
+                                                                           * Automated sufficiency checks
+
+                                                                           * Claim packet assembly
+
+                                                                           * Provider-specific form formatting
+
+                                                                           * Evidence quality scoring
+
+                                                                           * Deadline tracking and reminders

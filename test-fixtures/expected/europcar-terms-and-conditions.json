@@ -1,0 +1,23 @@
+{
+  "target_name": "europcar-terms-and-conditions",
+  "source_url": "https://www.europcar.com/en-us/legal-pages/termsAndConditions",
+  "expected_clause_types": {
+    "required": [
+      "payment_method_requirement",
+      "refund_eligibility_rule"
+    ],
+    "optional": [
+      "claim_deadline_days",
+      "requires_receipts",
+      "baggage_liability_limit",
+      "hotel_cancellation_window"
+    ],
+    "prohibited": []
+  },
+  "min_sections": 2,
+  "min_candidates": 1,
+  "notes": [
+    "Car rental terms - should detect payment and refund policies",
+    "May have cancellation windows and documentation requirements"
+  ]
+}

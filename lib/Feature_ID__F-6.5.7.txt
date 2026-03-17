@@ -1,0 +1,1038 @@
+﻿Feature ID: F-6.5.7
+Incident Query & Retrospective Engine
+Version 1.0 | March 2026 | Phase 1 (MVP) Feature
+User Problem Solved
+Founder Problem: "I should be able to say, 'Hey, didn't something happen last Thursday that put us in red alert?' And the system should figure that out easily and tell me what happened, why it happened, was something done automatically to patch it, or does something still need to be done."
+Platform incidents generate hundreds of event ledger entries. Without natural language query and auto-narrative generation, the Founder must:
+* Manually search event logs (technical, time-consuming)
+* Reconstruct incident timelines from scattered events
+* Determine which incidents require follow-up vs which auto-recovered
+* Remember patterns across weeks/months ("Didn't this happen before?")
+In one sentence: "Ask the platform 'What happened last Thursday?' in plain English, and get a founder-friendly narrative explaining what went wrong, what got fixed automatically, what still needs attention, and whether this is part of a pattern."
+________________
+
+
+Purpose
+Incident Query & Retrospective Engine serves four goals:
+1. Natural Language Incident Search: Query incidents conversationally ("What happened last Thursday?", "Show me all red alerts from March", "Why did we enter Safe Mode?")
+2. Auto-Generated Narratives: Convert technical event ledger data into founder-friendly stories with context, causality, and outcomes
+3. Platform Memory / Pattern Detection: Identify recurring issues across multiple time windows (30 days, 90 days, 365 days) and suggest mitigations
+4. Audit Trail & Queryability: Every incident fully documented, easily searchable, exportable for compliance/retrospectives
+NOT an Analytics Dashboard: This is incident-specific storytelling, not broad platform metrics (those go in weekly digest, FOCL dashboards).
+________________
+
+
+In-Scope Capabilities
+1. Four-Level Alert Hierarchy (Adjustable Thresholds)
+Alert Levels:
+Level
+	Name
+	Color
+	Meaning
+	Example Triggers
+	🟢 Green
+	Normal
+	Green
+	All systems operational, no degradation
+	Default state, no active incidents
+	🟠 Orange
+	Elevated Load / Degraded Service
+	Orange
+	High stress, auto-scaling active, no features blocked yet
+	Traffic at 70-90% of Safe Mode threshold, single connector degraded, AI Tier 1 using Tier 2 fallback, database replication lag >10sec
+	🟡 Yellow
+	Safe Mode (Protective)
+	Yellow
+	Features blocked, core workflows operational, auto-recovery expected
+	Safe Mode active (any region), ledger write degradation, connector cascade (2+ down), AI confidence below safety threshold
+	🔴 Red
+	Emergency Mode
+	Red
+	Multi-region failure, manual intervention likely needed, immediate Founder notification
+	≥2 regions in Safe Mode simultaneously, ledger integrity failure, replication failure >60sec, downgrade spike across 3+ airlines
+	UI Design (Founder Specified):
+* Green + Orange in one box (which one is active influences label text)
+   * Example: Box shows 🟢 "Normal Operation" OR 🟠 "Elevated Load — Auto-Scaling Active"
+* Yellow and Red displayed separately (distinct visual warning states)
+   * Yellow box: 🟡 "Safe Mode Active (US-East)"
+   * Red box: 🔴 "Emergency Mode — Immediate Attention Required"
+________________
+
+
+2. Adjustable Alert Thresholds (FOCL Internal Toggle)
+Founder Note: "There needs to be an internal toggle to adjust and slide things back and forth. I have no baseline for any of this."
+FOCL Screen: Alert Threshold Configuration
+═══════════════════════════════════════════════════════════════
+ALERT LEVEL THRESHOLDS (ADJUSTABLE)
+═══════════════════════════════════════════════════════════════
+
+
+🟠 Orange (Elevated Load) — Triggers When:
+
+
+  ☑ Traffic ≥ [70]% of Safe Mode threshold
+     Slider: [50%──●──90%]
+     Current: 7,000 incidents/hour (70% of 10,000 Safe Mode threshold)
+     
+  ☑ Auto-scaling activated
+     Toggle: [ON] | OFF
+     
+  ☑ Single connector degraded (manual-only mode)
+     Toggle: [ON] | OFF
+     
+  ☑ AI Tier 1 using Tier 2 fallback
+     Toggle: [ON] | OFF
+     
+  ☑ Database replication lag ≥ [10] seconds
+     Slider: [5sec──●──30sec]
+
+
+─────────────────────────────────────────────────────────────
+
+
+🟡 Yellow (Safe Mode) — Triggers When:
+
+
+  ☑ Traffic ≥ [10,000] incidents/hour in single region
+     Input: [10000] incidents/hour
+     
+  ☑ Ledger write failure (consecutive failures ≥ [3])
+     Input: [3] failures
+     
+  ☑ Connector cascade (≥ [2] connectors down simultaneously)
+     Input: [2] connectors
+     
+  ☑ AI confidence below safety threshold ([30]% low-confidence responses)
+     Slider: [20%──●──40%]
+
+
+─────────────────────────────────────────────────────────────
+
+
+🔴 Red (Emergency Mode) — Triggers When:
+
+
+  ☑ ≥ [2] regions in Safe Mode simultaneously
+     Input: [2] regions
+     
+  ☑ Ledger checksum mismatch detected
+     Toggle: [ON] | OFF (always ON recommended)
+     
+  ☑ Database replication failure > [60] seconds
+     Slider: [30sec──●──120sec]
+     
+  ☑ Connector downgrade spike (≥ [3] airlines in 1 hour)
+     Input: [3] airlines
+
+
+═══════════════════════════════════════════════════════════════
+
+
+[Apply Changes]  [Reset to Industry Defaults]  [Export Current Config]
+
+
+Last Modified: Never (using defaults)
+Industry Defaults Based On: API rate limiting best practices (70-80% capacity warnings)
+Why This Matters:
+* You have no baseline yet (platform hasn't launched)
+* Industry defaults are educated guesses based on research
+* As you learn real traffic patterns, you can tune sensitivity
+* Export config → Backup before experimenting with thresholds
+________________
+
+
+3. Natural Language Incident Query (Conversational Search)
+Query Interface (FOCL + Mobile):
+Ask about past incidents...
+
+
+[Search box with mic icon for voice input]
+
+
+Examples:
+  • "What happened last Thursday?"
+  • "Show me all red alerts from March"
+  • "Why did we enter Safe Mode on March 4th?"
+  • "How many times did the GPU crash this month?"
+  • "What's the most expensive incident we've had?"
+Query Intelligence Level: Smart Aggregation (Option B from your decision)
+How It Works:
+1. Parse natural language query → Extract date/severity/keywords
+2. Search event ledger for matching incidents
+3. Smart aggregation: If 500 events on "last Thursday", identify the PRIMARY incident (Safe Mode episode) and summarize
+4. Generate founder-friendly narrative (not raw event list)
+5. Surface related events (auto-recovery actions, cost impacts, affected systems)
+Example Query Flow:
+User asks: "What happened last Thursday?"
+System response:
+═══════════════════════════════════════════════════════════════
+INCIDENT: Thursday, March 6, 2026
+═══════════════════════════════════════════════════════════════
+
+
+Alert Level: 🟡 Yellow (Safe Mode)
+Duration: 2 hours, 47 minutes
+Region: US-East
+
+
+WHAT HAPPENED:
+  At 2:47am UTC, our event logging system stopped working (3 consecutive 
+  write failures). This meant we couldn't reliably record platform activity, 
+  which is a data integrity risk. The platform entered Safe Mode automatically 
+  to protect user data.
+
+
+WHAT GOT FIXED AUTOMATICALLY:
+  The system tried 3 different recovery methods:
+  1. Retried ledger writes (failed)
+  2. Failed over to backup database (successful at 2:50am)
+  3. Gradually restored event logging (90% by 3:15am, 100% by 5:22am)
+  
+  Safe Mode exited automatically at 5:27am after confirming everything 
+  was stable.
+
+
+IMPACT:
+  • 23 users tried to run Deep Scan and were blocked (shown manual alternative)
+  • 0 users complained or requested refunds
+  • 0 user data lost or corrupted
+
+
+COST:
+  $8.47 (AI monitoring during recovery, minimal cost increase)
+
+
+STATUS: ✅ Fully resolved, no action needed
+
+
+FOLLOW-UP SUGGESTED:
+  This is the 2nd event logging failure this quarter. Consider upgrading 
+  to redundant database cluster ($200/month) to prevent future incidents.
+  
+  [Add to Decision Queue]  [View Technical Details ▼]  [Mark as Reviewed]
+Mobile Version (Condensed):
+🟡 Safe Mode — March 6, 2:47am
+Duration: 2hr 47min | Region: US-East
+
+
+Event logging failed → auto-recovered
+Impact: 23 Deep Scan requests blocked
+Cost: $8.47
+Status: ✅ Resolved
+
+
+[More Details]  [▼ Tech Details]
+________________
+
+
+4. Founder-Friendly Narratives (Auto-Generated)
+Narrative Structure (Always Includes):
+1. What Happened (plain English summary, no jargon)
+2. What Got Fixed Automatically (step-by-step auto-recovery sequence)
+3. Impact (users affected, requests blocked, data integrity status)
+4. Cost (financial impact with context: "Why it cost this much")
+5. Status (Resolved / Ongoing / Needs Attention)
+6. Follow-Up Suggested (optional action items with rationale)
+Technical Details (Behind Accordion):
+* Click/tap "▼ Technical Details" to expand
+* Shows: GPU Server ID, node names, exact error codes, ledger checksums
+* Not shown by default — Founder doesn't need this unless debugging
+Cost Narrative (Founder-Friendly — From Your Spec):
+COST IMPACT: $38.23
+
+
+Why it cost this much:
+  Our internal AI (GPU servers) crashed at 2:45am. The system automatically 
+  switched to backup AI (Google's Gemini Flash) which costs more per request. 
+  We used the backup AI for 2 hours 42 minutes until our GPU restarted.
+  
+  Breakdown:
+  • Backup AI (Gemini Flash): $38.23 (2,847 requests at $0.0134/request)
+  • Our internal AI would have cost: $2.85 (same requests)
+  • Extra cost due to GPU crash: $35.38
+
+
+What you can do:
+  Consider redundant GPU cluster ($200/month) to avoid backup AI costs. 
+  Break-even: If this happens 6+ times per month, redundancy pays for itself.
+  
+  [Calculate ROI]  [Add to Cost Optimization Review]
+Key Principle: Always explain WHY costs changed in human terms, always suggest WHAT you can do about it.
+________________
+
+
+5. Platform Memory / Pattern Detection (Multi-Window Analysis)
+Time Windows (From Your Spec):
+* 30 days: Recent instability (high sensitivity, urgent patterns)
+* 90 days: Quarterly trends (medium sensitivity, recurring issues)
+* 365 days: Annual patterns (low sensitivity, seasonal trends)
+Pattern Detection Examples:
+30-Day Pattern (High Urgency):
+⚠️ PATTERN DETECTED (Last 30 Days)
+
+
+Issue: GPU stability
+Occurrences: 3 crashes in 4 weeks
+  • March 4, 2:45am — GPU Server #2 crashed (2hr 42min downtime)
+  • March 11, 6:12pm — GPU Server #2 crashed (45min downtime)
+  • March 18, 3:30am — GPU Server #2 crashed (1hr 18min downtime)
+
+
+Impact:
+  • Total backup AI cost: $127.45 (would have been $8.12 with our GPU)
+  • Extra cost: $119.33
+
+
+Suggested Mitigation:
+  Replace GPU Server #2 (hardware failure suspected) OR upgrade to 
+  redundant GPU cluster.
+  
+Estimated Cost:
+  • GPU replacement: $1,200 one-time (2-day shipping + setup)
+  • Redundant cluster: $200/month ongoing
+  
+Benefit:
+  Eliminates backup AI costs (save ~$120/month based on current crash rate)
+  
+Break-Even Analysis:
+  • GPU replacement: Pays for itself in 10 months
+  • Redundant cluster: Pays for itself immediately (cheaper than backup AI)
+
+
+Would you like to enable redundant GPU cluster?
+  [Yes, Enable]  [No, Monitor for 1 More Month]  [Schedule Replacement]
+90-Day Pattern (Medium Urgency):
+📊 QUARTERLY TREND DETECTED
+
+
+Pattern: Airline IT outage → Traffic surge → Safe Mode
+Occurrences: 3 times in last 90 days
+  • January 15 — American Airlines IT outage → 11,200 incidents/hour → Safe Mode (US-East, 3hr 12min)
+  • February 8 — United Airlines IT outage → 12,800 incidents/hour → Safe Mode (US-East, 4hr 5min)
+  • March 6 — Southwest Airlines IT outage → 10,900 incidents/hour → Safe Mode (US-East, 2hr 47min)
+
+
+Impact:
+  • Total Safe Mode duration: 10 hours, 4 minutes
+  • Deep Scan requests blocked: 67
+  • User complaints: 0 (alternative path worked)
+
+
+Suggested Mitigation:
+  Enable auto-pre-scaling during airline IT outage events. When we detect 
+  an airline website is down (via connector monitoring), automatically 
+  increase API capacity before traffic surge hits.
+
+
+Estimated Cost:
+  $45/hour during outages (pre-scaling API capacity)
+  Based on 90-day pattern: ~3 outages/quarter, ~3hr average = 9hr/quarter
+  Total: $405/quarter ($135/month average)
+
+
+Benefit:
+  Prevents Safe Mode activation → All features remain operational
+  No Deep Scan blocks → Better user experience
+  
+Would you like to enable airline outage pre-scaling?
+  [Yes, Enable with $500/quarter cap]  [No, Keep Monitoring]  [Learn More]
+365-Day Pattern (Annual Trend):
+📅 ANNUAL PATTERN DETECTED
+
+
+Pattern: Holiday travel season traffic spike
+Observed: December 2025 and June 2025 (only 2 data points, need more time)
+  • December 20-30, 2025 — Average 8,500 incidents/hour (50% above baseline)
+  • June 15-25, 2025 — Average 7,200 incidents/hour (30% above baseline)
+
+
+Prediction:
+  June 2026 and December 2026 will likely see similar spikes.
+
+
+Suggested Mitigation:
+  Pre-scale infrastructure 1 week before holiday travel seasons:
+  • June 10-30, 2026 (21 days)
+  • December 15, 2026 - January 5, 2027 (22 days)
+  
+Estimated Cost:
+  $30/day pre-scaling = $1,290/year (43 days total)
+
+
+Benefit:
+  Smooth traffic handling during busiest travel periods
+  Prevents Orange/Yellow alerts during high user growth windows
+  
+Schedule pre-scaling for holiday seasons?
+  [Yes, Add to Calendar]  [Remind Me in November]  [Disable]
+Always Ask First (From Your Requirement):
+* Pattern detection suggests mitigations
+* Never auto-enables cost-impacting changes
+* Always shows: Estimated cost, benefit, break-even analysis
+* Founder approves with one click
+________________
+
+
+6. Financial Auto-Routing (Cost Event Tracking)
+All Cost Impacts Auto-Logged with tags for financial tracking:
+Event Ledger Cost Schema:
+json
+{
+  "event_type": "ai_tier_fallback",
+  "timestamp": "2026-03-04T02:45:00Z",
+  "region": "US-East",
+  "cost_impact": 38.23,
+  "cost_category": "ai_backup",
+  "cost_breakdown": {
+    "tier_2_requests": 2847,
+    "tier_2_unit_cost": 0.0134,
+    "tier_1_equivalent_cost": 2.85,
+    "extra_cost": 35.38
+  },
+  "financial_routing": {
+    "p_and_l_category": "Operating Expenses: AI Infrastructure",
+    "budget_allocation": "Unplanned: Infrastructure Failures",
+    "tax_deductible": true,
+    "export_ready": true
+  }
+}
+Exportable to Any Accounting System:
+* CSV export with standard accounting columns
+* QuickBooks-compatible format
+* Xero-compatible format
+* Custom spreadsheet template
+* Founder will show what accounting software looks like → System adapts
+Weekly Digest Financial Summary (From Your Spec):
+═══════════════════════════════════════════════════════════════
+PLATFORM COSTS THIS WEEK
+═══════════════════════════════════════════════════════════════
+
+
+AI & Intelligence: $127.43 (↑ 8% vs last week)
+  • Our internal AI (GPU servers): $89.20
+  • Backup AI (when ours is down): $38.23
+  Why it went up: Used backup AI 4 times this week (GPU crashes)
+
+
+External Data Sources: $54.12 (↓ 2% vs last week)
+  • Airline websites (flight data): $32.40
+  • Google Maps (route planning): $12.15
+  • Weather API: $9.57
+
+
+Storage & Database: $89.50 (→ no change)
+  • User evidence files: $67.30
+  • Database backups: $22.20
+
+
+Total Infrastructure: $271.05
+Change vs Last Week: ↑ 6% (+$15.38)
+
+
+Why costs changed:
+  GPU stability issues this week → used expensive backup AI
+  
+What you can do:
+  Consider redundant GPU cluster ($200/month) to avoid backup AI costs
+
+
+[Export to Spreadsheet]  [View Detailed Breakdown]  [Optimize Costs]
+Copy Standard (From Your Requirement):
+* ❌ "AI Compute" → ✅ "Our internal AI (GPU servers)"
+* ❌ "API Usage" → ✅ "External Data Sources" with examples
+* ✅ Always explain WHY costs changed
+* ✅ Always suggest WHAT you can do
+Cross-Reference: Section 7.2.5 (Founder-Facing Financial Terminology)
+________________
+
+
+7. Weekly Digest Email Integration
+Weekly Digest Email (Sent every Monday, summarizes previous week):
+Subject: "Platform Digest — Week of March 3-9, 2026"
+Email Sections:
+═══════════════════════════════════════════════════════════════
+PLATFORM HEALTH SUMMARY
+═══════════════════════════════════════════════════════════════
+
+
+Alert Status This Week:
+  • 🟢 Green: 6 days, 18 hours
+  • 🟠 Orange: 2 hours, 15 minutes (auto-scaling during traffic spike)
+  • 🟡 Yellow: 2 hours, 47 minutes (Safe Mode, US-East, March 4)
+  • 🔴 Red: 0 minutes
+
+
+Total Incidents: 2
+  • 1 resolved automatically (Safe Mode, event logging failure)
+  • 0 required manual intervention
+  • 1 has recommended follow-up (GPU stability issue)
+
+
+Most Severe Alert: 🟡 Yellow (Safe Mode)
+
+
+Unresolved Technical Warnings: 1
+  • GPU Server #2 crashed 3 times this month → Replacement recommended
+
+
+─────────────────────────────────────────────────────────────
+
+
+INCIDENT SUMMARIES
+─────────────────────────────────────────────────────────────
+
+
+🟡 Safe Mode — Thursday, March 6, 2:47am UTC
+Duration: 2hr 47min | Region: US-East
+
+
+What happened: Event logging system failed (3 consecutive write failures)
+Auto-recovery: Database failover successful, event logging restored
+Impact: 23 Deep Scan requests blocked, 0 user complaints
+Cost: $8.47 (minimal)
+Status: ✅ Resolved
+
+
+Follow-up: This is the 2nd event logging failure this quarter. Consider 
+redundant database cluster ($200/month).
+
+
+[View Full Incident Report]  [Add to Decision Queue]
+
+
+─────────────────────────────────────────────────────────────
+
+
+🟠 Orange Alert — Monday, March 3, 4:15pm UTC
+Duration: 2hr 15min | Region: US-East
+
+
+What happened: Traffic spike to 8,200 incidents/hour (82% of Safe Mode threshold)
+Auto-recovery: Kubernetes auto-scaled API capacity (+30%), traffic subsided
+Impact: No features blocked, seamless user experience
+Cost: $12.30 (auto-scaling for 2 hours)
+Status: ✅ Resolved
+
+
+Follow-up: None needed (normal traffic variance)
+
+
+═══════════════════════════════════════════════════════════════
+USER METRICS
+═══════════════════════════════════════════════════════════════
+
+
+Active Users This Week: 1,847 (↑ 12% vs last week)
+New Signups: 284 (↑ 8% vs last week)
+
+
+Top Features Used:
+  1. Trip creation: 2,142 trips created
+  2. Evidence upload: 1,893 files uploaded
+  3. Deep Scan: 467 scans completed
+  4. Claim packet generation: 89 packets generated
+  5. Coverage comparison: 1,024 comparisons run
+
+
+[PIN: Product Insight tracking methodology TBD]
+
+
+═══════════════════════════════════════════════════════════════
+COST SNAPSHOT
+═══════════════════════════════════════════════════════════════
+
+
+AI & Intelligence: $127.43 (↑ 8% vs last week)
+  • Our internal AI (GPU servers): $89.20
+  • Backup AI (when ours is down): $38.23
+  Why it went up: Used backup AI 4 times this week (GPU crashes)
+
+
+External Data Sources: $54.12 (↓ 2% vs last week)
+  • Airline websites (flight data): $32.40
+  • Google Maps (route planning): $12.15
+  • Weather API: $9.57
+
+
+Storage & Database: $89.50 (→ no change)
+  • User evidence files: $67.30
+  • Database backups: $22.20
+
+
+Total Infrastructure: $271.05
+Change vs Last Week: ↑ 6% (+$15.38)
+
+
+Why costs changed:
+  GPU stability issues this week → used expensive backup AI
+  
+What you can do:
+  Consider redundant GPU cluster ($200/month) to avoid backup AI costs
+
+
+[Export to Spreadsheet]  [View P&L Breakdown]  [Cost Optimization]
+
+
+═══════════════════════════════════════════════════════════════
+RECOMMENDED IMPROVEMENTS
+═══════════════════════════════════════════════════════════════
+
+
+⚠️ GPU Stability Issue (Detected 3 times this month)
+  • GPU Server #2 crashed March 4, 11, 18
+  • Total backup AI cost: $127.45 (would have been $8.12)
+  • Suggested: Replace GPU Server #2 OR upgrade to redundant cluster
+  • Break-even: Redundant cluster pays for itself immediately
+  
+  [View Full Analysis]  [Enable Redundant Cluster]  [Schedule Replacement]
+
+
+⚠️ American Airlines Connector Degraded (Manual-only mode since March 5)
+  • HTML structure changed, automation paused pending QA review
+  • Impact: 12 users manually entered AA flight data (no automation)
+  • Suggested: QA to investigate HTML change, update parser
+  
+  [Assign to QA]  [View Connector Status]  [Update Parser Manually]
+
+
+💡 AI Tier 2 Fallback Used 4 Times This Week
+  • Total Tier 2 cost: $38.23 (vs $2.85 if Tier 1 was available)
+  • Reason: GPU crashes
+  • Suggested: Already covered in GPU stability recommendation above
+  
+  [View Tier 2 Usage Details]
+
+
+═══════════════════════════════════════════════════════════════
+FOCL ACTION ITEMS (OUTSTANDING DECISIONS)
+═══════════════════════════════════════════════════════════════
+
+
+Priority: High (1 item)
+  • Review AI tier cost optimization (deadline: Friday, March 14)
+    → GPU stability issue requires decision this week
+
+
+Priority: Medium (2 items)
+  • Enable airline outage pre-scaling (no deadline, suggested action)
+  • Upgrade to redundant database cluster (2nd event logging failure)
+
+
+Priority: Low (0 items)
+
+
+[View Full Decision Queue in FOCL]
+
+
+═══════════════════════════════════════════════════════════════
+Clickable Links:
+* Every incident summary → Links to full F-6.5.7 incident report in FOCL
+* Every recommended improvement → Links to specific screen (GPU config, connector status, QA queue)
+* Cost breakdowns → Link to financial export or detailed cost analysis
+Mobile-Optimized: Email renders cleanly on phone (condensed sections, tap to expand)
+________________
+
+
+8. FOCL Decision Queue Integration
+Suggested Follow-Up Actions Auto-Populate Decision Queue:
+When an incident generates a "Follow-up Suggested" action, it appears in FOCL Decision Queue (F-6.5.16):
+═══════════════════════════════════════════════════════════════
+DECISION QUEUE (3 ITEMS)
+═══════════════════════════════════════════════════════════════
+
+
+Priority: HIGH
+
+
+🔴 Review AI Tier Cost Optimization (Deadline: Friday, March 14)
+  Source: GPU stability pattern (3 crashes in 30 days)
+  Context: Backup AI costs $120/month extra vs redundant GPU at $200/month
+  Decision Needed: Replace GPU Server #2 OR enable redundant cluster?
+  
+  [View Full Analysis]  [Approve Redundant Cluster]  [Schedule Replacement]
+  [Snooze Until Next Month]  [Mark as Reviewed]
+
+
+─────────────────────────────────────────────────────────────
+
+
+Priority: MEDIUM
+
+
+💡 Enable Airline Outage Pre-Scaling (No deadline, suggested)
+  Source: Quarterly pattern detection (3 outages in 90 days)
+  Context: AA, UA, SW outages trigger Safe Mode (~3hr average)
+  Decision Needed: Auto-pre-scale during airline IT outages?
+  Estimated Cost: $405/quarter ($135/month average)
+  
+  [View Pattern Analysis]  [Enable with $500/quarter cap]  [Decline]
+
+
+─────────────────────────────────────────────────────────────
+
+
+💡 Upgrade to Redundant Database Cluster (No deadline, suggested)
+  Source: 2nd event logging failure this quarter
+  Context: $200/month prevents ledger write failures
+  Decision Needed: Upgrade now or wait for 3rd failure?
+  
+  [View Incident History]  [Approve Upgrade]  [Monitor for 1 More Month]
+
+
+═══════════════════════════════════════════════════════════════
+Decision Queue = FOCL To-Do List (From Your Clarification)
+Auto-Population Rules:
+* Incident with "Follow-up Suggested" → Adds to Decision Queue (Priority: Medium)
+* Pattern detected (3+ occurrences) → Adds to Decision Queue (Priority: High if 30-day pattern)
+* Cost optimization opportunity > $100/month → Adds to Decision Queue (Priority: Medium)
+* Unresolved technical warning > 7 days → Adds to Decision Queue (Priority: High)
+________________
+
+
+Out-of-Scope Capabilities
+1. Conversational AI (Full Back-and-Forth)
+❌ At MVP, no "Ask follow-up questions" conversational AI.
+In scope: One query → One smart narrative response Out of scope: "Why did that happen?" → "Because X" → "What's X?" → "X is Y..."
+Phase 2: Conversational AI with multi-turn dialogue.
+________________
+
+
+2. Predictive Incident Forecasting
+❌ Not predicting future incidents at MVP, only detecting past patterns.
+In scope: "This happened 3 times in 90 days, might happen again" Out of scope: "Based on current metrics, Safe Mode will trigger in 2 hours"
+Phase 2: Real-time predictive alerts ("Traffic trending toward Safe Mode threshold").
+________________
+
+
+3. User-Level Incident Impact Analysis
+❌ Not tracking individual user frustration or churn correlation at MVP.
+In scope: "23 users blocked, 0 complaints" Out of scope: "User ID 12345 was blocked 3 times this month, likely to churn"
+Phase 2: User-level impact tracking, churn risk correlation.
+________________
+
+
+Inputs
+Input
+	Source
+	Format
+	Required
+	Natural language query
+	FOCL search box / mobile app
+	String
+	YES
+	Date range
+	Query parser (inferred from "last Thursday")
+	Date range
+	NO (defaults to last 30 days)
+	Alert level filter
+	User selection (optional)
+	Enum (Green/Orange/Yellow/Red)
+	NO
+	Event ledger data
+	Database (event_ledger table)
+	JSON events
+	YES
+	Cost event data
+	Database (cost_events table)
+	Financial data
+	YES
+	Threshold configuration
+	FOCL settings
+	Slider/toggle values
+	YES (for alert level determination)
+	________________
+
+
+Outputs
+Output
+	Format
+	Destination
+	Conditions
+	Incident narrative
+	Structured JSON → Rendered HTML
+	FOCL incident report screen
+	On query
+	Cost breakdown
+	JSON with financial routing
+	Financial export, weekly digest
+	On incident with cost impact
+	Pattern detection alert
+	Structured suggestion
+	Decision Queue, weekly digest
+	Pattern threshold met (3+ occurrences)
+	Weekly digest email
+	HTML email
+	Founder email
+	Every Monday
+	Exportable incident log
+	CSV / JSON
+	Download
+	On export request
+	Decision Queue item
+	Structured task
+	FOCL Decision Queue
+	Follow-up action suggested
+	________________
+
+
+Dependencies
+Sections
+* Section 3.0 (Governance Substrate) — Event ledger structure
+* Section 7.2 (Calm Mode Language) — Founder-friendly terminology standards
+* Section 8.4 (Permissioning & Audit Logs) — Event ledger immutability
+* Section 12.5 (Observability) — Monitoring metrics, alert thresholds
+Features
+* F-6.5.16 (FOCL) — Decision Queue, alert threshold configuration
+* F-6.6.2 (Protective Safety Mode) — Yellow/Red alert triggers, auto-recovery logging
+* F-6.6.6 (Emergency Delegate System) — Integrates with incident timeline (delegates view same narratives)
+External Services
+* Email delivery (SendGrid / AWS SES) — Weekly digest
+* Financial export templates (QuickBooks, Xero compatible)
+________________
+
+
+Failure Modes & Safe Defaults
+1. Query Returns Too Many Results
+Failure: "Show me all incidents from March" returns 500 events.
+Safe Default:
+* Aggregate by PRIMARY incident (e.g., "3 Safe Mode episodes, 47 Orange alerts")
+* Surface top 5 incidents by severity/cost
+* Offer filter: "Showing 5 most significant. [View all 500 →]"
+________________
+
+
+2. Pattern Detection False Positive
+Failure: System detects "pattern" from coincidental events (3 unrelated GPU crashes).
+Safe Default:
+* Show pattern with confidence level: "Possible pattern (medium confidence)"
+* Include: "These events may be unrelated. Review details before acting."
+* Never auto-enable mitigations (always ask first)
+________________
+
+
+3. Cost Data Missing
+Failure: Incident occurred but cost impact not logged (cost tracking failed).
+Safe Default:
+* Show narrative with: "Cost impact: Unable to calculate (data unavailable)"
+* Flag for manual review: "Cost data missing — add to financial audit queue"
+* Emit: cost_tracking_failure event
+________________
+
+
+4. Weekly Digest Email Fails to Send
+Failure: Email delivery service down (SendGrid outage).
+Safe Default:
+* Retry 3 times with exponential backoff
+* If all retries fail → Store digest in FOCL: "View last week's digest (email delivery failed)"
+* Alert Founder on next login: "Weekly digest email failed to send (available in FOCL)"
+________________
+
+
+Security & Privacy Requirements
+1. Query Permissions
+Only Founder can query incidents at MVP.
+Phase 2: Role-based query permissions (CTO can query technical incidents, CFO can query cost data).
+________________
+
+
+2. Incident Data Retention
+Event ledger is append-only and immutable (Section 8.4).
+Incidents stored indefinitely for audit trail.
+User PII in incidents: Aggregated only (user counts, not names).
+________________
+
+
+3. Financial Data Export Security
+Exported financial data:
+* CSV downloads require step-up authentication (biometric / TOTP)
+* Downloads logged to audit trail
+* No automatic email of financial exports (manual download only)
+________________
+
+
+UX Surfaces
+Primary Surfaces (Section 7.3)
+1. FOCL: Incident Search & Query (NEW)
+   * Purpose: Natural language incident search
+   * Actions: Search by text/voice, filter by date/severity, view narrative
+2. FOCL: Incident Report Detail (NEW)
+   * Purpose: Full incident narrative with cost/impact/recovery
+   * Actions: View technical details, add to Decision Queue, mark as reviewed, export
+3. FOCL: Alert Threshold Configuration (NEW)
+   * Purpose: Adjust Orange/Yellow/Red thresholds
+   * Actions: Modify sliders/toggles, apply changes, reset to defaults, export config
+4. FOCL: Pattern Detection Dashboard (NEW)
+   * Purpose: View detected patterns (30/90/365 day windows)
+   * Actions: Review pattern, approve mitigation, decline, snooze
+5. FOCL: Decision Queue (EXTENDED — F-6.5.16)
+   * Purpose: Outstanding decisions from incident follow-ups
+   * Actions: Approve, decline, snooze, mark as reviewed
+6. Weekly Digest Email (NEW — External)
+   * Purpose: Weekly incident summary + costs + patterns
+   * Actions: Click links to FOCL screens, export costs, review decisions
+7. Mobile: Incident Query (NEW — Mobile App)
+   * Purpose: Quick incident lookup on phone
+   * Actions: Voice/text search, view condensed narrative, tap for details
+________________
+
+
+Telemetry
+Key Metrics
+Metric
+	Type
+	Purpose
+	incident_queries_total
+	Counter
+	How often Founder queries incidents
+	query_response_time_seconds
+	Histogram
+	Query performance (target: <2 seconds)
+	pattern_detections_total
+	Counter (labeled by window: 30d/90d/365d)
+	How often patterns detected
+	pattern_mitigation_accepted_total
+	Counter
+	How often Founder approves suggested mitigations
+	pattern_mitigation_declined_total
+	Counter
+	How often Founder declines mitigations
+	weekly_digest_sent_total
+	Counter
+	Weekly digest delivery success
+	weekly_digest_failed_total
+	Counter
+	Weekly digest delivery failures
+	decision_queue_items_added_total
+	Counter
+	How often incidents create Decision Queue items
+	cost_exports_total
+	Counter
+	How often Founder exports financial data
+	________________
+
+
+Test Scenarios
+Happy Path
+Scenario 1: Founder Queries Incident → Gets Narrative
+1. Founder opens FOCL
+2. Types: "What happened last Thursday?"
+3. System parses query → Identifies March 6, 2026
+4. Searches event ledger → Finds Safe Mode episode (2hr 47min)
+5. Generates founder-friendly narrative
+6. Displays: What happened, auto-recovery, impact, cost, status, follow-up
+7. Founder reviews, adds follow-up to Decision Queue
+Expected: Natural language query → Smart narrative in <2 seconds.
+________________
+
+
+Scenario 2: Pattern Detected → Mitigation Suggested → Founder Approves
+1. GPU crashes 3 times in 30 days
+2. System detects pattern (30-day window, high urgency)
+3. Generates mitigation: "Enable redundant GPU cluster ($200/month)"
+4. Adds to Decision Queue (Priority: High)
+5. Includes in weekly digest email (Monday)
+6. Founder reviews pattern analysis
+7. Founder clicks: "Yes, Enable Redundant Cluster"
+8. System provisions redundant GPU (auto-provisioning script)
+9. Confirmation: "Redundant GPU cluster enabled. Cost: $200/month. GPU crashes should cease."
+Expected: Pattern detection → Mitigation → One-click approval → Auto-provisioning.
+________________
+
+
+Scenario 3: Weekly Digest Email Sent → Founder Reviews → Clicks Through to FOCL
+1. Monday 6:00am: System generates weekly digest
+2. Email sent to Founder (Sunday traffic + incidents + costs + patterns)
+3. Founder opens email on phone (Tuesday morning)
+4. Reads: "2 incidents this week, 1 requires follow-up"
+5. Clicks: "View Full Incident Report" link
+6. Opens FOCL on phone → Incident detail screen
+7. Reviews narrative, clicks: "Add to Decision Queue"
+8. Decision Queue item created (Priority: Medium)
+Expected: Email → FOCL seamless navigation, mobile-friendly.
+________________
+
+
+Edge Cases
+Scenario 4: Query Returns Ambiguous Results
+1. Founder asks: "Why did we enter Safe Mode?"
+2. System finds 3 Safe Mode episodes in last 90 days
+3. Response: "We entered Safe Mode 3 times recently. Which one? [March 6] [Feb 8] [Jan 15]"
+4. Founder taps: "March 6"
+5. System shows March 6 incident narrative
+Expected: Ambiguous query → Clarification options → Correct result.
+________________
+
+
+Scenario 5: Pattern Detection with Low Confidence
+1. GPU crashes 3 times, but each crash different root cause (hardware, software, power)
+2. System detects "possible pattern" but confidence = LOW
+3. Alert: "⚠️ Possible Pattern (Low Confidence): GPU crashes 3 times (different causes)"
+4. Includes: "These events may be unrelated. Review details before acting."
+5. Founder reviews → Declines mitigation (unrelated causes)
+6. System logs: pattern_mitigation_declined (reason: low confidence)
+Expected: Low-confidence patterns surfaced with caveats, not auto-suggested.
+________________
+
+
+Scenario 6: Cost Data Missing for Incident
+1. Safe Mode episode occurs
+2. Auto-recovery completes successfully
+3. Cost tracking service down (failed to log AI tier usage)
+4. Founder queries incident
+5. Narrative shows: "Cost impact: Unable to calculate (data unavailable)"
+6. Footer: "⚠️ Cost data missing — Added to financial audit queue"
+7. Manual review required to reconstruct cost
+Expected: Missing cost data flagged, not silently ignored.
+________________
+
+
+Copy Library
+Microcopy (Alerts, Narratives)
+Context
+	Copy
+	Green status
+	"All systems operational"
+	Orange status
+	"Elevated load — Auto-scaling active"
+	Yellow status
+	"Safe Mode active (US-East) — Core features operational"
+	Red status
+	"Emergency Mode — Immediate attention required"
+	Query placeholder
+	"Ask about past incidents... (e.g., 'What happened last Thursday?')"
+	No results
+	"No incidents found for this query. Try a different date or severity filter."
+	Pattern detected (30d)
+	"⚠️ Pattern Detected (Last 30 Days): [Issue] occurred [N] times"
+	Pattern detected (90d)
+	"📊 Quarterly Trend Detected: [Pattern] observed [N] times in 90 days"
+	Pattern detected (365d)
+	"📅 Annual Pattern Detected: [Pattern] observed during [season/month]"
+	Cost increased
+	"Why it went up: [plain language explanation]"
+	Cost decreased
+	"Why it went down: [plain language explanation]"
+	Follow-up suggested
+	"What you can do: [actionable mitigation with cost/benefit]"
+	Auto-recovered
+	"✅ Fully resolved, no action needed"
+	Needs attention
+	"⚠️ Requires decision — Added to Decision Queue"
+	________________
+
+
+Cross-References
+Sections
+* Section 3.0 (Governance Substrate) — Event ledger structure, immutability
+* Section 7.2 (Calm Mode Language) — Founder-friendly terminology (EXTEND with Section 7.2.5: Financial Terminology, 7.2.6: Alert Level Plain Language)
+* Section 7.8 (Deterministic Decision Communication) — Alert level language
+* Section 8.4 (Permissioning & Audit Logs) — Event ledger query permissions
+* Section 12.5 (Observability) — Monitoring metrics, alert thresholds
+Features
+* F-6.5.16 (FOCL) — Decision Queue, alert threshold configuration UI
+* F-6.6.2 (Protective Safety Mode) — Yellow/Red alert definitions, auto-recovery logging
+* F-6.6.6 (Emergency Delegate System) — Delegates view same incident narratives
+Copy Standards (NEW — Section 7.2 Extensions Required)
+* Section 7.2.5 (NEW): Founder-Facing Financial Terminology
+* Section 7.2.6 (NEW): Alert Level Plain Language Translation
+* Section 7.2.7 (NEW): Pattern Detection Microcopy

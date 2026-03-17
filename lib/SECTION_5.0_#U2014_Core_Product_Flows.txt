@@ -1,0 +1,910 @@
+﻿SECTION 5.0 — Core Product Flows (Canonical, mobile-first)
+5.0.0 Constitutional Purpose
+The platform is a structured decision-support system for travel before, during, and after trips.
+Hard rules:
+* Requires at least one anchor: Trip and/or Policy.
+
+* No silent mutation. No silent realignment.
+
+* Voice is authoritative only through proposal → explicit confirmation.
+
+* Identical ItineraryHash returns identical Quick Scan result (account-bound, rate-limited).
+
+________________
+
+
+STEP 0 — Splash
+Screen: Splash
+Copy:
+   * Header: “Travel is chaotic.”
+
+   * Subheader: “Your decisions don’t have to be.”
+
+Primary CTA: “Let’s get started”
+Secondary CTA: “Log in”
+TRANSITIONING SCREEN: Loading…
+________________
+
+
+STEP 1 — Account Creation (required before any scan)
+Screen: Create account
+Fields: email, password, confirm password
+Password helper copy (inline):
+      * “We’ll help you choose a safe password.”
+
+Password exposure check behavior
+         * If exposed password:
+
+            * Inline error: “That password has appeared in known data exposures and can’t be used here.”
+
+            * CTA: “Try another password”
+
+            * Secondary: “Show password rules”
+
+Guardian notice (non-blocking, only when relevant later)
+               * Small footnote (not a gate): “Some purchases may require a guardian if you’re under 18.”
+
+Primary CTA: “Continue”
+TRANSITIONING SCREEN: Securing your account…
+________________
+
+
+STEP 1.5 — Terms + Privacy Acceptance (must precede voice capture)
+Screen: Terms & Privacy
+Copy:
+                  * “We’ll never silently change your trip or coverage.”
+
+                  * “You stay in control.”
+
+Checkboxes:
+                     * “I agree to Terms (vX.Y)”
+
+                     * “I agree to Privacy (vA.B)”
+
+Primary CTA: “Accept and continue”
+Secondary: “Read later” (blocked; cannot proceed without acceptance)
+Event: terms_accepted, privacy_accepted
+TRANSITIONING SCREEN: Setting up your workspace…
+________________
+
+
+STEP 2 — User Signal Layer (Voice-first, skippable)
+Screen title: “What are your expectations of the platform?”
+UI:
+                        * Large mic button
+
+                        * Text: “Go ahead and speak.”
+
+                        * Button: “Type instead”
+
+                        * Skip: “Skip for now”
+
+Recording rules:
+                           * Max 5 minutes
+
+                           * 1-minute remaining notice at 4:00
+
+                           * Max 3 parsing passes
+
+                           * Output is a ProposedSignalProfile only
+
+After capture → Summary Screen
+ Title: “Here’s what I heard”
+Shows:
+                              * Summary bullets (editable)
+
+                              * Detected items (chips): places, artists/events, travel style, paperwork/visa help, group vs solo, insurance interest (only if it changes routing)
+
+Buttons:
+                                 * Confirm
+
+                                 * Edit
+
+                                 * Start over
+
+“Edit” behavior (required)
+Edit opens a structured form seeded from the proposal:
+                                    * Travel style: Solo / Group / Mixed
+
+                                    * Interests: add/remove chips
+
+                                    * Paperwork help: visas / entry / vaccines / forms
+
+                                    * Detail preference: simple / balanced / detailed
+
+                                    * Emergency readiness interest (optional)
+
+                                    * Enrichment opt-in (optional; concerts/tours suggestions)
+
+Save button: “Update summary” (still not committed until Confirm)
+Commit rule: only “Confirm” writes UserSignalProfileVersion.
+TRANSITIONING SCREEN: Got it. Building your dashboard…
+________________
+
+
+STEP 3 — Anchor Activation Choice (wording: “Let’s get started”)
+Screen: “Let’s get started”
+Copy:
+                                       * “Add a trip, add a policy, or start planning. You can do one now and the other later.”
+
+Buttons:
+                                          * “Add a trip itinerary”
+
+                                          * “Add an insurance policy”
+
+                                          * “I’m still planning”
+
+Server gate:
+                                             * AccountAnchorState updated only after user completes one path.
+
+________________
+
+
+STEP 4A — Itinerary Upload Path (supports PDFs, ICS, DOCX, AI itineraries, manual)
+Screen: Add your itinerary
+Options:
+                                                * Upload file
+
+                                                * Import ICS
+
+                                                * Paste / AI itinerary text
+
+                                                * Manual entry
+
+Supported file types copy:
+                                                   * “We support PDFs, ICS calendar files, Word docs, and AI-generated itineraries.”
+
+Unsupported file handling (required)
+If unsupported:
+                                                      * Message: “Unfortunately, we can’t use that file type yet.”
+
+                                                      * Primary: “Try again”
+
+                                                      * Secondary: “Enter manually”
+
+File too large handling (required)
+If too large:
+                                                         * Message: “That file is too large to upload.”
+
+                                                         * Primary: “Try a smaller file”
+
+                                                         * Secondary: “Enter manually”
+
+TRANSITIONING SCREEN (replace “parsing” wording):
+ Pick one rotating line (no deterministic claims implied):
+                                                            * “Taking a careful look…”
+
+                                                            * “Dotting the i’s and crossing the t’s…”
+
+                                                            * “Lining everything up…”
+
+                                                            * “Making sure the details match…”
+
+System action:
+                                                               * Create ItineraryArtifact
+
+                                                               * Normalize → ItineraryVersion
+
+                                                               * Compute ItineraryHash
+
+Result screen: Itinerary preview
+                                                                  * “Review your trip”
+
+                                                                  * Show legs / dates / locations
+Buttons:
+
+                                                                  * “Looks right”
+
+                                                                  * “Edit”
+
+                                                                  * “Start over”
+
+Confirm writes TripStatus=structured.
+________________
+
+
+STEP 4B — Policy-Only Path
+Screen: Add your policy
+Options:
+                                                                     * Upload policy PDF
+
+                                                                     * Forward confirmation email
+
+                                                                     * Enter plan details manually
+
+Copy:
+                                                                        * “You can add a trip later. Policy-only mode still gives you coverage clarity and timers.”
+
+System actions:
+                                                                           * PolicyArtifact created
+
+                                                                           * Policy metadata extracted
+
+                                                                           * CoverageGraph built
+
+                                                                           * ClauseTimers created
+
+Limit:
+                                                                              * No itinerary-based analysis until Trip exists.
+
+________________
+
+
+STEP 4C — Planning Draft Path
+Screen: “Start planning”
+Fields:
+                                                                                 * Tentative destinations (max 10 at a time)
+
+                                                                                 * Tentative dates
+
+                                                                                 * Rough budget
+
+                                                                                 * People count (optional)
+
+Creates TripDraft with TripStatus=draft.
+Copy:
+                                                                                    * “Quick Scan starts once your itinerary is structured.”
+
+
+Amendment — Draft Home Workflow
+March 2026 | Addendum to Section 5.0
+________________
+
+
+Purpose of Amendment
+This amendment adds Step 4D (Draft Home workflow) to the core product flow, expanding the trip creation process to include incremental authoring before Deep Scan.
+All existing Section 5.0 flows remain intact. This amendment adds a new pre-readiness workflow without modifying existing steps.
+4D — Draft Home Workflow (Between Trip Creation & Deep Scan)
+Flow Position
+Previous flow (Section 5.0):
+Step 4A: Account Creation & Onboarding
+Step 4B: Attach First Policy (optional)
+Step 4C: Create Trip (minimal data)
+Step 4E: Run QuickScan OR DeepScan
+Updated flow (v1.1):
+Step 4A: Account Creation & Onboarding
+Step 4B: Attach First Policy (optional)
+Step 4C: Create Trip (minimal data) → Trip in DRAFT state
+Step 4D: Draft Home Workflow (NEW — build itinerary) ← This amendment
+Step 4E: Confirm Trip Readiness (NEW — gate before Deep Scan)
+Step 4F: Run QuickScan OR DeepScan (was Step 4E)
+________________
+
+
+Step 4D: Draft Home Workflow
+Entry Condition: User created trip in DRAFT state (Step 4C)
+Goal: Build structured itinerary incrementally before coverage analysis
+Sub-Steps:
+4D.1 — Initial Capture (Voice or Manual)
+User chooses:
+                                                                                    * Option A: Voice narration ("Tell me about your trip")
+                                                                                    * Option B: Manual entry ("Add leg")
+Voice Path:
+                                                                                    1. User taps mic
+                                                                                    2. User narrates: "I'm flying from NYC to Paris on June 10..."
+                                                                                    3. System parses → Proposes route segments
+                                                                                    4. User confirms → Segments written to database
+                                                                                    5. Trip sub-state: initial_capture → route_building
+Manual Path:
+                                                                                    1. User clicks "Add leg"
+                                                                                    2. User fills form (Origin, Destination, Travel mode, Times)
+                                                                                    3. User saves → Segment added
+                                                                                    4. Trip sub-state: initial_capture → route_building
+Outputs:
+                                                                                    * Route segments created (route_segments table)
+                                                                                    * Emit: route_segment_added
+________________
+
+
+4D.2 — Route Building
+User adds segments until itinerary complete:
+                                                                                    * Add more legs (manual or voice)
+                                                                                    * Reorder segments (drag-drop)
+                                                                                    * Edit segment times
+System runs route validation (F-6.5.18):
+                                                                                    * Check schedule conflicts
+                                                                                    * Warn about tight connections
+                                                                                    * Flag impossible travel times
+User sees:
+                                                                                    * Green ✓ (route valid)
+                                                                                    * Yellow ⚠ (warnings, can acknowledge)
+                                                                                    * Red ⛔ (errors, must fix)
+Outputs:
+                                                                                    * Route segments confirmed or edited
+                                                                                    * Validation results displayed
+                                                                                    * Emit: route_normalized
+________________
+
+
+4D.3 — Activity Planning (Optional)
+System suggests activities (F-6.5.19):
+                                                                                    * AI-inferred (based on destination + dates)
+                                                                                    * Creator-sourced (from F-6.6.11, if user searched)
+User reviews:
+                                                                                    * Accept activity → Moves to itinerary
+                                                                                    * Reject activity → Hidden from list
+                                                                                    * Defer → Stays in suggestions
+User may also:
+                                                                                    * Add custom activities manually
+                                                                                    * Skip activity planning entirely (proceed to readiness)
+Outputs:
+                                                                                    * Activity candidates created (activity_candidates table)
+                                                                                    * Emit: activity_accepted, activity_rejected
+Trip sub-state: route_building → activity_planning
+________________
+
+
+4D.4 — Resolve Blockers
+System auto-flags blockers:
+                                                                                    * Missing departure/return dates
+                                                                                    * Route validation errors
+                                                                                    * No route segments
+User may add custom blockers:
+                                                                                    * "Need to book hotel"
+                                                                                    * "Check visa requirements"
+User resolves:
+                                                                                    * Click "Fix now" → Jumps to relevant screen (e.g., date picker, route editor)
+                                                                                    * Mark done (user-added items)
+Outputs:
+                                                                                    * Unresolved items resolved (unresolved_items table)
+                                                                                    * Emit: unresolved_item_resolved
+Trip sub-state: activity_planning → readiness_review
+________________
+
+
+4D.5 — Check Readiness
+User clicks: "Check Readiness"
+System runs: evaluate_trip_readiness() (Section 3.5)
+Result A (Not Ready):
+                                                                                    * Show blockers list
+                                                                                    * User must fix before proceeding
+                                                                                    * Loop back to 4D.4
+Result B (Ready):
+                                                                                    * Show confirmation prompt: "Your trip is ready!"
+                                                                                    * User clicks "Confirm trip is ready"
+                                                                                    * Trip transitions: DRAFT → PRE_TRIP_STRUCTURED
+                                                                                    * Emit: trip_readiness_confirmed
+                                                                                    * Proceed to Step 4F (Deep Scan now unlocked)
+Trip sub-state: readiness_review → confirmed
+________________
+
+
+User Paths Through Draft Home
+Path 1: Voice-Only (Fastest)
+1. Create trip (Step 4C)
+2. Narrate entire itinerary (4D.1 Voice)
+3. System parses, user confirms (4D.2)
+4. Skip activities (4D.3)
+5. Check readiness, confirm (4D.5)
+6. Run Deep Scan (Step 4F)
+
+
+Time: ~5 minutes
+Path 2: Manual Entry (Most Control)
+1. Create trip (Step 4C)
+2. Add segments manually (4D.1 Manual, 4D.2)
+3. Review AI activity suggestions, accept 3 (4D.3)
+4. Fix route warning (tight connection) (4D.4)
+5. Check readiness, confirm (4D.5)
+6. Run Deep Scan (Step 4F)
+
+
+Time: ~15 minutes
+Path 3: Iterative (Resumable)
+1. Create trip (Step 4C)
+2. Add 2 segments, close app (4D.1-4D.2)
+3. [Next day] Return, add 2 more segments (4D.2)
+4. Add activities (4D.3)
+5. Check readiness → Not ready (missing return date) (4D.5)
+6. Add return date (4D.4)
+7. Check readiness → Ready, confirm (4D.5)
+8. Run Deep Scan (Step 4F)
+
+
+Time: ~30 minutes (spread over days)
+________________
+
+
+Exit Conditions
+Success Path:
+                                                                                    * Trip in PRE_TRIP_STRUCTURED state
+                                                                                    * Readiness confirmed
+                                                                                    * Deep Scan unlocked
+                                                                                    * Proceed to Step 4F
+Abandon Path:
+                                                                                    * User closes Draft Home without confirming
+                                                                                    * Trip remains in DRAFT state
+                                                                                    * Draft saved (all segments, activities, blockers persist)
+                                                                                    * User can return later ("Continue planning")
+________________
+
+
+Cross-Flow Dependencies
+Upstream:
+                                                                                    * Step 4C (Create Trip) → Outputs trip in DRAFT state
+Downstream:
+                                                                                    * Step 4F (Deep Scan) → Requires trip in PRE_TRIP_STRUCTURED (readiness gate)
+Parallel:
+                                                                                    * Step 4B (Attach Policy) may happen before, during, or after Draft Home workflow
+________________
+
+
+Screen Surfaces Used
+Step
+	Screen Surface
+	Feature
+	4D.1 Voice
+	S-DRAFT-002 (Voice Narration Interface)
+	F-6.5.17
+	4D.1 Manual
+	S-DRAFT-004 (Route Editor)
+	F-6.5.17
+	4D.2
+	S-DRAFT-001 (Draft Home)
+	F-6.5.17
+	4D.3
+	S-DRAFT-006 (Activity Suggestions Panel)
+	F-6.5.19
+	4D.4
+	S-DRAFT-007 (Unresolved Items Panel)
+	F-6.5.17
+	4D.5
+	S-DRAFT-005 (Readiness Panel)
+	F-6.5.17
+	________________
+
+
+Section 5.0 Amendment — Draft Home Workflow | March 2026
+Adds: Step 4D (Draft Home), Step 4E (Readiness Gate) | Renumbers: Deep Scan from 4E → 4F
+Binding: F-6.5.17, F-6.5.18, F-6.5.19, Section 3.5 (Trip Maturity States), Section 7.3 (Screen Registry)
+________________
+
+
+STEP 5 — Quick Scan (automatic once itinerary is structured)
+Screen: Quick Scan results (auto-generated after itinerary confirmation)
+Copy:
+                                                                                    * “Here’s a fast read based on your itinerary.”
+
+Outputs (must persist):
+                                                                                       * Connection buffer classification
+
+                                                                                       * Season window classification
+
+                                                                                       * Trip structure classification
+
+                                                                                       * Prepaid cost estimate
+
+Rules:
+                                                                                          * Deterministic by ItineraryHash
+
+                                                                                          * Same hash → same QuickScanResult (account-bound)
+
+Buttons:
+                                                                                             * “Keep building”
+
+                                                                                             * “See insurance options”
+
+________________
+
+
+STEP 5.5 — Coverage-Sensitive Readiness Pins (visas/vaccines/docs)
+Screen: Entry & documentation checklist
+Copy:
+                                                                                                * “Before you lock anything in, here’s what travel-ready looks like.”
+
+Checklist sections (status icons):
+                                                                                                   * Passport readiness
+
+                                                                                                   * Visa / entry requirements (by country + all-up toggle)
+
+                                                                                                   * Vaccinations / health entry (by country)
+
+                                                                                                   * Emergency contacts (optional)
+
+                                                                                                   * Document vault (optional)
+
+Buttons:
+                                                                                                      * “I’ll handle this myself”
+
+                                                                                                      * “Help me organize this”
+
+                                                                                                      * “Continue”
+
+________________
+
+
+STEP 6 — Deep Scan (credit-governed, never auto)
+STEP 6 — Deep Scan (credit-governed, never auto)
+Deep Scan is optional and never triggers automatically.
+Deep Scan SHALL only execute after explicit confirmation and atomic credit deduction.
+________________
+
+
+6.A — Deep Scan Readiness Gate (Group Trips Only)
+If TripMode = Group, the system SHALL verify that all participants have completed required residence fields before allowing Deep Scan to proceed.
+Minimum required per participant:
+                                                                                                         * residence_country_code
+
+                                                                                                         * residence_state_code (if residence_country_code = US)
+
+If any required residence field is missing:
+Screen: “Before we spend a Deep Scan credit…”
+Copy:
+“Deep Scan can filter insurance options based on where each traveler lives. Some participants haven’t added their location yet.”
+Buttons:
+                                                                                                            * “Invite participants to finish setup”
+
+                                                                                                            * “Organizer-only preview (no Deep Scan credit)”
+
+                                                                                                            * “Not now”
+
+Rules:
+                                                                                                               * Organizer-only preview SHALL:
+
+                                                                                                                  * NOT create a DeepScanJob
+
+                                                                                                                  * NOT deduct a Deep Scan credit
+
+                                                                                                                  * NOT surface insurance plan recommendations
+
+                                                                                                                  * MAY show itinerary-derived checklist guidance and coverage concept summaries
+
+                                                                                                                  * SHALL display:
+“Full eligibility filtering will be available once all participants complete their residence profile.”
+
+TRANSITIONING SCREEN: Checking group readiness…
+If all required residence fields are present, proceed to 6.B.
+________________
+
+
+6.B — Deep Scan Preflight Summary (All Users)
+Before credit deduction, the system SHALL present a confirmation summary.
+Screen: “Before we run your Deep Scan”
+Display:
+                                                                                                                     * Participant count
+
+                                                                                                                     * Jurisdiction composition summary (e.g., NY (2), CA (1))
+
+                                                                                                                     * Declared activities
+
+                                                                                                                     * Coverage preference signals
+
+Copy:
+“Deep Scan will use this information to filter eligible plans and highlight gaps.”
+Credit disclosure copy (must appear before run):
+“You’ll use 1 Deep Scan credit. You have X left for this trip.”
+“Edits within the next 10 minutes won’t cost an extra credit.”
+(or 20 minutes for subscription tier)
+Buttons:
+                                                                                                                        * “Run Deep Scan”
+
+                                                                                                                        * “Edit participants”
+
+                                                                                                                        * “Review preferences”
+
+                                                                                                                        * “Not now”
+
+________________
+
+
+6.C — Atomic Execution Rule
+Deep Scan credit deduction and DeepScanJob creation SHALL occur atomically only after the user taps “Run Deep Scan.”
+If credit deduction fails, DeepScanJob SHALL NOT be created.
+________________
+
+
+TRANSITIONING SCREEN: Preparing your Deep Scan…
+________________
+
+
+6.D — Deep Scan Output Feeds
+Deep Scan output SHALL include:
+                                                                                                                           * coverage option generation
+
+                                                                                                                           * readiness checklist refinements
+
+                                                                                                                           * calm wording around coverage-sensitive windows
+
+No risk scoring language SHALL be shown.
+                                                                                                                              * 
+
+________________
+
+
+STEP 7 — Insurance Options (off-platform purchase)
+Screen: “Insurance options that fit this trip”
+Copy (microcopy you requested, toned as a “given”):
+                                                                                                                              * “We’ll show options built from your itinerary and what you’ve chosen.”
+
+                                                                                                                              * “When multiple options qualify, we’ll always surface the most cost-efficient fit first — and explain why.”
+
+Plan cards (minimum):
+                                                                                                                                 * Carrier name
+
+                                                                                                                                 * Price “as of [timestamp]”
+
+                                                                                                                                 * Key coverage highlights
+
+                                                                                                                                 * “Why this matches your trip”
+
+Buttons:
+                                                                                                                                    * “View details”
+
+                                                                                                                                    * “Choose this plan”
+
+Group Jurisdiction Composition (Required for Group Recommendations)
+ If TripMode = Group, the platform SHALL compute a JurisdictionComposition summary from organizer + participant residence profiles (country/state).
+Screen: “Group eligibility view”
+Copy:
+“Some plans can only be offered in certain places. Choose how you want to view options.”
+Display:
+“Group includes: NY (2), NJ (1), CA (1)” (example)
+Buttons (organizer choice):
+                                                                                                                                       * “Show compliant options for restricted participants first” (default)
+
+                                                                                                                                       * “Show organizer’s options first, then restricted participants”
+
+                                                                                                                                       * “Show options per participant”
+
+Plan card requirement (group mode):
+Each plan card MUST display:
+“Eligible for: [list of states/countries]”
+and MUST NOT display plans that are not eligible for the currently selected view mode.
+Eligible-for-All Fallback Logic
+The system SHALL attempt to generate at least one plan eligible for all participants.
+If no such plan exists:
+                                                                                                                                          1. The system SHALL re-evaluate eligibility excluding non-mandatory preference filters.
+
+                                                                                                                                          2. If still empty, display:
+
+Screen: “No single plan fits everyone”
+Copy:
+“It looks like no single policy can cover all participants under current requirements. You can review options per traveler or adjust coverage preferences.”
+Buttons:
+                                                                                                                                             * “View per participant”
+
+                                                                                                                                             * “Adjust preferences”
+
+                                                                                                                                             * “Back”
+
+This condition SHALL be audit logged.
+TRANSITIONING SCREEN: Checking eligibility for your group…
+If no single plan covers everything (stacking)
+Show: “Primary coverage” selection screen first.
+Then: “Coverage gaps” screen listing uncovered activities/needs.
+Then: “Plans that cover the gaps” (supplemental options).
+Buttons:
+                                                                                                                                                * “Add supplemental plan”
+
+                                                                                                                                                * “Skip supplemental plan”
+
+                                                                                                                                                * “Proceed anyway”
+
+Broker Redirect Boundary Screen (required)
+ Copy:
+                                                                                                                                                   * “You’re leaving our app to complete purchase.”
+
+                                                                                                                                                   * “We don’t process payment or execute the policy.”
+
+                                                                                                                                                   * “If you’re under 18, a guardian may be required to complete this purchase.”
+
+
+
+Buttons:
+                                                                                                                                                      * “Continue to broker”
+
+                                                                                                                                                      * “Not now”
+Jurisdiction Disclosure & Licensing Notice (as applicable)
+ If the user (or any participant in the currently selected view mode) is in a jurisdiction with additional rules (example: New York), show a disclosure block before leaving the app:
+Copy (NY example):
+“Note: Some travel insurance options depend on where you live. We’ll only show plans that can be offered for New York travelers when New York eligibility applies.”
+Rule: This disclosure SHALL be informational and SHALL NOT use fear language.
+
+
+________________
+
+
+STEP 8 — Policy Ingestion (post-purchase)
+Screen: “Have you completed your purchase?”
+Buttons:
+                                                                                                                                                         * “Yes, I purchased a plan”
+
+                                                                                                                                                         * “I decided not to purchase a plan”
+
+If yes → “How would you like to add your policy?”
+                                                                                                                                                            * “Forward confirmation email”
+
+                                                                                                                                                            * “Upload policy”
+
+                                                                                                                                                            * “Enter plan details manually”
+
+TRANSITIONING SCREEN: Adding your policy to your trip…
+System:
+                                                                                                                                                               * Build/refresh CoverageGraph
+
+                                                                                                                                                               * Validate against itinerary needs
+
+                                                                                                                                                               * Prepare Alignment proposal
+
+________________
+
+
+STEP 9 — Coverage Q&A (voice clarity mode, optional)
+Screen: “Questions before we lock this in?”
+Copy:
+                                                                                                                                                                  * “Ask what happens if something goes wrong. We’ll point to the clause and explain the path.”
+
+Voice Q&A rules:
+                                                                                                                                                                     * Answers cite coverage categories + clause references (where available)
+
+                                                                                                                                                                     * If uncertain: downgrade language (“Here’s what we can confirm from the document…”)
+
+Buttons:
+                                                                                                                                                                        * “Continue”
+
+                                                                                                                                                                        * “Back to options”
+
+In-Trip Workspace → Incident Intake
+If credit card attached:
+Screen: “Was this trip paid with [Card Name]?”
+If Yes:
+Screen: “When was the purchase made?”
+Capture date.
+Without that, Section 4 resolution logic has no surface.
+Do you want me to provide the exact copy/paste block for that insertion now?
+
+
+________________
+
+
+STEP 10 — Alignment Confirmation (explicit)
+Screen: “Lock trip + policy together”
+Copy:
+                                                                                                                                                                           * “This binds your trip version and policy version so your guidance stays consistent.”
+
+                                                                                                                                                                           * “If you change your itinerary later, we’ll ask you to re-align.”
+
+Buttons:
+                                                                                                                                                                              * “Confirm alignment”
+
+                                                                                                                                                                              * “Not now”
+
+Creates AlignmentVersion:
+                                                                                                                                                                                 * itinerary_version
+
+                                                                                                                                                                                 * policy_version
+
+                                                                                                                                                                                 * timestamp
+
+________________
+
+
+STEP 11 — In-Trip Workspace
+Screen: Trip dashboard (active)
+Core tools:
+                                                                                                                                                                                    * Incident intake (voice-first)
+
+                                                                                                                                                                                    * Documents
+
+                                                                                                                                                                                    * Coverage view
+
+                                                                                                                                                                                    * Checklist status
+
+                                                                                                                                                                                    * “Plan changes?” assistant entry
+Credit Card Benefit Applicability Prompt (Incident-Time Resolution)
+If the Trip has one or more attached credit card programs:
+After incident type selection and before benefit evaluation:
+Screen: “Was this trip paid using [Card Name]?”
+Buttons:
+                                                                                                                                                                                       * Yes
+
+                                                                                                                                                                                       * No
+
+                                                                                                                                                                                       * Not sure
+
+If user selects “Yes”:
+Screen: “When was the purchase made with this card?”
+Input:
+                                                                                                                                                                                          * Date selector (qualifying_purchase_timestamp)
+
+Rules:
+                                                                                                                                                                                             * The system SHALL resolve the applicable RegistryGuideVersion using:
+applied_effective_date <= qualifying_purchase_timestamp
+
+                                                                                                                                                                                             * If purchase date is unknown or user selects “Not sure”:
+
+                                                                                                                                                                                                * guide_version_attached SHALL be used
+
+                                                                                                                                                                                                * applicability_uncertain flag SHALL be set
+
+                                                                                                                                                                                                   * This resolution SHALL occur before coverage explanation is generated.
+
+                                                                                                                                                                                                   * The resolved guide_version_id and purchase_timestamp_used SHALL be audit logged.
+
+TRANSITIONING SCREEN: Checking benefit eligibility…
+
+Calm reminder copy (dashboard banner, optional):
+                                                                                                                                                                                                      * “You don’t have to log every detail. If plans change in a way that affects coverage, add it when you can.”
+
+Deviation detection (coverage-sensitive)
+Deviation categories:
+                                                                                                                                                                                                         * New country / geography
+
+                                                                                                                                                                                                         * Coverage-sensitive activity added
+
+                                                                                                                                                                                                         * Trip end date drift > 24 hours vs baseline
+
+Organizer notification:
+                                                                                                                                                                                                            * Adults: only coverage-sensitive deviations
+
+                                                                                                                                                                                                            * Minors: stricter; organizer gets deviation notice
+
+________________
+
+
+STEP 12 — Trip End Reminder (neutral, single reminder)
+At 48 hours before trip end:
+Notification copy (use yours):
+                                                                                                                                                                                                               * “Hey — your trip is about to end in 48 hours. If you have any plans to extend it, now would be a great time to look at coverage.”
+
+Buttons:
+                                                                                                                                                                                                                  * “I’m extending my trip”
+
+                                                                                                                                                                                                                  * “No changes”
+
+No escalation beyond this reminder.
+________________
+
+
+STEP 13 — Extension Flow (new Trip creation)
+If “I’m extending my trip”:
+                                                                                                                                                                                                                     * Capture new dates / new countries / new activities (voice or typed)
+
+                                                                                                                                                                                                                     * Confirm summary
+
+                                                                                                                                                                                                                     * Create new Trip (linked to prior trip as “continuation”)
+
+Scan + incentive (Model C):
+                                                                                                                                                                                                                        * If policy repurchased within 14 days → grant 1 bonus Deep Scan credit on new Trip
+
+                                                                                                                                                                                                                        * If initiated within 24h of last deep scan → apply grace decision context
+
+________________
+
+
+STEP 14 — Post-Trip Closure
+Screen: “Trip complete”
+                                                                                                                                                                                                                           * Export (if permitted)
+
+                                                                                                                                                                                                                           * Retain artifacts
+
+                                                                                                                                                                                                                           * Close TripStatus=completed
+
+________________
+
+
+5) Microcopy ledger (the words we’re now treating as canonical)
+Use these exact phrases (or extremely close variants) in UI:
+                                                                                                                                                                                                                              * “Let’s get started”
+
+                                                                                                                                                                                                                              * “Go ahead and speak.”
+
+                                                                                                                                                                                                                              * “Here’s what I heard”
+
+                                                                                                                                                                                                                              * “Confirm / Edit / Start over”
+
+                                                                                                                                                                                                                              * “Taking a careful look…”
+
+                                                                                                                                                                                                                              * “Dotting the i’s and crossing the t’s…”
+
+                                                                                                                                                                                                                              * “You’re leaving our app to complete purchase.”
+
+                                                                                                                                                                                                                              * “We don’t process payment or execute the policy.”
+
+                                                                                                                                                                                                                              * “If you’re under 18, a guardian may be required to complete this purchase.”
+
+                                                                                                                                                                                                                              * “When multiple options qualify, we’ll always surface the most cost-efficient fit first — and explain why.”
+
+                                                                                                                                                                                                                              * “You don’t have to log every detail…”
+
+                                                                                                                                                                                                                              * “Hey — your trip is about to end in 48 hours…”

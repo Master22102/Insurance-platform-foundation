@@ -1,0 +1,485 @@
+﻿WAYFARER PLATFORM — PRODUCT BIBLE
+FEATURE ID: F-6.5.8
+ACTIVE DISRUPTION OPTIONS ENGINE
+Version 1.0  ·  Phase 1 MVP (Coverage-Aware Guidance)  ·  Phase 2 (Live Options)  ·  March 2026
+
+
+Attribute
+	Value
+	Feature ID
+	F-6.5.8
+	Previous Registry Name
+	Causality Linking Engine (SUPERSEDED — registry update required, see Section 14)
+	Feature Name
+	Active Disruption Options Engine
+	Phase
+	Phase 1 MVP: Coverage-Aware Guidance (no external connector) · Phase 2: Live Options Surfacing (GDS/flight search API required)
+	Category
+	Active Incident Intelligence / In-Disruption Decision Support
+	Position in pipeline
+	Sits between F-6.5.4 (incident capture + stabilization) and F-6.5.3/F-6.5.5 (financial routing + claim sequencing)
+	Upstream Dependencies
+	F-6.5.4 (incident open, timeline, acceptance events), F-6.5.3 (trip interruption path, benefit snapshot), F-6.5.5 (routing engine, acceptance checkpoint), Section 3.4 (CCO — causality classification), Section 3.2 Claim object (filing_deadline field)
+	Downstream Consumers
+	F-6.5.5 (preference context passed to routing), F-6.5.14 (preference constraints surfaced in claim packet narrative), F-6.5.3 (out-of-pocket expense tracking)
+	External Connectors
+	MVP: None. Phase 2: GDS or flight search API (Amadeus, Sabre, Google Flights API, or Skyscanner — see Section 9)
+	Spec Status
+	Complete v1.0
+	
+
+1. User Problem Solved
+Tom's flight just got cancelled. He opens the app. F-6.5.4 captures what happened. F-6.5.5 will eventually tell him how to file. But right now, in this moment, Tom doesn't need a claim filed — he needs to get somewhere. He has preferences: he doesn't want to wait, he doesn't want a train, he won't fly United. He says this out loud, or he types it, or it comes out in his incident narrative.
+
+
+No existing feature handles what happens next: the platform taking Tom's stated preferences, reasoning about them against his actual coverage, and giving him actionable guidance — what options exist, what each one costs out of pocket, what each one gets reimbursed, and what he needs to document right now regardless of which option he chooses.
+
+
+This feature fills that gap. It is not a claim feature. It is not a booking feature. It is the decision support layer that helps Tom make an intelligent choice during the most stressful part of his disruption — before any claim is filed.
+
+
+2. Purpose
+F-6.5.8 activates during an open incident when a traveler expresses a desire to explore alternatives to waiting for airline resolution. It:
+* Detects preference signals from natural language (voice or text) during the incident flow
+* Surfaces coverage-aware guidance: which alternative transport options are likely covered under trip interruption, what the reimbursement ceiling is, what documentation to capture now
+* Stores the traveler's stated preferences as structured data on the incident (in-session, not persisted to account)
+* Runs evidence capture in parallel — the documentation checklist runs regardless of which option the traveler is considering
+* Phase 2: surfaces actual live flight/transport options matching preferences with booking links and per-option coverage implications
+
+
+DOCTRINE
+This feature provides decision support only. It never books, never submits, never contacts a carrier on the traveler's behalf. It reasons about options and surfaces consequences. The traveler decides and acts.
+	
+
+3. Scope
+In Scope — Phase 1 MVP
+* Natural language preference detection from incident narrative (voice or text)
+* Structured preference capture on the incident: excluded carriers, transport mode preferences, timing constraints, budget signals
+* Coverage-aware guidance: which alternative transport categories are covered under the traveler's attached policies and credit card benefits
+* Reimbursement ceiling display: maximum covered amount for alternative transport under trip interruption
+* Documentation checklist running in parallel: what to capture now regardless of which option is chosen
+* Out-of-pocket cost framing: for options that exceed coverage limits, clear display of the gap
+* Handoff to F-6.5.3 trip interruption path when traveler confirms they are arranging own transport
+* Preference context passed to F-6.5.5 routing engine to inform claim sequencing
+
+
+In Scope — Phase 2 (requires external connector)
+* Live flight availability search matching traveler's stated preferences (carrier exclusions, direct/connecting, timing)
+* Per-option coverage implication display: for each live result, show what gets reimbursed and what comes out of pocket
+* Direct booking link surfacing: tap an option → opens carrier or OTA booking page
+* Schema for booking link and live option data is built at MVP so Phase 2 is a plug-in, not a rebuild
+
+
+Out of Scope (all phases)
+* Booking or reserving transport on behalf of the traveler
+* Negotiating with carriers
+* Guaranteeing reimbursement for any option chosen
+* Providing legal advice about carrier obligations
+* Persistent preference storage across incidents (in-session only)
+
+
+4. Trigger Conditions
+F-6.5.8 can activate in two ways during an open incident:
+
+
+4.1 — Automatic detection from narrative
+When the traveler's voice or text input during the incident flow contains preference signals, the platform detects them and surfaces the Options Engine contextually. Detection does not interrupt the incident capture flow — it runs in parallel and surfaces a non-intrusive prompt.
+
+
+Preference signal examples the system listens for:
+* "I don't want to wait" / "I'm not waiting for them" / "I want to find another flight"
+* "I don't want to fly United" / "not on that airline"
+* "Can I take a train?" / "what about a bus?" / "I'm thinking about driving"
+* "I want to get there tonight" / "I need to be there by tomorrow"
+* "How much would it cost if I just booked something?" / "what's covered if I book my own?"
+
+
+When detected, the platform surfaces a non-blocking prompt:
+"It sounds like you're considering your own transport options. Want me to show what's covered and what to document?"
+Two options: Yes, show me options / No, continue documenting. The incident flow does not pause either way.
+
+
+4.2 — Explicit screen entry
+At any point during an open incident, the traveler can tap "Explore my options" from the incident screen. This opens the Options Engine directly. No narrative detection required.
+
+
+4.3 — Context guard
+F-6.5.8 only activates when a Trip is in INCIDENT_OPEN state or later. It does not activate during trip drafting (DRAFT state) even if the traveler mentions flights — those are handled by F-6.5.17 (Trip Draft Engine). The platform uses trip maturity state as the context discriminator.
+
+
+CONTEXT GUARD — CRITICAL
+If a traveler is in DRAFT state building a trip and mentions alternatives or different flights, that is F-6.5.17 territory (route editing). F-6.5.8 only activates post-incident. The maturity state check is the single discriminating condition.
+	
+
+5. Preference Capture & Storage
+When the Options Engine activates, the platform extracts structured preference data from the traveler's narrative and stores it on the incident as a preference_context JSONB field. This is in-session and incident-scoped — it does not persist to the account profile.
+
+
+5.1 — Preference schema (incident-scoped JSONB)
+Field
+	Type
+	Example
+	Notes
+	excluded_carriers
+	text[]
+	["United","Spirit"]
+	Carriers the traveler explicitly said they don't want
+	preferred_mode
+	text ENUM
+	"air"
+	air | rail | bus | car | any. Null = no preference
+	routing_preference
+	text ENUM
+	"direct"
+	direct | connecting_ok | any. Null = no preference
+	timing_constraint
+	text
+	"need to arrive by tonight"
+	Free text. Not parsed for enforcement — informational only
+	budget_signal
+	text ENUM
+	"cost_sensitive"
+	cost_sensitive | cost_neutral | willing_to_pay. Null = no signal
+	arrangement_intent
+	text ENUM
+	"arranging_own"
+	arranging_own | waiting_airline | undecided. Drives F-6.5.3 handoff
+	raw_preference_excerpt
+	text
+	"I don't want United, I need direct"
+	Verbatim excerpt from narrative that triggered extraction
+	extracted_at
+	timestamptz
+	—
+	When preferences were extracted
+	extraction_confidence
+	text ENUM
+	"HIGH"
+	HIGH | MEDIUM | LOW — how confident the extraction was
+	
+
+IN-SESSION ONLY
+preference_context is stored on the incidents table for the duration of the incident workflow. It informs the Options Engine display, the F-6.5.5 routing recommendation, and the F-6.5.14 claim packet narrative. It is NOT carried forward to future incidents. Every incident starts with a clean slate — Tom might hate United today and tolerate them tomorrow.
+	
+
+6. Parallel Evidence Capture (Always Running)
+Regardless of which option Tom is considering — waiting, booking his own flight, taking a train, or anything else — the evidence capture checklist runs from the moment the incident opens. Never waste a moment.
+
+
+The checklist is not sequential with the options exploration. They run in parallel. The options panel may be open on the left; the evidence capture prompt is always visible as a persistent element or a background indicator. Tom sees both at the same time.
+
+
+6.1 — Always-capture items (regardless of option chosen)
+* Airline cancellation/delay notice (email, text, gate screen screenshot)
+* Original boarding pass or booking confirmation
+* Timestamp of when Tom learned of the disruption
+* Airline's stated reason (weather, mechanical, crew — even if uncertain)
+* Any offer made by the airline (rebooking, refund, voucher, nothing)
+
+
+6.2 — Option-specific capture items (surface when option is selected)
+* If arranging own transport: itemized receipt for every expense — transport, meals, accommodation
+* If declined airline rebooking: documentation that Tom declined and why (carrier's proposed rebooking details)
+* If accepted carrier offer: documentation of exactly what was accepted — amount, type, conditions
+* If waiting: periodic timestamp markers showing continued delay duration
+
+
+DOCTRINE — EVIDENCE FIRST
+The platform always assumes documentation is needed. It does not wait for Tom to decide what he is doing before telling him what to document. The worst case is he documents something he doesn't use. The best case is he's ready for every possible claim path.
+	
+
+7. Coverage-Aware Guidance (MVP — Phase 1)
+When the Options Engine is open, the platform surfaces what is actually covered under the traveler's attached policies and credit card benefits — not generic advice, but guidance derived from the Coverage Graph for this specific incident.
+
+
+7.1 — What the platform surfaces
+Display Element
+	Source
+	What Tom Sees
+	Trip interruption coverage status
+	F-6.5.3 benefit snapshot + Coverage Graph
+	Whether trip interruption applies to this incident and which coverage source it comes from
+	Covered transport categories
+	Policy/benefit clause extraction
+	"Your Chase Sapphire benefit covers reasonable alternative transportation. Trains, flights, and buses qualify. Taxis and rideshare typically qualify for documented airport-to-accommodation segments."
+	Reimbursement ceiling
+	Coverage Graph node — coverage_limit field
+	"Up to $[amount] for alternative transport under trip interruption. Your travel insurance policy adds [amount] if Chase is exhausted first."
+	Sequence guidance
+	F-6.5.5 routing engine
+	"Document all expenses. File with Chase first. Your insurer is step 2 if Chase limit is reached."
+	Filing deadline
+	Claim object — filing_deadline field
+	"Chase benefit: file within 60 days of incident. Travel insurance: file within 90 days of trip end."
+	Out-of-pocket gap
+	Coverage limit vs estimated cost
+	"If your alternative transport costs more than $[ceiling], the difference comes out of pocket."
+	
+
+7.2 — Preference integration
+The guidance reflects Tom's stated preferences. If he said no United and wants direct, the coverage guidance says:
+"For a direct flight on a non-United carrier from [origin] to [destination], expect fares in the range of $X–$Y based on typical routes. Your coverage reimburses up to $[ceiling]. Document the booking confirmation and receipt."
+The platform does not look up live fares at MVP — it uses general range framing only. The Phase 2 connector replaces the range estimate with actual live results.
+
+
+7.3 — Language rules
+* Never say "you should book X" — present information, not directives
+* Never predict reimbursement outcome — "your coverage includes" not "you will be reimbursed"
+* Always surface the filing deadline alongside coverage information
+* Always surface the evidence checklist for any option being considered
+* If coverage is uncertain (CONDITIONAL_ALIGNMENT): "Your coverage may apply — document everything and file. The adjuster will determine eligibility."
+
+
+8. Phase 2 — Live Options Surfacing
+PHASE 2 — EXTERNAL CONNECTOR REQUIRED
+This section defines what Phase 2 looks like so the schema is built correctly at MVP. No Phase 2 functionality ships without the external connector being licensed, integrated, and tested. The feature_activation_state for the live_options sub-capability defaults to disabled.
+	
+
+When the live options connector is active, the Options Engine replaces the fare range estimate with actual search results matching the traveler's preferences. The platform calls the connector with:
+* Origin airport (from incident — derived from disrupted segment)
+* Destination airport (from trip itinerary)
+* Excluded carriers (from preference_context.excluded_carriers)
+* Routing preference (direct / connecting)
+* Timing constraint (departure window derived from preference text)
+
+
+Results are displayed as a ranked list. Each result shows:
+* Carrier, flight number, departure time, arrival time
+* Fare (economy default — upgrades not surfaced)
+* Coverage implication: covered / partially covered / out of pocket
+* Estimated reimbursement amount for this specific option
+* "Book" button → opens carrier or OTA booking page in browser (platform does not handle the transaction)
+
+
+8.1 — Phase 2 schema (built at MVP, populated at Phase 2)
+Field
+	Table
+	Type
+	MVP behavior
+	Phase 2 behavior
+	live_options_connector_id
+	incidents
+	UUID → connector_registry
+	NULL
+	FK to active GDS connector
+	live_options_search_id
+	incidents
+	text
+	NULL
+	External search session ID
+	live_options_result
+	incidents
+	jsonb
+	NULL
+	Array of option objects from connector
+	live_options_retrieved_at
+	incidents
+	timestamptz
+	NULL
+	When results were fetched
+	live_options_expires_at
+	incidents
+	timestamptz
+	NULL
+	When results expire (typically 15 min)
+	selected_option_id
+	incidents
+	text
+	NULL
+	Which option traveler tapped (for audit trail)
+	booking_link_opened_at
+	incidents
+	timestamptz
+	NULL
+	When traveler tapped the booking link
+	
+
+9. External Connector Requirements
+Connector
+	Purpose
+	Phase
+	Licensing
+	Candidates
+	Notes
+	GDS / Flight Search API
+	Live flight availability, fares, booking links
+	Phase 2
+	Licensed (paid)
+	Amadeus Flight Offers Search API, Sabre Dev Studio, Google Flights API (limited public access), Skyscanner Partners API
+	Amadeus has a free developer sandbox. Production requires partnership agreement. Skyscanner is aggregator-based. Google Flights API has limited partner access. Evaluate cost per search call vs expected volume.
+	Rail / Ground Transport API
+	Live train, bus, car hire availability
+	Phase 2+
+	Varies
+	Rome2rio API, Trainline API, Omio API
+	Secondary priority after flight search. Rome2rio is the broadest multi-modal option.
+	Fare Cache / Historical Ranges
+	Typical fare ranges for route estimates (MVP placeholder)
+	MVP
+	Free / low cost
+	OAG route data, historical fare aggregates, Kayak public data
+	Used at MVP only to provide "expect fares in range $X–$Y" language. Replaced by live connector at Phase 2.
+	
+
+DATA SOURCE REGISTRY
+All three connectors above require entries in the Data Source Registry before implementation begins. Registry keys: flight_search_live_gds, rail_ground_transport_api, fare_range_historical. The Data Source Registry itself is a Critical Gap (flagged in Section 12.1-12.3 and the Gap Audit). No Phase 2 implementation begins without these entries.
+	
+
+10. Data Model — Schema Additions
+10.1 — Additions to incidents table
+Field
+	Type
+	MVP
+	Phase 2
+	Description
+	preference_context
+	jsonb
+	✅ Active
+	✅ Active
+	Traveler's stated preferences for this incident. In-session only. Schema defined in Section 5.1.
+	options_engine_activated
+	boolean
+	✅ Active
+	✅ Active
+	True if traveler entered Options Engine during this incident.
+	options_engine_activated_at
+	timestamptz
+	✅ Active
+	✅ Active
+	Timestamp of first activation.
+	options_engine_trigger
+	text ENUM
+	✅ Active
+	✅ Active
+	narrative_detection | explicit_tap. How it was triggered.
+	arrangement_intent_confirmed
+	text ENUM
+	✅ Active
+	✅ Active
+	arranging_own | waiting_airline | undecided. Set when traveler confirms direction.
+	live_options_connector_id
+	UUID
+	NULL
+	Phase 2
+	FK to connector_registry when live search is active.
+	live_options_result
+	jsonb
+	NULL schema only
+	Phase 2 populated
+	Array of live option objects. Schema present at MVP, data populated at Phase 2.
+	live_options_retrieved_at
+	timestamptz
+	NULL
+	Phase 2
+	When live results were fetched.
+	live_options_expires_at
+	timestamptz
+	NULL
+	Phase 2
+	When live results expire.
+	selected_option_id
+	text
+	NULL
+	Phase 2
+	Audit trail of which option traveler tapped.
+	booking_link_opened_at
+	timestamptz
+	NULL
+	Phase 2
+	When booking link was opened.
+	
+
+10.2 — Required migration
+Migration M-21: alter_incidents_add_options_engine_fields
+* Add all fields above to incidents table
+* Update feature_registry: F-6.5.8 display_name = 'Active Disruption Options Engine', description updated
+* Register sub-capability feature flag: F-6.5.8-LIVE for Phase 2 live options (default_enabled = false)
+* Register event types: options_engine_activated, options_engine_preference_extracted, options_engine_arrangement_confirmed, live_options_searched, live_options_booking_link_opened
+
+
+11. Event Emissions
+Event Type
+	Severity
+	Trigger
+	Required Payload
+	Phase
+	options_engine_activated
+	info
+	Traveler enters Options Engine
+	incident_id, trip_id, trigger_type, activated_at
+	MVP
+	options_engine_preference_extracted
+	info
+	Preferences extracted from narrative
+	incident_id, preference_context, extraction_confidence
+	MVP
+	options_engine_arrangement_confirmed
+	info
+	Traveler confirms arrangement intent
+	incident_id, arrangement_intent, confirmed_at
+	MVP
+	options_engine_dismissed
+	info
+	Traveler dismisses Options Engine
+	incident_id, dismissed_at
+	MVP
+	live_options_searched
+	info
+	Live connector search executed
+	incident_id, connector_id, result_count, search_params_hash
+	Phase 2
+	live_options_booking_link_opened
+	info
+	Traveler tapped booking link
+	incident_id, selected_option_id, carrier, fare
+	Phase 2
+	
+
+12. Behavioral Invariants
+ID
+	Rule
+	I-01
+	F-6.5.8 activates ONLY when trip maturity state is INCIDENT_OPEN or later. It never activates during DRAFT state trip building.
+	I-02
+	Evidence capture runs in parallel with options exploration — never sequential, never blocked by the options flow.
+	I-03
+	preference_context is incident-scoped and in-session only. It is never persisted to the account profile or used in future incidents.
+	I-04
+	The platform never books, never transacts, never contacts a carrier. Booking links open externally. The platform is observer and advisor only.
+	I-05
+	Coverage guidance is always derived from the actual Coverage Graph for this incident — not generic advice. If no coverage is attached, the platform says so explicitly.
+	I-06
+	Filing deadlines are always surfaced alongside coverage information. Never show coverage without showing the deadline to use it.
+	I-07
+	Language is always choice-forward, never directive. "Your coverage includes" not "you should book." "This option costs $X out of pocket" not "this is too expensive."
+	I-08
+	Live options results expire after 15 minutes. Expired results are never reshown as current. A refresh is required.
+	I-09
+	The F-6.5.8-LIVE sub-capability is disabled by default. It cannot be enabled without the external connector being registered in the Data Source Registry and licensed.
+	I-10
+	All options engine events are emitted to the event ledger per Section 3.0 governance invariants.
+	
+
+13. Surge Behavior
+* ELEVATED: Full MVP functionality. Live options (Phase 2) rate-limited per incident.
+* PROTECTIVE: Coverage-aware guidance and evidence capture run normally. Live options search blocked. Display: "Live option search is temporarily paused. Your coverage guidance is current."
+* RECOVERY: Read-only. Existing preference_context and evidence checklist accessible. No new Options Engine activation.
+
+
+14. Feature Registry Update Required
+ACTION REQUIRED — CODE ITEM
+The prewire migration registered F-6.5.8 as 'Causality Linking Engine'. This is superseded by this spec. Migration M-21 must UPDATE the feature_registry row for F-6.5.8 and register the F-6.5.8-LIVE sub-capability as a separate registry entry. See Section 10.2.
+	
+
+SQL to include in M-21:
+UPDATE feature_registry SET display_name = 'Active Disruption Options Engine', description = 'Coverage-aware alternative transport guidance during active incident. Phase 2: live options via GDS connector.' WHERE feature_id = 'F-6.5.8';
+INSERT INTO feature_registry (feature_id, display_name, description, default_enabled, minimum_mode) VALUES ('F-6.5.8-LIVE', 'Active Disruption Options — Live Search', 'Phase 2: GDS connector for live flight/transport options during active incident', false, 'NORMAL');
+
+
+15. FOCL Feature Phase Visibility — Gap Flag
+GAP — CODE ITEM REQUIRED
+The feature_registry table does not have a 'phase' column, a 'capability_level' column, or a 'sub_feature_status' field. The FOCL Feature Console (/focl/features) can show enabled/disabled and rollout percentage, but cannot show whether a feature is MVP-complete, Phase 2 partial, or has sub-capabilities at different maturity levels. This needs to be added so the Founder can see at a glance what is fully done, what has a Phase 2 extension waiting, and what sub-capabilities are plugged in vs. pending. Migration required: ALTER TABLE feature_registry ADD COLUMN phase text DEFAULT 'MVP', ADD COLUMN capability_tier int DEFAULT 1, ADD COLUMN has_pending_extension boolean DEFAULT false. FOCL Feature Console display must be updated to surface these fields.
+	
+
+Feature ID F-6.5.8  ·  Active Disruption Options Engine  ·  Version 1.0  ·  March 2026
+MVP: Coverage-Aware Guidance (no connector)  ·  Phase 2: Live Options (GDS required)  ·  Registry update + M-21 migration required
