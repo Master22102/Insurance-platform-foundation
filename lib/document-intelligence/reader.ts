@@ -57,7 +57,7 @@ export async function readDocument(filePath: string): Promise<RawExtraction> {
 
 async function readPDF(filePath: string, fileSize: number): Promise<RawExtraction> {
   try {
-    const pdfParse = (await import('pdf-parse-fork')).default;
+    const pdfParse = (await import('pdf-parse')).default;
     const dataBuffer = fs.readFileSync(filePath);
     const data = await pdfParse(dataBuffer);
 
