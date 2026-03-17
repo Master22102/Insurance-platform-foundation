@@ -117,14 +117,17 @@ export default function PolicyUploadPage() {
 
     try {
       // Step 1: Create policy + document records via RPC
-      const rpcRes = await supabase.rpc('initiate_policy_upload', {
+      // Build params conditionally — PostgREST can't type-match null uuid
+      const rpcParams: Record<string, any> = {
         p_account_id: user.id,
         p_policy_label: label.trim(),
         p_source_type: sourceType,
-        p_trip_id: tripId || null,
-      });
+      };
+      if (tripId) rpcParams.p_trip_id = tripId;
 
-      if (rpcRes.error) throw rpcRes.error;
+      const rpcRes = await supabase.rpc('initiate_policy_upload', rpcParams);
+
+      if (rpcRes.error) throw new Error(rpcRes.error.message);
 
       const rpcData = (typeof rpcRes.data === 'string' ? JSON.parse(rpcRes.data) : rpcRes.data) as Record<string, any>;
       if (!rpcData?.ok) throw new Error(rpcData?.reason || 'Upload registration failed');
@@ -139,10 +142,10 @@ export default function PolicyUploadPage() {
         upsert: false,
       });
 
-      if (uploadRes.error) throw uploadRes.error;
+      if (uploadRes.error) throw new Error(uploadRes.error.message);
 
-      // Step 3: Notify backend and trigger extraction
-      await fetch('/api/extraction/upload-complete', {
+      // Step 3: Update document record with storage path, then trigger extraction
+      const completeRes = await fetch('/api/extraction/upload-complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -157,12 +160,18 @@ export default function PolicyUploadPage() {
         }),
       });
 
+      if (!completeRes.ok) {
+        const errData = await completeRes.json().catch(() => ({}));
+        console.error('[upload-complete] error:', errData);
+      }
+
       clearInterval(cycle);
       setProgress(85);
       setDocumentId(document_id);
       setExtractionStatus('processing');
     } catch (err: any) {
       clearInterval(cycle);
+      console.error('[upload] error:', err);
       setError(err?.message || 'Something went wrong during the upload. Please try again.');
       setUploading(false);
     }
