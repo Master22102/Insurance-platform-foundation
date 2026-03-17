@@ -1,27 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
 
 export default function SignInPage() {
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [show, setShow] = useState(false);
-
-  // If already signed in, redirect immediately
-  useEffect(() => {
-    if (!authLoading && user) {
-      router.replace('/trips');
-    }
-  }, [user, authLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,14 +32,7 @@ export default function SignInPage() {
 
       if (data.session) {
         setStatus('Success! Redirecting...');
-        // Don't navigate immediately — the AuthProvider's onAuthStateChange
-        // listener will pick up the new session, set user, and the useEffect
-        // above will handle the redirect. This avoids the race condition where
-        // window.location.replace fires before cookies are written.
-        // As a safety net, redirect after 2 seconds if onAuthStateChange hasn't fired.
-        setTimeout(() => {
-          window.location.replace('/trips');
-        }, 2000);
+        window.location.href = '/trips';
         return;
       }
 
