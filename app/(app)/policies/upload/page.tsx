@@ -116,20 +116,24 @@ export default function PolicyUploadPage() {
     }, 1500);
 
     try {
+      // Step 1: Create policy + document records via RPC
       const rpcRes = await supabase.rpc('initiate_policy_upload', {
         p_account_id: user.id,
-        p_label: label.trim(),
+        p_policy_label: label.trim(),
         p_source_type: sourceType,
         p_trip_id: tripId || null,
-        p_file_name: file.name,
-        p_file_size: file.size,
-        p_mime_type: file.type || 'application/pdf',
       });
 
       if (rpcRes.error) throw rpcRes.error;
 
-      const { document_id, upload_path } = rpcRes.data as { document_id: string; upload_path: string };
+      const rpcData = (typeof rpcRes.data === 'string' ? JSON.parse(rpcRes.data) : rpcRes.data) as Record<string, any>;
+      if (!rpcData?.ok) throw new Error(rpcData?.reason || 'Upload registration failed');
 
+      const document_id = rpcData.document_id;
+      const policy_id = rpcData.policy_id;
+
+      // Step 2: Upload file to Supabase Storage
+      const upload_path = `${user.id}/${policy_id}/${file.name}`;
       const uploadRes = await supabase.storage.from('policy-documents').upload(upload_path, file, {
         contentType: file.type || 'application/pdf',
         upsert: false,
@@ -137,19 +141,29 @@ export default function PolicyUploadPage() {
 
       if (uploadRes.error) throw uploadRes.error;
 
+      // Step 3: Notify backend and trigger extraction
       await fetch('/api/extraction/upload-complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ document_id }),
+        body: JSON.stringify({
+          document_id,
+          account_id: user.id,
+          policy_label: label.trim(),
+          storage_path: upload_path,
+          file_size_bytes: file.size,
+          mime_type: file.type || 'application/pdf',
+          source_type: sourceType,
+          trip_id: tripId || null,
+        }),
       });
 
       clearInterval(cycle);
       setProgress(85);
       setDocumentId(document_id);
       setExtractionStatus('processing');
-    } catch (err) {
+    } catch (err: any) {
       clearInterval(cycle);
-      setError('Something went wrong during the upload. Please try again.');
+      setError(err?.message || 'Something went wrong during the upload. Please try again.');
       setUploading(false);
     }
   };
