@@ -121,7 +121,7 @@ export default function PolicyUploadPage() {
       const rpcParams: Record<string, any> = {
         p_account_id: user.id,
         p_policy_label: label.trim(),
-        p_source_type: sourceType,
+        p_source_type: 'pdf_upload',
       };
       if (tripId) rpcParams.p_trip_id = tripId;
 
