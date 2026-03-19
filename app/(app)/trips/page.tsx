@@ -273,7 +273,7 @@ export default function TripsPage() {
   const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) { setLoading(false); return; }
 
     Promise.all([
       supabase

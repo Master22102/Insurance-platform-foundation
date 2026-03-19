@@ -113,12 +113,13 @@ export default function NewIncidentPage() {
     setLoading(true);
 
     const { data, error: rpcError } = await supabase.rpc('create_incident', {
-      p_project_id: tripId,
+      p_trip_id: tripId,
       p_title: title.trim(),
-      p_description: description.trim() || null,
+      p_description: description.trim() || '',
       p_classification: 'External',
       p_control_type: 'External',
-      p_disruption_type: disruption || null,
+      // create_incident() stores disruption_type via metadata for the incident intake UI.
+      p_metadata: { disruption_type: disruption || null },
       p_actor_id: user!.id,
       p_idempotency_key: `incident-${Date.now()}`,
     });

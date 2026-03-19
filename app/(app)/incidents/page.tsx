@@ -52,7 +52,7 @@ export default function IncidentsPage() {
   const [filter, setFilter] = useState<'all' | 'active' | 'closed'>('all');
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) { setLoading(false); return; }
 
     Promise.all([
       supabase

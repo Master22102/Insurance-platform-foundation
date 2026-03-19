@@ -553,7 +553,7 @@ export default function NewTripPage() {
             What would you like to do next?
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Link href={`/policies/upload?trip=${createdTripId}`} style={{
+            <Link href={`/policies/upload?trip_id=${createdTripId}`} style={{
               display: 'block', padding: '13px 0',
               background: '#1A2B4A', color: 'white',
               borderRadius: 10, textDecoration: 'none',

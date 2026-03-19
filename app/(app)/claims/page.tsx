@@ -65,7 +65,7 @@ export default function ClaimsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) { setLoading(false); return; }
 
     Promise.all([
       supabase

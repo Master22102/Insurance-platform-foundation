@@ -3,7 +3,7 @@ import { writeFile, unlink } from 'fs/promises';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
 import { processDocument } from '@/lib/document-intelligence';
-import { createServerClient } from '@/lib/supabase/server';
+import { createServerClient } from '@supabase/ssr';
 
 const FAMILY_CATEGORY_MAP: Record<string, string> = {
   'delay-threshold-pass':       'Trip Delay',
@@ -20,7 +20,22 @@ const FAMILY_CATEGORY_MAP: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({ error: 'Server configuration missing' }, { status: 500 });
+    }
+
+    const supabase = createServerClient(supabaseUrl, supabaseKey, {
+      cookies: {
+        get: (name) => req.cookies.get(name)?.value,
+        // No-op setters: this endpoint doesn't need to refresh tokens for our flows.
+        set: () => {},
+        remove: () => {},
+      },
+    });
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -40,7 +55,7 @@ export async function POST(req: NextRequest) {
     const { data: profile } = await supabase
       .from('user_profiles')
       .select('scan_credits_remaining')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .maybeSingle();
 
     const creditsRemaining = (profile as any)?.scan_credits_remaining ?? 0;

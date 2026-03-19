@@ -13,7 +13,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
 
 const CALM_MESSAGES: Record<string, string> = {
   uploaded: 'Your document has been uploaded.',
@@ -32,13 +32,25 @@ export async function GET(request: NextRequest) {
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
     return NextResponse.json({ ok: false, error: 'Server configuration missing' }, { status: 500 });
   }
 
-  const supabase = createClient(supabaseUrl, supabaseKey);
+  let response = NextResponse.json({ ok: true });
+  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+    cookies: {
+      get: (name) => request.cookies.get(name)?.value,
+      set: (name, value, options) => { response.cookies.set({ name, value, ...options }); },
+      remove: (name, options) => { response.cookies.set({ name, value: '', ...options, maxAge: 0 }); },
+    },
+  });
+
+  const { data: auth, error: authError } = await supabase.auth.getUser();
+  if (authError || !auth?.user) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+  }
 
   // Get document status
   const { data: doc, error } = await supabase
@@ -46,6 +58,7 @@ export async function GET(request: NextRequest) {
     .select(`
       document_id,
       document_status,
+      account_id,
       extraction_started_at,
       extraction_completed_at,
       extraction_error_message,
@@ -58,6 +71,17 @@ export async function GET(request: NextRequest) {
   if (error || !doc) {
     return NextResponse.json({ ok: false, error: 'Document not found' }, { status: 404 });
   }
+  if (doc.account_id !== auth.user.id) {
+    return NextResponse.json({ ok: false, error: 'Forbidden' }, { status: 403 });
+  }
+
+  // Keep client UX simple: only terminal states are "complete" / "failed".
+  // Anything else is treated as "processing" for the UI poller.
+  const uiStatus = doc.document_status === 'complete'
+    ? 'complete'
+    : doc.document_status === 'failed'
+      ? 'failed'
+      : 'processing';
 
   // Get clause counts if extraction is complete
   let clauseCounts = null;
@@ -68,10 +92,11 @@ export async function GET(request: NextRequest) {
       .eq('policy_document_id', documentId);
 
     if (clauses) {
+      const statuses = clauses.map((c: any) => String(c.extraction_status || '').toUpperCase());
       clauseCounts = {
         total: clauses.length,
-        auto_accepted: clauses.filter((c: any) => c.extraction_status === 'AUTO_ACCEPTED').length,
-        pending_review: clauses.filter((c: any) => c.extraction_status === 'PENDING_REVIEW').length,
+        auto_accepted: statuses.filter((s) => s === 'AUTO_ACCEPTED').length,
+        pending_review: statuses.filter((s) => s === 'PENDING_REVIEW').length,
       };
     }
   }
@@ -90,8 +115,9 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     ok: true,
     document_id: documentId,
-    status: doc.document_status,
-    message: CALM_MESSAGES[doc.document_status] || CALM_MESSAGES['processing'],
+    status: uiStatus,
+    raw_status: doc.document_status,
+    message: CALM_MESSAGES[doc.document_status] || CALM_MESSAGES.processing,
     extraction: {
       started_at: doc.extraction_started_at,
       completed_at: doc.extraction_completed_at,
@@ -99,6 +125,7 @@ export async function GET(request: NextRequest) {
       error: doc.document_status === 'failed' ? doc.extraction_error_message : undefined,
     },
     clauses: clauseCounts,
+    rules_found: clauseCounts?.auto_accepted ?? null,
     job: job ? {
       id: job.id,
       status: job.status,

@@ -73,7 +73,7 @@ const NAV_LINKS = [
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -82,6 +82,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       router.replace(`/signin?return_url=${encodeURIComponent(pathname)}`);
     }
   }, [user, loading, pathname]);
+
+  useEffect(() => {
+    if (loading || !user) return;
+    if (pathname?.startsWith('/onboarding')) return;
+    // Keep the navigation surface locked until onboarding is completed.
+    // New accounts can briefly have no loaded profile row yet; treat that as
+    // onboarding-incomplete so users cannot bypass the onboarding flow.
+    if (!profile || profile.onboarding_completed !== true) {
+      router.replace('/onboarding');
+    }
+  }, [user, profile, loading, pathname, router]);
 
   if (loading) {
     return (

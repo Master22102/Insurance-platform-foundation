@@ -1107,7 +1107,7 @@ function CoverageTab({ trip, onUnlock }: { trip: any; onUnlock: () => void }) {
           .from('policy_clauses')
           .select('clause_id, policy_version_id, clause_type, family_code, canonical_text, confidence_label, extraction_status')
           .in('policy_version_id', versionIds)
-          .eq('extraction_status', 'AUTO_ACCEPTED')
+          .eq('extraction_status', 'auto_accepted')
           .order('family_code', { ascending: true });
 
         const map: Record<string, any[]> = {};

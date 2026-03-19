@@ -1,10 +1,15 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
 
 export default function SignInPage() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+  const fallbackRedirectRef = useRef<number | null>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState('');
@@ -12,19 +17,43 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [show, setShow] = useState(false);
 
+  // If already signed in, redirect immediately
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace('/trips');
+    }
+  }, [user, authLoading, router]);
+
+  useEffect(() => {
+    return () => {
+      if (fallbackRedirectRef.current) {
+        window.clearTimeout(fallbackRedirectRef.current);
+      }
+    };
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const email = emailRef.current?.value || '';
+    const email = (emailRef.current?.value || '').trim();
     const password = passwordRef.current?.value || '';
     setError('');
     setStatus('Signing in...');
     setLoading(true);
 
     try {
-      const { data, error: err } = await supabase.auth.signInWithPassword({ email, password });
+      const signInResult = await Promise.race([
+        supabase.auth.signInWithPassword({ email, password }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Sign-in timed out. Please check your connection and try again.')), 15_000),
+        ),
+      ]);
+      const { data, error: err } = signInResult;
 
       if (err) {
-        setError(err.message);
+        const msg = /invalid login credentials/i.test(err.message)
+          ? 'Incorrect email or password. Please try again.'
+          : err.message;
+        setError(msg);
         setStatus('');
         setLoading(false);
         return;
@@ -32,15 +61,23 @@ export default function SignInPage() {
 
       if (data.session) {
         setStatus('Success! Redirecting...');
-        window.location.href = '/trips';
+        // Don't navigate immediately — the AuthProvider's onAuthStateChange
+        // listener will pick up the new session, set user, and the useEffect
+        // above will handle the redirect. This avoids the race condition where
+        // window.location.replace fires before cookies are written.
+        // As a safety net, redirect after 2 seconds if onAuthStateChange hasn't fired.
+        fallbackRedirectRef.current = window.setTimeout(() => {
+          window.location.replace('/trips');
+        }, 2000);
         return;
       }
 
       setError('No session returned. Try again.');
       setStatus('');
       setLoading(false);
-    } catch {
-      setError('Something went wrong. Please try again.');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+      setError(msg);
       setStatus('');
       setLoading(false);
     }

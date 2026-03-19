@@ -116,63 +116,52 @@ export default function PolicyUploadPage() {
     }, 1500);
 
     try {
-      // Step 1: Create policy + document records via RPC
-      // Build params conditionally — PostgREST can't type-match null uuid
-      const rpcParams: Record<string, any> = {
+      const rpcRes = await supabase.rpc('initiate_policy_upload', {
         p_account_id: user.id,
-        p_policy_label: label.trim(),
-        p_source_type: 'pdf_upload',
-      };
-      if (tripId) rpcParams.p_trip_id = tripId;
+        p_label: label.trim(),
+        p_source_type: sourceType,
+        p_trip_id: tripId || null,
+        p_file_name: file.name,
+        p_file_size: file.size,
+        p_mime_type: file.type || 'application/pdf',
+      });
 
-      const rpcRes = await supabase.rpc('initiate_policy_upload', rpcParams);
+      if (rpcRes.error) throw rpcRes.error;
 
-      if (rpcRes.error) throw new Error(rpcRes.error.message);
+      const { document_id, upload_path } = rpcRes.data as { document_id: string; upload_path: string };
 
-      const rpcData = (typeof rpcRes.data === 'string' ? JSON.parse(rpcRes.data) : rpcRes.data) as Record<string, any>;
-      if (!rpcData?.ok) throw new Error(rpcData?.reason || 'Upload registration failed');
-
-      const document_id = rpcData.document_id;
-      const policy_id = rpcData.policy_id;
-
-      // Step 2: Upload file to Supabase Storage
-      const upload_path = `${user.id}/${policy_id}/${file.name}`;
       const uploadRes = await supabase.storage.from('policy-documents').upload(upload_path, file, {
         contentType: file.type || 'application/pdf',
         upsert: false,
       });
 
-      if (uploadRes.error) throw new Error(uploadRes.error.message);
+      if (uploadRes.error) throw uploadRes.error;
 
-      // Step 3: Update document record with storage path, then trigger extraction
       const completeRes = await fetch('/api/extraction/upload-complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           document_id,
-          account_id: user.id,
+          trip_id: tripId || null,
           policy_label: label.trim(),
           storage_path: upload_path,
           file_size_bytes: file.size,
           mime_type: file.type || 'application/pdf',
           source_type: sourceType,
-          trip_id: tripId || null,
         }),
       });
-
       if (!completeRes.ok) {
-        const errData = await completeRes.json().catch(() => ({}));
-        console.error('[upload-complete] error:', errData);
+        const payload = await completeRes.json().catch(() => null);
+        throw new Error(payload?.error || 'Upload completion failed');
       }
 
       clearInterval(cycle);
       setProgress(85);
       setDocumentId(document_id);
       setExtractionStatus('processing');
-    } catch (err: any) {
+    } catch (err) {
       clearInterval(cycle);
-      console.error('[upload] error:', err);
-      setError(err?.message || 'Something went wrong during the upload. Please try again.');
+      setError('Something went wrong during the upload. Please try again.');
       setUploading(false);
     }
   };

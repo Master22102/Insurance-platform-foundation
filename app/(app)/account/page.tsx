@@ -40,6 +40,14 @@ const TIER_CONFIG = {
     description: 'Organization-level access',
     features: ['Unlimited everything', 'API access', 'Multi-user workspaces', 'Custom integrations', 'Dedicated support'],
   },
+  FOUNDER: {
+    label: 'Founder',
+    color: '#7c3aed',
+    bg: '#f5f3ff',
+    border: '#ddd6fe',
+    description: 'Founder operational controls',
+    features: ['FOCL access', 'Rollout controls', 'Feature intelligence', 'Governance operations'],
+  },
 };
 
 const COUNTRY_LIST = [
@@ -194,6 +202,7 @@ const TIER_TRIP_LIMITS: Record<string, number | null> = {
   STANDARD: 20,
   PREMIUM: 100,
   CORPORATE: null,
+  FOUNDER: null,
 };
 
 export default function AccountPage() {
@@ -268,8 +277,8 @@ export default function AccountPage() {
     : (user?.email?.[0] || '?').toUpperCase();
 
   const isCorporate = tier === 'CORPORATE';
-  const isPremiumOrAbove = ['PREMIUM', 'CORPORATE'].includes(tier);
-  const isStandardOrAbove = ['STANDARD', 'PREMIUM', 'CORPORATE'].includes(tier);
+  const isPremiumOrAbove = ['PREMIUM', 'CORPORATE', 'FOUNDER'].includes(tier);
+  const isStandardOrAbove = ['STANDARD', 'PREMIUM', 'CORPORATE', 'FOUNDER'].includes(tier);
 
   const prefsChanged =
     residenceCountry !== (profile?.residence_country_code || '') ||

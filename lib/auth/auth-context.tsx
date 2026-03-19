@@ -7,7 +7,7 @@ import { supabase } from './supabase-client';
 export interface UserProfile {
   user_id: string;
   display_name: string | null;
-  membership_tier: 'FREE' | 'CORPORATE';
+  membership_tier: 'FREE' | 'CORPORATE' | 'FOUNDER';
   tier_granted_at: string;
   tier_expires_at: string | null;
   previous_tier: string | null;
@@ -20,6 +20,7 @@ export interface UserProfile {
   mfa_methods: string[];
   last_step_up_at: string | null;
   onboarding_completed: boolean;
+  preferences?: any;
 }
 
 export interface TripUnlockState {
@@ -46,6 +47,7 @@ interface AuthContextType {
   canDeepScan: (trip: TripUnlockState) => boolean;
   isAtLifetimeCap: () => boolean;
   isCorporate: () => boolean;
+  isFounder: () => boolean;
   getLifetimeScansRemaining: () => number;
 }
 
@@ -63,21 +65,11 @@ const defaultAuthContext: AuthContextType = {
   canDeepScan: () => false,
   isAtLifetimeCap: () => false,
   isCorporate: () => false,
+  isFounder: () => false,
   getLifetimeScansRemaining: () => 0,
 };
 
 const AuthContext = createContext<AuthContextType>(defaultAuthContext);
-
-// Timeout wrapper to prevent getSession from hanging indefinitely
-// (known Supabase bug: https://github.com/supabase/supabase/issues/35754)
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Auth timeout')), ms)
-    ),
-  ]);
-}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -93,25 +85,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    let mounted = true;
-
-    // Get initial session with 5-second timeout
-    withTimeout(supabase.auth.getSession(), 5000)
-      .then(({ data: { session } }) => {
-        if (!mounted) return;
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) fetchProfile(session.user.id);
-        setLoading(false);
-      })
-      .catch(() => {
-        if (!mounted) return;
-        // Timeout or error — just mark as not loading, no user
-        setLoading(false);
-      });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) fetchProfile(session.user.id);
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+    });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!mounted) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -122,14 +105,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const signUp = async (email: string, password: string, displayName?: string) => {
-    const { error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: displayName || email.split('@')[0] } } });
+    const emailRedirectTo =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/auth/confirmed`
+        : undefined;
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo,
+        data: { display_name: displayName || email.split('@')[0] },
+      },
+    });
     return { error };
   };
   const signIn = async (email: string, password: string) => {
@@ -154,11 +145,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const canDeepScan = (trip: TripUnlockState) => trip.paid_unlock && trip.deep_scan_credits_remaining > 0;
   const isAtLifetimeCap = () => !profile ? false : profile.membership_tier === 'FREE' && profile.lifetime_quick_scans_used >= 2;
   const isCorporate = () => profile?.membership_tier === 'CORPORATE';
+  const isFounder = () => profile?.membership_tier === 'FOUNDER';
   const getLifetimeScansRemaining = () => !profile ? 0 : Math.max(0, 2 - profile.lifetime_quick_scans_used);
 
   return (
     <AuthContext.Provider value={{ user, session, profile, loading, signUp, signIn, signOut, refreshProfile,
-      canQuickScan, canQuickScanOnTrip, canDeepScan, isAtLifetimeCap, isCorporate, getLifetimeScansRemaining }}>
+      canQuickScan, canQuickScanOnTrip, canDeepScan, isAtLifetimeCap, isCorporate, isFounder, getLifetimeScansRemaining }}>
       {children}
     </AuthContext.Provider>
   );
