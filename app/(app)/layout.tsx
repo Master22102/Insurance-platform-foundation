@@ -77,10 +77,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
+  const [anchorSelectedInSession, setAnchorSelectedInSession] = useState(false);
   const isOnboardingRoute = pathname?.startsWith('/onboarding');
   const isGetStartedRoute = pathname?.startsWith('/get-started');
   const hasAnchorSelection =
     profile?.preferences?.onboarding?.anchor_selection?.completed === true;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const inSession = window.sessionStorage.getItem('wayfarer_anchor_selected') === '1';
+    setAnchorSelectedInSession(inSession);
+  }, []);
 
   useEffect(() => {
     if (!loading) {
@@ -114,10 +121,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     if (loading || !user || !profile) return;
     if (profile.onboarding_completed !== true) return;
     if (isGetStartedRoute) return;
-    if (!hasAnchorSelection) {
+    if (!hasAnchorSelection && !anchorSelectedInSession) {
       router.replace('/get-started');
     }
-  }, [loading, user, profile, isGetStartedRoute, hasAnchorSelection, router]);
+  }, [loading, user, profile, isGetStartedRoute, hasAnchorSelection, anchorSelectedInSession, router]);
 
   if (loading) {
     if (loadingTimedOut) {

@@ -14,6 +14,9 @@ export default function GetStartedPage() {
     if (!user || savingChoice) return;
     setSavingChoice(choice);
     try {
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem('wayfarer_anchor_selected', '1');
+      }
       const existingPreferences = (profile?.preferences && typeof profile.preferences === 'object')
         ? profile.preferences
         : {};
@@ -33,10 +36,13 @@ export default function GetStartedPage() {
         },
       };
 
-      await supabase
+      const { error } = await supabase
         .from('user_profiles')
         .update({ preferences })
         .eq('user_id', user.id);
+      if (error) {
+        console.warn('[get-started] could not persist anchor selection', error.message);
+      }
 
       await refreshProfile();
       router.push(target);
