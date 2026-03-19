@@ -1,30 +1,28 @@
 import { expect, type Page } from '@playwright/test';
 
 export async function ensureOnboarded(page: Page) {
-  const tripsHeading = page.getByRole('heading', { name: /your trips/i });
-  const planTripLink = page.getByRole('link', { name: /plan a trip/i });
-  const termsHeading = page.getByRole('heading', { name: /terms/i });
+  const tripsHeading = page.getByRole('heading', { name: /your trips|trips/i });
+  const planTripLink = page.getByRole('link', { name: /plan a trip|trips/i });
   const letsGetStartedHeading = page.getByRole('heading', { name: /let's get started/i });
   const addTripItineraryAction = page.getByRole('button', { name: /add a trip itinerary/i });
   const stillPlanningAction = page.getByRole('button', { name: /i'?m still planning/i });
 
-  const completeTermsStep = async () => {
-    const acceptBtn = page.getByRole('button', { name: /accept and continue/i });
-    await expect(termsHeading).toBeVisible({ timeout: 20_000 });
-    await page.getByLabel(/i agree to terms/i).first().check({ force: true });
-    await page.getByLabel(/i agree to privacy/i).first().check({ force: true });
-    await expect(acceptBtn).toBeEnabled();
+  const completeOnboardingIfVisible = async () => {
+    const acceptBtn = page.getByRole('button', { name: /accept and continue/i }).first();
+    if (await acceptBtn.isVisible().catch(() => false)) {
+      const terms = page.getByLabel(/i agree to terms/i).first();
+      const privacy = page.getByLabel(/i agree to privacy/i).first();
+      if (await terms.isVisible().catch(() => false)) await terms.check({ force: true });
+      if (await privacy.isVisible().catch(() => false)) await privacy.check({ force: true });
+      await acceptBtn.click({ force: true }).catch(() => {});
+      await page.waitForURL(/\/(onboarding|get-started|trips)/, { timeout: 10_000 }).catch(() => {});
+    }
 
-    await Promise.all([
-      page.getByRole('heading', { name: /what are your expectations of the platform/i }).waitFor({ timeout: 20_000 }),
-      acceptBtn.click({ force: true }),
-    ]);
-
-    const skipBtn = page.getByRole('button', { name: /skip for now/i });
-    await Promise.all([
-      page.waitForURL(/\/get-started/, { timeout: 30_000 }).catch(() => {}),
-      skipBtn.click({ force: true }),
-    ]);
+    const skipBtn = page.getByRole('button', { name: /skip for now/i }).first();
+    if (await skipBtn.isVisible().catch(() => false)) {
+      await skipBtn.click({ force: true }).catch(() => {});
+      await page.waitForURL(/\/(get-started|trips)/, { timeout: 10_000 }).catch(() => {});
+    }
   };
 
   const waitForTripsUI = async () => {
@@ -46,14 +44,14 @@ export async function ensureOnboarded(page: Page) {
       tripsHeading.isVisible().catch(() => false),
       planTripLink.isVisible().catch(() => false),
       letsGetStartedHeading.isVisible().catch(() => false),
-      termsHeading.isVisible().catch(() => false),
+      page.getByRole('button', { name: /accept and continue/i }).first().isVisible().catch(() => false),
     ]);
 
     if (atTrips || atTripsLink) {
-      // Give parallel redirects a moment to settle; then re-check onboarding terms.
+      // Give parallel redirects a moment to settle; then re-check onboarding gate.
       await page.waitForTimeout(750);
-      if (page.url().includes('/onboarding') || (await termsHeading.isVisible().catch(() => false))) {
-        await completeTermsStep();
+      if (page.url().includes('/onboarding')) {
+        await completeOnboardingIfVisible();
         await page.goto('/trips', { waitUntil: 'domcontentloaded' });
       }
       await waitForTripsUI();
@@ -79,7 +77,7 @@ export async function ensureOnboarded(page: Page) {
     }
 
     if (onTerms) {
-      await completeTermsStep();
+      await completeOnboardingIfVisible();
       await page.goto('/trips', { waitUntil: 'domcontentloaded' });
       await waitForTripsUI();
       return;

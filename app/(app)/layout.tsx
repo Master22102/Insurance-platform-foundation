@@ -85,9 +85,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const inSession = window.sessionStorage.getItem('wayfarer_anchor_selected') === '1';
-    setAnchorSelectedInSession(inSession);
-  }, []);
+    const syncAnchorFlag = () => {
+      const inSession = window.sessionStorage.getItem('wayfarer_anchor_selected') === '1';
+      setAnchorSelectedInSession(inSession);
+    };
+
+    syncAnchorFlag();
+    window.addEventListener('storage', syncAnchorFlag);
+    return () => window.removeEventListener('storage', syncAnchorFlag);
+  }, [pathname]);
 
   useEffect(() => {
     if (!loading) {
@@ -285,7 +291,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Mobile bottom tab bar */}
-      {!isOnboardingRoute && (
+      {!isOnboardingRoute && !isGetStartedRoute && (
       <nav style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         height: 72, background: 'rgba(255,255,255,0.96)',
@@ -324,9 +330,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       <style>{`
         @media (min-width: 1024px) {
-          .hidden-mobile { display: ${isOnboardingRoute ? 'none' : 'flex'} !important; }
+          .hidden-mobile { display: ${isOnboardingRoute || isGetStartedRoute ? 'none' : 'flex'} !important; }
           .mobile-tab-bar { display: none !important; }
-          .main-with-sidebar { margin-left: ${isOnboardingRoute ? '0' : '240px'}; }
+          .main-with-sidebar { margin-left: ${isOnboardingRoute || isGetStartedRoute ? '0' : '240px'}; }
           .main-content-padding { padding-bottom: 32px !important; }
         }
         @media (max-width: 1023px) {
