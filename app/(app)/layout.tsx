@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -76,10 +76,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, profile, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
   const isOnboardingRoute = pathname?.startsWith('/onboarding');
   const isGetStartedRoute = pathname?.startsWith('/get-started');
   const hasAnchorSelection =
     profile?.preferences?.onboarding?.anchor_selection?.completed === true;
+
+  useEffect(() => {
+    if (!loading) {
+      setLoadingTimedOut(false);
+      return;
+    }
+    const timeout = window.setTimeout(() => {
+      setLoadingTimedOut(true);
+    }, 15000);
+    return () => window.clearTimeout(timeout);
+  }, [loading]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -108,6 +120,68 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [loading, user, profile, isGetStartedRoute, hasAnchorSelection, router]);
 
   if (loading) {
+    if (loadingTimedOut) {
+      return (
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#fafafa',
+          padding: 20,
+          fontFamily: 'system-ui, -apple-system, sans-serif',
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: 460,
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: 14,
+            padding: 20,
+            textAlign: 'center',
+          }}>
+            <h2 style={{ margin: '0 0 8px', fontSize: 18, color: '#1A2B4A' }}>
+              Still loading your session
+            </h2>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: '#666', lineHeight: 1.5 }}>
+              This can happen when browser storage or cookies are blocked. You can safely retry.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <button
+                onClick={() => window.location.reload()}
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  border: 'none',
+                  background: '#1A2B4A',
+                  color: 'white',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Retry loading
+              </button>
+              <Link
+                href="/signin"
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  border: '1px solid #e5e7eb',
+                  background: 'white',
+                  color: '#374151',
+                  textDecoration: 'none',
+                  fontSize: 13,
+                  fontWeight: 700,
+                }}
+              >
+                Go to sign in
+              </Link>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
       <div style={{
         minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
