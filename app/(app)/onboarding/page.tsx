@@ -110,7 +110,7 @@ export default function OnboardingPage() {
             <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer' }}>
               <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} />
               <span style={{ fontSize: 14, color: '#333', lineHeight: 1.5 }}>
-                I agree to Terms ({termsVersion}){' '}
+                I agree to Terms &amp; Conditions ({termsVersion}){' '}
                 <Link href="/terms" style={{ color: '#2E5FA3', textDecoration: 'none', fontWeight: 600 }} target="_blank">
                   (read)
                 </Link>
@@ -154,21 +154,46 @@ export default function OnboardingPage() {
           </div>
 
           <p style={{ fontSize: 12, color: '#888', margin: '14px 0 0', lineHeight: 1.5 }}>
-            “Read later” is blocked — you must accept before continuing.
+            You must accept before continuing.
           </p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ background: 'white', border: '1px solid #eaeaea', borderRadius: 14, padding: '22px 22px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#1A2B4A' }}>User Signal Layer</span>
-              <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, gap: 10 }}>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={() => setMode('voice')}
+                  style={{
+                    background: mode === 'voice' ? '#eff4fc' : 'transparent',
+                    border: mode === 'voice' ? '1px solid #bfdbfe' : '1px solid transparent',
+                    color: mode === 'voice' ? '#1D4ED8' : '#888',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    borderRadius: 999,
+                    padding: '6px 10px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Narrate
+                </button>
                 <button
                   onClick={() => setMode('type')}
-                  style={{ background: 'transparent', border: 'none', color: '#2E5FA3', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+                  style={{
+                    background: mode === 'type' ? '#eff4fc' : 'transparent',
+                    border: mode === 'type' ? '1px solid #bfdbfe' : '1px solid transparent',
+                    color: mode === 'type' ? '#1D4ED8' : '#888',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    borderRadius: 999,
+                    padding: '6px 10px',
+                    cursor: 'pointer',
+                  }}
                 >
-                  Type instead
+                  Type
                 </button>
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
                 <button
                   onClick={() => saveAndFinish({ skipped: true })}
                   disabled={saving}
@@ -180,7 +205,7 @@ export default function OnboardingPage() {
             </div>
 
             {mode === 'voice' ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#f8fbff', border: '1px solid #e3eefc', borderRadius: 12, padding: 12 }}>
                 <button
                   type="button"
                   disabled
@@ -188,8 +213,8 @@ export default function OnboardingPage() {
                     width: 56,
                     height: 56,
                     borderRadius: '50%',
-                    border: '1px solid #e5e7eb',
-                    background: '#f7f8fa',
+                    border: '1px solid #dbeafe',
+                    background: '#eff6ff',
                     cursor: 'not-allowed',
                   }}
                   aria-label="Microphone (coming soon)"
@@ -237,6 +262,7 @@ export default function OnboardingPage() {
             )}
           </div>
 
+          {(mode === 'type' && typed.trim().length > 0) && (
           <div style={{ background: 'white', border: '1px solid #eaeaea', borderRadius: 14, padding: '22px 22px' }}>
             <h2 style={{ fontSize: 16, fontWeight: 800, color: '#1A2B4A', margin: '0 0 10px', letterSpacing: '-0.2px' }}>
               Here&apos;s what I heard
@@ -292,6 +318,23 @@ export default function OnboardingPage() {
               Confirm is the only action that writes your profile.
             </p>
           </div>
+          )}
+
+          {mode === 'voice' && (
+            <div style={{ background: 'white', border: '1px solid #eaeaea', borderRadius: 14, padding: '16px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+              <p style={{ fontSize: 13, color: '#666', margin: 0 }}>
+                No voice text will be saved until you confirm.
+              </p>
+              <button
+                type="button"
+                onClick={() => saveAndFinish({ mode: 'voice', skipped: true })}
+                disabled={saving}
+                style={{ padding: '10px 14px', background: '#1A2B4A', color: 'white', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 800, cursor: saving ? 'not-allowed' : 'pointer' }}
+              >
+                {saving ? 'Saving…' : 'Confirm'}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

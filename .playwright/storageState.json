@@ -1,0 +1,25 @@
+{
+  "cookies": [
+    {
+      "name": "sb-glgoolvfnnejmneprbms-auth-token",
+      "value": "base64-eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSkZVekkxTmlJc0ltdHBaQ0k2SWpkaFpETmpPVFUyTFdGa01tUXROR1V4TmkwNFpXUXlMV0pqT1RsaU0yWmlZamd6TWlJc0luUjVjQ0k2SWtwWFZDSjkuZXlKcGMzTWlPaUpvZEhSd2N6b3ZMMmRzWjI5dmJIWm1ibTVsYW0xdVpYQnlZbTF6TG5OMWNHRmlZWE5sTG1OdkwyRjFkR2d2ZGpFaUxDSnpkV0lpT2lKak9HSTFaak16WkMwek9HSXhMVFF3TTJJdFlUa3hOQzFoT1RWaVlXTXpaamd4TUdRaUxDSmhkV1FpT2lKaGRYUm9aVzUwYVdOaGRHVmtJaXdpWlhod0lqb3hOemN6T1RBek9USTVMQ0pwWVhRaU9qRTNOek01TURBek1qa3NJbVZ0WVdsc0lqb2ljbUY1Wm05eVpHTm9jbWx6ZEdsaGJrQm5iV0ZwYkM1amIyMGlMQ0p3YUc5dVpTSTZJaUlzSW1Gd2NGOXRaWFJoWkdGMFlTSTZleUp3Y205MmFXUmxjaUk2SW1WdFlXbHNJaXdpY0hKdmRtbGtaWEp6SWpwYkltVnRZV2xzSWwxOUxDSjFjMlZ5WDIxbGRHRmtZWFJoSWpwN0ltUnBjM0JzWVhsZmJtRnRaU0k2SWtOb2NtbHpJaXdpWlcxaGFXd2lPaUp5WVhsbWIzSmtZMmh5YVhOMGFXRnVRR2R0WVdsc0xtTnZiU0lzSW1WdFlXbHNYM1psY21sbWFXVmtJanAwY25WbExDSndhRzl1WlY5MlpYSnBabWxsWkNJNlptRnNjMlVzSW5OMVlpSTZJbU00WWpWbU16TmtMVE00WWpFdE5EQXpZaTFoT1RFMExXRTVOV0poWXpObU9ERXdaQ0o5TENKeWIyeGxJam9pWVhWMGFHVnVkR2xqWVhSbFpDSXNJbUZoYkNJNkltRmhiREVpTENKaGJYSWlPbHQ3SW0xbGRHaHZaQ0k2SW5CaGMzTjNiM0prSWl3aWRHbHRaWE4wWVcxd0lqb3hOemN6T0Rrd05EVTNmVjBzSW5ObGMzTnBiMjVmYVdRaU9pSmtNR00xWlRNellTMWlNamsyTFRSallXUXRZV016WXkweU9URXhNamMyT0Rnek5XUWlMQ0pwYzE5aGJtOXVlVzF2ZFhNaU9tWmhiSE5sZlEuTzNtTWtGbmVkdnVnOUxPNHcxblB2d1c2R3lLUmVSWHpxRmt0Q1p3TFliZHFxMjIwU0plT1VQdXpMQWZCSGlJNlhWbk80dXZvS0hWdnpYQ3V2RUNvZlEiLCJ0b2tlbl90eXBlIjoiYmVhcmVyIiwiZXhwaXJlc19pbiI6MzYwMCwiZXhwaXJlc19hdCI6MTc3MzkwMzkyOSwicmVmcmVzaF90b2tlbiI6ImY0ZGltN3ljMmx2eCIsInVzZXIiOnsiaWQiOiJjOGI1ZjMzZC0zOGIxLTQwM2ItYTkxNC1hOTViYWMzZjgxMGQiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJlbWFpbCI6InJheWZvcmRjaHJpc3RpYW5AZ21haWwuY29tIiwiZW1haWxfY29uZmlybWVkX2F0IjoiMjAyNi0wMy0xNlQxODo1NzoyOS4xNDQ3OTJaIiwicGhvbmUiOiIiLCJjb25maXJtZWRfYXQiOiIyMDI2LTAzLTE2VDE4OjU3OjI5LjE0NDc5MloiLCJsYXN0X3NpZ25faW5fYXQiOiIyMDI2LTAzLTE5VDAzOjMwOjM2Ljk5NzA4NVoiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJkaXNwbGF5X25hbWUiOiJDaHJpcyIsImVtYWlsIjoicmF5Zm9yZGNocmlzdGlhbkBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJzdWIiOiJjOGI1ZjMzZC0zOGIxLTQwM2ItYTkxNC1hOTViYWMzZjgxMGQifSwiaWRlbnRpdGllcyI6W3siaWRlbnRpdHlfaWQiOiI0ZWFjYTI5My01MjYwLTRlMzAtOTU3My05YTViM2QwOTJkYmQiLCJpZCI6ImM4YjVmMzNkLTM4YjEtNDAzYi1hOTE0LWE5NWJhYzNmODEwZCIsInVzZXJfaWQiOiJjOGI1ZjMzZC0zOGIxLTQwM2ItYTkxNC1hOTViYWMzZjgxMGQiLCJpZGVudGl0eV9kYXRhIjp7ImRpc3BsYXlfbmFtZSI6IkNocmlzIiwiZW1haWwiOiJyYXlmb3JkY2hyaXN0aWFuQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJzdWIiOiJjOGI1ZjMzZC0zOGIxLTQwM2ItYTkxNC1hOTViYWMzZjgxMGQifSwicHJvdmlkZXIiOiJlbWFpbCIsImxhc3Rfc2lnbl9pbl9hdCI6IjIwMjYtMDMtMTZUMTg6Mjk6MTguNTQ2OTU1WiIsImNyZWF0ZWRfYXQiOiIyMDI2LTAzLTE2VDE4OjI5OjE4LjU0NzAxNVoiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wMy0xNlQxODoyOToxOC41NDcwMTVaIiwiZW1haWwiOiJyYXlmb3JkY2hyaXN0aWFuQGdtYWlsLmNvbSJ9XSwiY3JlYXRlZF9hdCI6IjIwMjYtMDMtMTZUMTg6Mjk6MTguNDk4MzEyWiIsInVwZGF0ZWRfYXQiOiIyMDI2LTAzLTE5VDA2OjA1OjI5LjY4MDM5MloiLCJpc19hbm9ueW1vdXMiOmZhbHNlfX0",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1808460330.099078,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:3000",
+      "localStorage": [
+        {
+          "name": "ally-supports-cache",
+          "value": "{\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36\",\"version\":\"1.4.1\",\"focusAreaImgTabindex\":false,\"focusAreaTabindex\":false,\"focusAreaWithoutHref\":false,\"focusAudioWithoutControls\":false,\"focusBrokenImageMap\":true,\"focusChildrenOfFocusableFlexbox\":false,\"focusFieldsetDisabled\":true,\"focusFieldset\":false,\"focusFlexboxContainer\":false,\"focusFormDisabled\":true,\"focusImgIsmap\":false,\"focusImgUsemapTabindex\":true,\"focusInHiddenIframe\":true,\"focusInvalidTabindex\":false,\"focusLabelTabindex\":true,\"focusObjectSvg\":true,\"focusObjectSvgHidden\":false,\"focusRedirectImgUsemap\":false,\"focusRedirectLegend\":\"\",\"focusScrollBody\":false,\"focusScrollContainerWithoutOverflow\":false,\"focusScrollContainer\":true,\"focusSummary\":true,\"focusSvgFocusableAttribute\":false,\"focusSvgTabindexAttribute\":true,\"focusSvgNegativeTabindexAttribute\":true,\"focusSvgUseTabindex\":true,\"focusSvgForeignobjectTabindex\":true,\"focusSvg\":false,\"focusTabindexTrailingCharacters\":true,\"focusTable\":false,\"focusVideoWithoutControls\":false,\"cssShadowPiercingDeepCombinator\":\"\",\"focusInZeroDimensionObject\":true,\"focusObjectSwf\":true,\"focusSvgInIframe\":false,\"tabsequenceAreaAtImgPosition\":false,\"time\":\"2026-03-19T03:17:25.092Z\"}"
+        }
+      ]
+    }
+  ]
+}

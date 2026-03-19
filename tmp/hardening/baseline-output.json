@@ -1,0 +1,3842 @@
+{
+  "documentMetrics": [
+    {
+      "documentName": "2025-2026-umass-international-travel-insurance-brochure.pdf",
+      "sourceFamily": "insurance",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 57602,
+      "sectionCount": 44,
+      "rawCandidateCount": 43,
+      "consolidatedCandidateCount": 38,
+      "normalizedCandidateCount": 38,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 1,
+      "topClauseFamilies": [
+        {
+          "type": "round_trip_requirement",
+          "count": 12
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 7
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 5
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 4
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 3
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 7
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 3
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 5
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 4
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 12
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 3
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 34,
+        "DOCUMENTATION_INCOMPLETE": 2,
+        "HIGH": 1,
+        "CONDITIONAL": 1
+      },
+      "passContributions": {
+        "delay-threshold-pass": 7,
+        "refund-cancellation-pass": 12,
+        "documentation-requirements-pass": 3,
+        "payment-eligibility-pass": 16
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "2026 amex _Platinum_TermsandConditions.pdf",
+      "sourceFamily": "credit_card",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 62365,
+      "sectionCount": 118,
+      "rawCandidateCount": 80,
+      "consolidatedCandidateCount": 71,
+      "normalizedCandidateCount": 71,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 3,
+      "topClauseFamilies": [
+        {
+          "type": "payment_method_requirement",
+          "count": 28
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 21
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 6
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 5
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 2
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "trip_delay_threshold",
+          "count": 1
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 6
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 2
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 1
+        },
+        {
+          "type": "hotel_cancellation_window",
+          "count": 1
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 2
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 5
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 28
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 21
+        }
+      ],
+      "confidenceTiers": {
+        "HIGH": 3,
+        "CONFLICT_PRESENT": 66,
+        "DOCUMENTATION_INCOMPLETE": 2
+      },
+      "passContributions": {
+        "delay-threshold-pass": 7,
+        "liability-pass": 2,
+        "refund-cancellation-pass": 6,
+        "documentation-requirements-pass": 2,
+        "payment-eligibility-pass": 54
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "2026-2027-ACIS-International-Protection-Plans.pdf",
+      "sourceFamily": "other",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 10865,
+      "sectionCount": 23,
+      "rawCandidateCount": 24,
+      "consolidatedCandidateCount": 22,
+      "normalizedCandidateCount": 22,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 1,
+      "topClauseFamilies": [
+        {
+          "type": "refund_eligibility_rule",
+          "count": 6
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 4
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 4
+        },
+        {
+          "type": "trip_delay_threshold",
+          "count": 2
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 4
+        },
+        {
+          "type": "trip_delay_threshold",
+          "count": 2
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 6
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 4
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 2
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 20,
+        "HIGH": 1,
+        "AMBIGUOUS": 1
+      },
+      "passContributions": {
+        "delay-threshold-pass": 6,
+        "liability-pass": 1,
+        "refund-cancellation-pass": 12,
+        "payment-eligibility-pass": 3
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "American Airlines Conditions of Carriage.txt",
+      "sourceFamily": "airline",
+      "artifactType": "txt",
+      "parseStatus": "success",
+      "extractionMethod": "txt-read",
+      "textLength": 42735,
+      "sectionCount": 66,
+      "rawCandidateCount": 52,
+      "consolidatedCandidateCount": 45,
+      "normalizedCandidateCount": 45,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 2,
+      "topClauseFamilies": [
+        {
+          "type": "refund_eligibility_rule",
+          "count": 13
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 9
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 9
+        },
+        {
+          "type": "trip_delay_threshold",
+          "count": 4
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 4
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "trip_delay_threshold",
+          "count": 4
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 4
+        },
+        {
+          "type": "trip_delay_limit",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 13
+        },
+        {
+          "type": "hotel_cancellation_window",
+          "count": 3
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 9
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 9
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 42,
+        "HIGH": 3
+      },
+      "passContributions": {
+        "delay-threshold-pass": 9,
+        "refund-cancellation-pass": 16,
+        "documentation-requirements-pass": 1,
+        "payment-eligibility-pass": 19
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "American Express 2026 Benefit Guide.pdf",
+      "sourceFamily": "airline",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 83924,
+      "sectionCount": 28,
+      "rawCandidateCount": 38,
+      "consolidatedCandidateCount": 36,
+      "normalizedCandidateCount": 36,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 2,
+      "topClauseFamilies": [
+        {
+          "type": "payment_method_requirement",
+          "count": 11
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 10
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 6
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 3
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 2
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 2
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 6
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 11
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 10
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 3
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 32,
+        "HIGH": 2,
+        "DOCUMENTATION_INCOMPLETE": 2
+      },
+      "passContributions": {
+        "delay-threshold-pass": 2,
+        "refund-cancellation-pass": 6,
+        "documentation-requirements-pass": 4,
+        "payment-eligibility-pass": 24
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "California NorwegianCare Ver. 260101.pdf",
+      "sourceFamily": "cruise",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 79168,
+      "sectionCount": 72,
+      "rawCandidateCount": 80,
+      "consolidatedCandidateCount": 62,
+      "normalizedCandidateCount": 62,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 3,
+      "topClauseFamilies": [
+        {
+          "type": "common_carrier_requirement",
+          "count": 17
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 13
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 8
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 6
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 4
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 6
+        },
+        {
+          "type": "trip_delay_threshold",
+          "count": 3
+        },
+        {
+          "type": "trip_delay_limit",
+          "count": 2
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 8
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 3
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 17
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 13
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 4
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 58,
+        "HIGH": 3,
+        "DOCUMENTATION_INCOMPLETE": 1
+      },
+      "passContributions": {
+        "delay-threshold-pass": 11,
+        "refund-cancellation-pass": 13,
+        "documentation-requirements-pass": 4,
+        "payment-eligibility-pass": 34
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "California State University.pdf",
+      "sourceFamily": "academic",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 18888,
+      "sectionCount": 14,
+      "rawCandidateCount": 11,
+      "consolidatedCandidateCount": 10,
+      "normalizedCandidateCount": 10,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 3,
+      "topClauseFamilies": [
+        {
+          "type": "refund_eligibility_rule",
+          "count": 2
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 2
+        },
+        {
+          "type": "trip_delay_threshold",
+          "count": 1
+        },
+        {
+          "type": "hotel_cancellation_window",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "trip_delay_threshold",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 2
+        },
+        {
+          "type": "hotel_cancellation_window",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 2
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "AMBIGUOUS": 1,
+        "CONFLICT_PRESENT": 4,
+        "HIGH": 3,
+        "DOCUMENTATION_INCOMPLETE": 1,
+        "CONDITIONAL": 1
+      },
+      "passContributions": {
+        "delay-threshold-pass": 1,
+        "refund-cancellation-pass": 3,
+        "documentation-requirements-pass": 2,
+        "payment-eligibility-pass": 4
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "Chase Sapphire Preferred Visa Signature benefit coverage.pdf",
+      "sourceFamily": "credit_card",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 97730,
+      "sectionCount": 144,
+      "rawCandidateCount": 161,
+      "consolidatedCandidateCount": 133,
+      "normalizedCandidateCount": 133,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 3,
+      "topClauseFamilies": [
+        {
+          "type": "payment_method_requirement",
+          "count": 54
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 34
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 11
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 10
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 8
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "trip_delay_threshold",
+          "count": 1
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 4
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 11
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 7
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 8
+        },
+        {
+          "type": "hotel_cancellation_window",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 54
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 34
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 10
+        }
+      ],
+      "confidenceTiers": {
+        "AMBIGUOUS": 1,
+        "CONFLICT_PRESENT": 128,
+        "HIGH": 3,
+        "DOCUMENTATION_INCOMPLETE": 1
+      },
+      "passContributions": {
+        "delay-threshold-pass": 1,
+        "liability-pass": 4,
+        "refund-cancellation-pass": 27,
+        "documentation-requirements-pass": 3,
+        "payment-eligibility-pass": 98
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "Chase Sapphire Reserve Visa Infinite Coverage Benefits Guide.pdf",
+      "sourceFamily": "credit_card",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 121142,
+      "sectionCount": 186,
+      "rawCandidateCount": 198,
+      "consolidatedCandidateCount": 154,
+      "normalizedCandidateCount": 154,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 3,
+      "topClauseFamilies": [
+        {
+          "type": "payment_method_requirement",
+          "count": 63
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 40
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 15
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 11
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 8
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "baggage_liability_limit",
+          "count": 6
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 15
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 7
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 8
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 63
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 40
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 11
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 150,
+        "HIGH": 3,
+        "DOCUMENTATION_INCOMPLETE": 1
+      },
+      "passContributions": {
+        "liability-pass": 6,
+        "refund-cancellation-pass": 30,
+        "documentation-requirements-pass": 4,
+        "payment-eligibility-pass": 114
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "Conditions of Carriage _ Ethiopian Airlines United States of America _ US.pdf",
+      "sourceFamily": "airline",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 37997,
+      "sectionCount": 70,
+      "rawCandidateCount": 41,
+      "consolidatedCandidateCount": 38,
+      "normalizedCandidateCount": 38,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 4,
+      "topClauseFamilies": [
+        {
+          "type": "round_trip_requirement",
+          "count": 10
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 9
+        },
+        {
+          "type": "carrier_liability_cap",
+          "count": 3
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 3
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 3
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "trip_delay_threshold",
+          "count": 2
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 1
+        },
+        {
+          "type": "trip_delay_limit",
+          "count": 1
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 1
+        },
+        {
+          "type": "carrier_liability_cap",
+          "count": 3
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 1
+        },
+        {
+          "type": "hotel_cancellation_window",
+          "count": 1
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 3
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 9
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 10
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 3
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 30,
+        "HIGH": 6,
+        "DOCUMENTATION_INCOMPLETE": 2
+      },
+      "passContributions": {
+        "delay-threshold-pass": 4,
+        "liability-pass": 4,
+        "refund-cancellation-pass": 6,
+        "documentation-requirements-pass": 2,
+        "payment-eligibility-pass": 22
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "Delt Contract of Carriage.pdf",
+      "sourceFamily": "airline",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 116191,
+      "sectionCount": 209,
+      "rawCandidateCount": 98,
+      "consolidatedCandidateCount": 81,
+      "normalizedCandidateCount": 81,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 2,
+      "topClauseFamilies": [
+        {
+          "type": "round_trip_requirement",
+          "count": 29
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 26
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 10
+        },
+        {
+          "type": "trip_delay_threshold",
+          "count": 6
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 3
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "trip_delay_threshold",
+          "count": 6
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 3
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 26
+        },
+        {
+          "type": "hotel_cancellation_window",
+          "count": 2
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 10
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 29
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 2
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 78,
+        "HIGH": 2,
+        "DOCUMENTATION_INCOMPLETE": 1
+      },
+      "passContributions": {
+        "delay-threshold-pass": 9,
+        "refund-cancellation-pass": 28,
+        "documentation-requirements-pass": 3,
+        "payment-eligibility-pass": 41
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "Does Renters Insurance Cover Theft_ _ Progressive.pdf",
+      "sourceFamily": "rental",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 9546,
+      "sectionCount": 33,
+      "rawCandidateCount": 5,
+      "consolidatedCandidateCount": 5,
+      "normalizedCandidateCount": 5,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 1,
+      "topClauseFamilies": [
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 2
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "baggage_liability_limit",
+          "count": 1
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 2
+        }
+      ],
+      "confidenceTiers": {
+        "HIGH": 1,
+        "CONFLICT_PRESENT": 4
+      },
+      "passContributions": {
+        "liability-pass": 1,
+        "refund-cancellation-pass": 4
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "EW-Benefit-Guide_314-399_EDT-10.20_REV_4.24_a11y2.pdf",
+      "sourceFamily": "insurance",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 16340,
+      "sectionCount": 49,
+      "rawCandidateCount": 22,
+      "consolidatedCandidateCount": 22,
+      "normalizedCandidateCount": 22,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 4,
+      "topClauseFamilies": [
+        {
+          "type": "payment_method_requirement",
+          "count": 16
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 1
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "trip_cancellation_limit",
+          "count": 1
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 16
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "HIGH": 4,
+        "DOCUMENTATION_INCOMPLETE": 2,
+        "CONFLICT_PRESENT": 16
+      },
+      "passContributions": {
+        "refund-cancellation-pass": 3,
+        "documentation-requirements-pass": 2,
+        "payment-eligibility-pass": 17
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "FLorida NorwegianCare Ver. 260101.pdf",
+      "sourceFamily": "cruise",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 67279,
+      "sectionCount": 66,
+      "rawCandidateCount": 77,
+      "consolidatedCandidateCount": 60,
+      "normalizedCandidateCount": 60,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 3,
+      "topClauseFamilies": [
+        {
+          "type": "common_carrier_requirement",
+          "count": 17
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 11
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 8
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 5
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 5
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 5
+        },
+        {
+          "type": "trip_delay_threshold",
+          "count": 3
+        },
+        {
+          "type": "trip_delay_limit",
+          "count": 2
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 8
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 3
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 17
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 11
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 5
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 56,
+        "HIGH": 3,
+        "DOCUMENTATION_INCOMPLETE": 1
+      },
+      "passContributions": {
+        "delay-threshold-pass": 10,
+        "refund-cancellation-pass": 13,
+        "documentation-requirements-pass": 4,
+        "payment-eligibility-pass": 33
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "Florida Royal Caribbean Travel Protection document.pdf",
+      "sourceFamily": "cruise",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 63514,
+      "sectionCount": 60,
+      "rawCandidateCount": 64,
+      "consolidatedCandidateCount": 53,
+      "normalizedCandidateCount": 53,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 3,
+      "topClauseFamilies": [
+        {
+          "type": "common_carrier_requirement",
+          "count": 15
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 9
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 6
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 6
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 5
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 5
+        },
+        {
+          "type": "trip_delay_threshold",
+          "count": 3
+        },
+        {
+          "type": "trip_delay_limit",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 6
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 3
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 15
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 6
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 9
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 49,
+        "HIGH": 4
+      },
+      "passContributions": {
+        "delay-threshold-pass": 9,
+        "refund-cancellation-pass": 11,
+        "documentation-requirements-pass": 3,
+        "payment-eligibility-pass": 30
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "G23.pdf",
+      "sourceFamily": "other",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 2243,
+      "sectionCount": 3,
+      "rawCandidateCount": 2,
+      "consolidatedCandidateCount": 2,
+      "normalizedCandidateCount": 2,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 0,
+      "topClauseFamilies": [
+        {
+          "type": "common_carrier_requirement",
+          "count": 1
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "common_carrier_requirement",
+          "count": 1
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "DOCUMENTATION_INCOMPLETE": 2
+      },
+      "passContributions": {
+        "payment-eligibility-pass": 2
+      },
+      "warnings": [
+        "No candidates met promotion criteria"
+      ],
+      "errors": []
+    },
+    {
+      "documentName": "General_Conditions_of_Carriage_for_Passengers_and_Baggage_(flight_ticket_GCC).pdf",
+      "sourceFamily": "airline",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 43304,
+      "sectionCount": 80,
+      "rawCandidateCount": 34,
+      "consolidatedCandidateCount": 31,
+      "normalizedCandidateCount": 31,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 1,
+      "topClauseFamilies": [
+        {
+          "type": "round_trip_requirement",
+          "count": 9
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 6
+        },
+        {
+          "type": "carrier_liability_cap",
+          "count": 3
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 2
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 2
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 2
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 2
+        },
+        {
+          "type": "carrier_liability_cap",
+          "count": 3
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 6
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 2
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 2
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 9
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 28,
+        "HIGH": 1,
+        "DOCUMENTATION_INCOMPLETE": 2
+      },
+      "passContributions": {
+        "delay-threshold-pass": 2,
+        "liability-pass": 5,
+        "refund-cancellation-pass": 10,
+        "documentation-requirements-pass": 2,
+        "payment-eligibility-pass": 12
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "Loyalty_Program_Terms_and_Conditions.mhtml",
+      "sourceFamily": "hotel",
+      "artifactType": "mhtml",
+      "parseStatus": "success",
+      "extractionMethod": "mhtml-extraction",
+      "textLength": 249455,
+      "sectionCount": 191,
+      "rawCandidateCount": 77,
+      "consolidatedCandidateCount": 71,
+      "normalizedCandidateCount": 71,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 2,
+      "topClauseFamilies": [
+        {
+          "type": "payment_method_requirement",
+          "count": 33
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 15
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 7
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 5
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 3
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "trip_delay_threshold",
+          "count": 2
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 5
+        },
+        {
+          "type": "hotel_cancellation_window",
+          "count": 1
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 3
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 33
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 7
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 15
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 67,
+        "HIGH": 2,
+        "DOCUMENTATION_INCOMPLETE": 2
+      },
+      "passContributions": {
+        "delay-threshold-pass": 2,
+        "refund-cancellation-pass": 11,
+        "documentation-requirements-pass": 3,
+        "payment-eligibility-pass": 55
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "Melia Rewards _ Terms and Conditions.pdf",
+      "sourceFamily": "hotel",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 11540,
+      "sectionCount": 23,
+      "rawCandidateCount": 2,
+      "consolidatedCandidateCount": 2,
+      "normalizedCandidateCount": 2,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 1,
+      "topClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 1
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 1
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "HIGH": 1,
+        "AMBIGUOUS": 1
+      },
+      "passContributions": {
+        "delay-threshold-pass": 1,
+        "payment-eligibility-pass": 1
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "NY NorwegianCare Ver. 260101.pdf",
+      "sourceFamily": "cruise",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 104357,
+      "sectionCount": 92,
+      "rawCandidateCount": 101,
+      "consolidatedCandidateCount": 66,
+      "normalizedCandidateCount": 66,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 3,
+      "topClauseFamilies": [
+        {
+          "type": "common_carrier_requirement",
+          "count": 18
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 13
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 8
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 7
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 6
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "trip_delay_threshold",
+          "count": 3
+        },
+        {
+          "type": "trip_delay_limit",
+          "count": 2
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 7
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 8
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 3
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 18
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 13
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 6
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 62,
+        "HIGH": 3,
+        "DOCUMENTATION_INCOMPLETE": 1
+      },
+      "passContributions": {
+        "delay-threshold-pass": 12,
+        "refund-cancellation-pass": 13,
+        "documentation-requirements-pass": 4,
+        "payment-eligibility-pass": 37
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "New York Royal Carribean Protection.pdf",
+      "sourceFamily": "rental",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 100517,
+      "sectionCount": 85,
+      "rawCandidateCount": 89,
+      "consolidatedCandidateCount": 62,
+      "normalizedCandidateCount": 62,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 3,
+      "topClauseFamilies": [
+        {
+          "type": "common_carrier_requirement",
+          "count": 15
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 13
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 8
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 7
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 7
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 7
+        },
+        {
+          "type": "trip_delay_threshold",
+          "count": 3
+        },
+        {
+          "type": "trip_delay_limit",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 8
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 3
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 15
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 7
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 13
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 58,
+        "HIGH": 4
+      },
+      "passContributions": {
+        "delay-threshold-pass": 11,
+        "refund-cancellation-pass": 13,
+        "documentation-requirements-pass": 3,
+        "payment-eligibility-pass": 35
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "PHIP-Travel-Comparison-2026.pdf",
+      "sourceFamily": "other",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 2860,
+      "sectionCount": 4,
+      "rawCandidateCount": 8,
+      "consolidatedCandidateCount": 6,
+      "normalizedCandidateCount": 6,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 1,
+      "topClauseFamilies": [
+        {
+          "type": "baggage_liability_limit",
+          "count": 1
+        },
+        {
+          "type": "carrier_liability_cap",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 1
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 1
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "baggage_liability_limit",
+          "count": 1
+        },
+        {
+          "type": "carrier_liability_cap",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 1
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 1
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 1
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "HIGH": 4,
+        "DOCUMENTATION_INCOMPLETE": 2
+      },
+      "passContributions": {
+        "liability-pass": 2,
+        "refund-cancellation-pass": 3,
+        "payment-eligibility-pass": 1
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "Philippine airlines general conditions of carriage full version.pdf",
+      "sourceFamily": "airline",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 53348,
+      "sectionCount": 89,
+      "rawCandidateCount": 22,
+      "consolidatedCandidateCount": 18,
+      "normalizedCandidateCount": 18,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 2,
+      "topClauseFamilies": [
+        {
+          "type": "round_trip_requirement",
+          "count": 8
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 3
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 2
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "refund_eligibility_rule",
+          "count": 3
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 1
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 8
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 2
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 13,
+        "HIGH": 2,
+        "DOCUMENTATION_INCOMPLETE": 3
+      },
+      "passContributions": {
+        "refund-cancellation-pass": 3,
+        "documentation-requirements-pass": 4,
+        "payment-eligibility-pass": 11
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "Royal_Caribbean_booklet_.pdf",
+      "sourceFamily": "rental",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 111154,
+      "sectionCount": 112,
+      "rawCandidateCount": 98,
+      "consolidatedCandidateCount": 95,
+      "normalizedCandidateCount": 95,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 4,
+      "topClauseFamilies": [
+        {
+          "type": "common_carrier_requirement",
+          "count": 30
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 18
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 13
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 12
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 4
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "trip_delay_threshold",
+          "count": 1
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 4
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 3
+        },
+        {
+          "type": "carrier_liability_cap",
+          "count": 2
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 13
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 3
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 4
+        },
+        {
+          "type": "hotel_cancellation_window",
+          "count": 1
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 30
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 18
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 12
+        }
+      ],
+      "confidenceTiers": {
+        "HIGH": 4,
+        "CONFLICT_PRESENT": 89,
+        "DOCUMENTATION_INCOMPLETE": 2
+      },
+      "passContributions": {
+        "delay-threshold-pass": 5,
+        "liability-pass": 5,
+        "refund-cancellation-pass": 21,
+        "documentation-requirements-pass": 4,
+        "payment-eligibility-pass": 60
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "Standard_Contract_of_carriage_-_Alaska_Airlines.mhtml",
+      "sourceFamily": "airline",
+      "artifactType": "mhtml",
+      "parseStatus": "success",
+      "extractionMethod": "mhtml-extraction",
+      "textLength": 23215,
+      "sectionCount": 34,
+      "rawCandidateCount": 12,
+      "consolidatedCandidateCount": 12,
+      "normalizedCandidateCount": 12,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 1,
+      "topClauseFamilies": [
+        {
+          "type": "round_trip_requirement",
+          "count": 7
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 2
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 2
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "refund_eligibility_rule",
+          "count": 1
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 2
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 7
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 2
+        }
+      ],
+      "confidenceTiers": {
+        "HIGH": 1,
+        "CONFLICT_PRESENT": 11
+      },
+      "passContributions": {
+        "refund-cancellation-pass": 1,
+        "payment-eligibility-pass": 11
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "Terms & Conditions.pdf",
+      "sourceFamily": "other",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 8288,
+      "sectionCount": 9,
+      "rawCandidateCount": 5,
+      "consolidatedCandidateCount": 5,
+      "normalizedCandidateCount": 5,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 1,
+      "topClauseFamilies": [
+        {
+          "type": "refund_eligibility_rule",
+          "count": 2
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 1
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "refund_eligibility_rule",
+          "count": 2
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 1
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 2,
+        "HIGH": 1,
+        "CONDITIONAL": 1,
+        "DOCUMENTATION_INCOMPLETE": 1
+      },
+      "passContributions": {
+        "refund-cancellation-pass": 2,
+        "payment-eligibility-pass": 3
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "Terms and Conditions of Carriage for KT Flights _ AirAsia MOVE.pdf",
+      "sourceFamily": "airline",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 64429,
+      "sectionCount": 177,
+      "rawCandidateCount": 59,
+      "consolidatedCandidateCount": 41,
+      "normalizedCandidateCount": 41,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 3,
+      "topClauseFamilies": [
+        {
+          "type": "refund_eligibility_rule",
+          "count": 16
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 9
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 5
+        },
+        {
+          "type": "trip_delay_threshold",
+          "count": 3
+        },
+        {
+          "type": "hotel_cancellation_window",
+          "count": 2
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "trip_delay_threshold",
+          "count": 3
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 1
+        },
+        {
+          "type": "trip_delay_limit",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 16
+        },
+        {
+          "type": "hotel_cancellation_window",
+          "count": 2
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 9
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 5
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 35,
+        "HIGH": 4,
+        "DOCUMENTATION_INCOMPLETE": 1,
+        "CONDITIONAL": 1
+      },
+      "passContributions": {
+        "delay-threshold-pass": 5,
+        "refund-cancellation-pass": 18,
+        "documentation-requirements-pass": 3,
+        "payment-eligibility-pass": 15
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "United Airlines Lenghty Tarmac Plan.txt",
+      "sourceFamily": "airline",
+      "artifactType": "txt",
+      "parseStatus": "success",
+      "extractionMethod": "txt-read",
+      "textLength": 6070,
+      "sectionCount": 2,
+      "rawCandidateCount": 0,
+      "consolidatedCandidateCount": 0,
+      "normalizedCandidateCount": 0,
+      "normalizationRate": 0.0,
+      "promotedRuleCount": 0,
+      "topClauseFamilies": [],
+      "allClauseFamilies": [],
+      "confidenceTiers": {},
+      "passContributions": {},
+      "warnings": [
+        "No clause candidates detected"
+      ],
+      "errors": []
+    },
+    {
+      "documentName": "United Contract of Carriage.txt",
+      "sourceFamily": "airline",
+      "artifactType": "txt",
+      "parseStatus": "success",
+      "extractionMethod": "txt-read",
+      "textLength": 226063,
+      "sectionCount": 94,
+      "rawCandidateCount": 123,
+      "consolidatedCandidateCount": 107,
+      "normalizedCandidateCount": 107,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 5,
+      "topClauseFamilies": [
+        {
+          "type": "round_trip_requirement",
+          "count": 40
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 22
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 20
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 12
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 3
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "trip_delay_limit",
+          "count": 1
+        },
+        {
+          "type": "trip_delay_threshold",
+          "count": 1
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 1
+        },
+        {
+          "type": "carrier_liability_cap",
+          "count": 2
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 3
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 20
+        },
+        {
+          "type": "hotel_cancellation_window",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 22
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 40
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 12
+        }
+      ],
+      "confidenceTiers": {
+        "HIGH": 6,
+        "CONFLICT_PRESENT": 99,
+        "DOCUMENTATION_INCOMPLETE": 2
+      },
+      "passContributions": {
+        "delay-threshold-pass": 3,
+        "liability-pass": 5,
+        "refund-cancellation-pass": 21,
+        "documentation-requirements-pass": 4,
+        "payment-eligibility-pass": 74
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "WKS_#U00d6AMTC_2026_Englisch.pdf",
+      "sourceFamily": "other",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 11458,
+      "sectionCount": 16,
+      "rawCandidateCount": 8,
+      "consolidatedCandidateCount": 8,
+      "normalizedCandidateCount": 8,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 1,
+      "topClauseFamilies": [
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 2
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 2
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 1
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 2
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 1
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 2
+        }
+      ],
+      "confidenceTiers": {
+        "HIGH": 1,
+        "CONFLICT_PRESENT": 6,
+        "DOCUMENTATION_INCOMPLETE": 1
+      },
+      "passContributions": {
+        "delay-threshold-pass": 1,
+        "refund-cancellation-pass": 5,
+        "payment-eligibility-pass": 2
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "air-new-zealand-modern-slavery-act-statement-2023.pdf",
+      "sourceFamily": "airline",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 34407,
+      "sectionCount": 14,
+      "rawCandidateCount": 8,
+      "consolidatedCandidateCount": 8,
+      "normalizedCandidateCount": 8,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 0,
+      "topClauseFamilies": [
+        {
+          "type": "common_carrier_requirement",
+          "count": 7
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "common_carrier_requirement",
+          "count": 7
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 7,
+        "AMBIGUOUS": 1
+      },
+      "passContributions": {
+        "payment-eligibility-pass": 8
+      },
+      "warnings": [
+        "No candidates met promotion criteria"
+      ],
+      "errors": []
+    },
+    {
+      "documentName": "amex return protection.pdf",
+      "sourceFamily": "credit_card",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 5935,
+      "sectionCount": 5,
+      "rawCandidateCount": 12,
+      "consolidatedCandidateCount": 11,
+      "normalizedCandidateCount": 11,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 5,
+      "topClauseFamilies": [
+        {
+          "type": "payment_method_requirement",
+          "count": 5
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 1
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 1
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 1
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 1
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 1
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 1
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 5
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "HIGH": 5,
+        "CONFLICT_PRESENT": 5,
+        "DOCUMENTATION_INCOMPLETE": 1
+      },
+      "passContributions": {
+        "delay-threshold-pass": 1,
+        "liability-pass": 1,
+        "refund-cancellation-pass": 2,
+        "documentation-requirements-pass": 1,
+        "payment-eligibility-pass": 6
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "amex travel protection-Benefit-Guide_316-404_EDT_10.20_REV_4.24_a11y.pdf",
+      "sourceFamily": "credit_card",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 15687,
+      "sectionCount": 48,
+      "rawCandidateCount": 22,
+      "consolidatedCandidateCount": 22,
+      "normalizedCandidateCount": 22,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 3,
+      "topClauseFamilies": [
+        {
+          "type": "payment_method_requirement",
+          "count": 15
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 2
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 2
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 2
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 15
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 2
+        }
+      ],
+      "confidenceTiers": {
+        "HIGH": 3,
+        "CONFLICT_PRESENT": 19
+      },
+      "passContributions": {
+        "delay-threshold-pass": 1,
+        "refund-cancellation-pass": 2,
+        "documentation-requirements-pass": 2,
+        "payment-eligibility-pass": 17
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "budget-us-protections-coverages-brochure-010224.pdf",
+      "sourceFamily": "rental",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 25726,
+      "sectionCount": 10,
+      "rawCandidateCount": 16,
+      "consolidatedCandidateCount": 16,
+      "normalizedCandidateCount": 16,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 0,
+      "topClauseFamilies": [
+        {
+          "type": "round_trip_requirement",
+          "count": 4
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 3
+        },
+        {
+          "type": "carrier_liability_cap",
+          "count": 2
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 2
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "carrier_liability_cap",
+          "count": 2
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 3
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 2
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 1
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 4
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 13,
+        "DOCUMENTATION_INCOMPLETE": 1,
+        "AMBIGUOUS": 2
+      },
+      "passContributions": {
+        "liability-pass": 2,
+        "refund-cancellation-pass": 7,
+        "documentation-requirements-pass": 1,
+        "payment-eligibility-pass": 6
+      },
+      "warnings": [
+        "No candidates met promotion criteria"
+      ],
+      "errors": []
+    },
+    {
+      "documentName": "ca-booking-conditions-jan-2025.pdf",
+      "sourceFamily": "hotel",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 70290,
+      "sectionCount": 71,
+      "rawCandidateCount": 73,
+      "consolidatedCandidateCount": 71,
+      "normalizedCandidateCount": 71,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 2,
+      "topClauseFamilies": [
+        {
+          "type": "common_carrier_requirement",
+          "count": 19
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 16
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 12
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 11
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 5
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 5
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 11
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 2
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 2
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 12
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 19
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 16
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 67,
+        "HIGH": 2,
+        "DOCUMENTATION_INCOMPLETE": 2
+      },
+      "passContributions": {
+        "delay-threshold-pass": 5,
+        "liability-pass": 1,
+        "refund-cancellation-pass": 15,
+        "documentation-requirements-pass": 3,
+        "payment-eligibility-pass": 47
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "cellar_2f65bf46-8f8a-11ee-8aa6-01aa75ed71a1.0001.02_DOC_1.pdf",
+      "sourceFamily": "eu_jurisdiction",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 95342,
+      "sectionCount": 109,
+      "rawCandidateCount": 39,
+      "consolidatedCandidateCount": 29,
+      "normalizedCandidateCount": 29,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 1,
+      "topClauseFamilies": [
+        {
+          "type": "refund_eligibility_rule",
+          "count": 12
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 5
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 5
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 3
+        },
+        {
+          "type": "trip_delay_threshold",
+          "count": 2
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 3
+        },
+        {
+          "type": "trip_delay_threshold",
+          "count": 2
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 12
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 5
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 5
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 27,
+        "HIGH": 1,
+        "DOCUMENTATION_INCOMPLETE": 1
+      },
+      "passContributions": {
+        "delay-threshold-pass": 5,
+        "refund-cancellation-pass": 12,
+        "documentation-requirements-pass": 2,
+        "payment-eligibility-pass": 10
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "cellar_2f65bf46-8f8a-11ee-8aa6-01aa75ed71a1.xml",
+      "sourceFamily": "eu_jurisdiction",
+      "artifactType": "xml",
+      "parseStatus": "success",
+      "extractionMethod": "xml-read",
+      "textLength": 238220,
+      "sectionCount": 1682,
+      "rawCandidateCount": 50,
+      "consolidatedCandidateCount": 4,
+      "normalizedCandidateCount": 4,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 0,
+      "topClauseFamilies": [
+        {
+          "type": "refund_eligibility_rule",
+          "count": 4
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "refund_eligibility_rule",
+          "count": 4
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 4
+      },
+      "passContributions": {
+        "refund-cancellation-pass": 4
+      },
+      "warnings": [
+        "No candidates met promotion criteria"
+      ],
+      "errors": []
+    },
+    {
+      "documentName": "ctp_accident-report-form.pdf",
+      "sourceFamily": "other",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 17161,
+      "sectionCount": 11,
+      "rawCandidateCount": 3,
+      "consolidatedCandidateCount": 3,
+      "normalizedCandidateCount": 3,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 2,
+      "topClauseFamilies": [
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "DOCUMENTATION_INCOMPLETE": 1,
+        "HIGH": 2
+      },
+      "passContributions": {
+        "documentation-requirements-pass": 2,
+        "payment-eligibility-pass": 1
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "eu Documents..pdf",
+      "sourceFamily": "eu_jurisdiction",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 27107,
+      "sectionCount": 33,
+      "rawCandidateCount": 7,
+      "consolidatedCandidateCount": 7,
+      "normalizedCandidateCount": 7,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 0,
+      "topClauseFamilies": [
+        {
+          "type": "refund_eligibility_rule",
+          "count": 5
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "refund_eligibility_rule",
+          "count": 5
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 5,
+        "DOCUMENTATION_INCOMPLETE": 2
+      },
+      "passContributions": {
+        "refund-cancellation-pass": 5,
+        "documentation-requirements-pass": 1,
+        "payment-eligibility-pass": 1
+      },
+      "warnings": [
+        "No candidates met promotion criteria"
+      ],
+      "errors": []
+    },
+    {
+      "documentName": "factsheet_package_holidays_2018.06_en_web.pdf",
+      "sourceFamily": "eu_jurisdiction",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 8143,
+      "sectionCount": 11,
+      "rawCandidateCount": 6,
+      "consolidatedCandidateCount": 6,
+      "normalizedCandidateCount": 6,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 2,
+      "topClauseFamilies": [
+        {
+          "type": "common_carrier_requirement",
+          "count": 3
+        },
+        {
+          "type": "trip_delay_threshold",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 1
+        },
+        {
+          "type": "hotel_cancellation_window",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "trip_delay_threshold",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 1
+        },
+        {
+          "type": "hotel_cancellation_window",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 3
+        }
+      ],
+      "confidenceTiers": {
+        "HIGH": 2,
+        "DOCUMENTATION_INCOMPLETE": 1,
+        "CONFLICT_PRESENT": 3
+      },
+      "passContributions": {
+        "delay-threshold-pass": 1,
+        "refund-cancellation-pass": 2,
+        "payment-eligibility-pass": 3
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "frontier contract of carriage.pdf",
+      "sourceFamily": "airline",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 85810,
+      "sectionCount": 149,
+      "rawCandidateCount": 77,
+      "consolidatedCandidateCount": 73,
+      "normalizedCandidateCount": 73,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 5,
+      "topClauseFamilies": [
+        {
+          "type": "round_trip_requirement",
+          "count": 23
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 15
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 8
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 7
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 6
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "trip_delay_threshold",
+          "count": 3
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 6
+        },
+        {
+          "type": "trip_delay_limit",
+          "count": 1
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 3
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 15
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 1
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 1
+        },
+        {
+          "type": "hotel_cancellation_window",
+          "count": 1
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 7
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 23
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 8
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 65,
+        "HIGH": 6,
+        "DOCUMENTATION_INCOMPLETE": 2
+      },
+      "passContributions": {
+        "delay-threshold-pass": 10,
+        "liability-pass": 3,
+        "refund-cancellation-pass": 18,
+        "documentation-requirements-pass": 4,
+        "payment-eligibility-pass": 38
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "main.govpilot.com_web_public_b5c0642b-18f_Citizen-Incident-Reports-City-of-Elizabeth_uid=7414&ust=NJ&pu=1&id=0.pdf",
+      "sourceFamily": "other",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 3378,
+      "sectionCount": 4,
+      "rawCandidateCount": 1,
+      "consolidatedCandidateCount": 1,
+      "normalizedCandidateCount": 1,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 0,
+      "topClauseFamilies": [
+        {
+          "type": "round_trip_requirement",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "round_trip_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "CONDITIONAL": 1
+      },
+      "passContributions": {
+        "payment-eligibility-pass": 1
+      },
+      "warnings": [
+        "No candidates met promotion criteria"
+      ],
+      "errors": []
+    },
+    {
+      "documentName": "premier world discovery travel protction.pdf",
+      "sourceFamily": "insurance",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 5608,
+      "sectionCount": 7,
+      "rawCandidateCount": 15,
+      "consolidatedCandidateCount": 15,
+      "normalizedCandidateCount": 15,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 5,
+      "topClauseFamilies": [
+        {
+          "type": "trip_delay_threshold",
+          "count": 2
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 2
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 2
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 2
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 2
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "trip_delay_threshold",
+          "count": 2
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 2
+        },
+        {
+          "type": "hotel_cancellation_window",
+          "count": 1
+        },
+        {
+          "type": "trip_cancellation_limit",
+          "count": 1
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 2
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 2
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 2
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 10,
+        "HIGH": 5
+      },
+      "passContributions": {
+        "delay-threshold-pass": 2,
+        "refund-cancellation-pass": 5,
+        "documentation-requirements-pass": 2,
+        "payment-eligibility-pass": 6
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "southwest contract-of-carriage.pdf",
+      "sourceFamily": "airline",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 138644,
+      "sectionCount": 219,
+      "rawCandidateCount": 100,
+      "consolidatedCandidateCount": 94,
+      "normalizedCandidateCount": 94,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 6,
+      "topClauseFamilies": [
+        {
+          "type": "common_carrier_requirement",
+          "count": 35
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 27
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 23
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 2
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 1
+        },
+        {
+          "type": "trip_delay_threshold",
+          "count": 1
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 23
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 35
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 27
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 2
+        }
+      ],
+      "confidenceTiers": {
+        "HIGH": 6,
+        "CONFLICT_PRESENT": 87,
+        "DOCUMENTATION_INCOMPLETE": 1
+      },
+      "passContributions": {
+        "delay-threshold-pass": 2,
+        "liability-pass": 1,
+        "refund-cancellation-pass": 23,
+        "documentation-requirements-pass": 4,
+        "payment-eligibility-pass": 64
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "sun country airlines_Contract_of_Carriage.pdf",
+      "sourceFamily": "airline",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 114032,
+      "sectionCount": 165,
+      "rawCandidateCount": 91,
+      "consolidatedCandidateCount": 82,
+      "normalizedCandidateCount": 82,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 5,
+      "topClauseFamilies": [
+        {
+          "type": "common_carrier_requirement",
+          "count": 27
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 26
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 14
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 4
+        },
+        {
+          "type": "trip_delay_threshold",
+          "count": 2
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "trip_delay_threshold",
+          "count": 2
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 2
+        },
+        {
+          "type": "baggage_liability_limit",
+          "count": 1
+        },
+        {
+          "type": "carrier_liability_cap",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 14
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 1
+        },
+        {
+          "type": "requires_medical_certificate",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "requires_baggage_pir",
+          "count": 1
+        },
+        {
+          "type": "requires_police_report",
+          "count": 1
+        },
+        {
+          "type": "common_carrier_requirement",
+          "count": 27
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 26
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 4
+        }
+      ],
+      "confidenceTiers": {
+        "CONFLICT_PRESENT": 75,
+        "HIGH": 6,
+        "DOCUMENTATION_INCOMPLETE": 1
+      },
+      "passContributions": {
+        "delay-threshold-pass": 4,
+        "liability-pass": 2,
+        "refund-cancellation-pass": 15,
+        "documentation-requirements-pass": 4,
+        "payment-eligibility-pass": 57
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "documentName": "vacation express.pdf",
+      "sourceFamily": "insurance",
+      "artifactType": "pdf_native_text",
+      "parseStatus": "success",
+      "extractionMethod": "pdf-parse-native",
+      "textLength": 5453,
+      "sectionCount": 6,
+      "rawCandidateCount": 10,
+      "consolidatedCandidateCount": 9,
+      "normalizedCandidateCount": 9,
+      "normalizationRate": 100.0,
+      "promotedRuleCount": 1,
+      "topClauseFamilies": [
+        {
+          "type": "refund_eligibility_rule",
+          "count": 2
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 2
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 2
+        },
+        {
+          "type": "claim_deadline_days",
+          "count": 1
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        }
+      ],
+      "allClauseFamilies": [
+        {
+          "type": "claim_deadline_days",
+          "count": 1
+        },
+        {
+          "type": "refund_eligibility_rule",
+          "count": 2
+        },
+        {
+          "type": "trip_interruption_limit",
+          "count": 2
+        },
+        {
+          "type": "requires_receipts",
+          "count": 1
+        },
+        {
+          "type": "round_trip_requirement",
+          "count": 2
+        },
+        {
+          "type": "payment_method_requirement",
+          "count": 1
+        }
+      ],
+      "confidenceTiers": {
+        "HIGH": 1,
+        "CONFLICT_PRESENT": 6,
+        "DOCUMENTATION_INCOMPLETE": 1,
+        "CONDITIONAL": 1
+      },
+      "passContributions": {
+        "delay-threshold-pass": 1,
+        "refund-cancellation-pass": 4,
+        "documentation-requirements-pass": 1,
+        "payment-eligibility-pass": 3
+      },
+      "warnings": [],
+      "errors": []
+    }
+  ],
+  "aggregate": {
+    "totalDocuments": 46,
+    "successfulParses": 46,
+    "failedParses": 0,
+    "totalRawCandidates": 2164,
+    "totalConsolidatedCandidates": 1807,
+    "totalNormalizedCandidates": 1807,
+    "totalPromotedRules": 103,
+    "bySourceFamily": {
+      "insurance": {
+        "count": 4,
+        "success": 4,
+        "candidates": 84,
+        "promoted": 11
+      },
+      "credit_card": {
+        "count": 5,
+        "success": 5,
+        "candidates": 391,
+        "promoted": 17
+      },
+      "other": {
+        "count": 7,
+        "success": 7,
+        "candidates": 47,
+        "promoted": 6
+      },
+      "airline": {
+        "count": 14,
+        "success": 14,
+        "candidates": 666,
+        "promoted": 38
+      },
+      "cruise": {
+        "count": 4,
+        "success": 4,
+        "candidates": 241,
+        "promoted": 12
+      },
+      "academic": {
+        "count": 1,
+        "success": 1,
+        "candidates": 10,
+        "promoted": 3
+      },
+      "rental": {
+        "count": 4,
+        "success": 4,
+        "candidates": 178,
+        "promoted": 8
+      },
+      "hotel": {
+        "count": 3,
+        "success": 3,
+        "candidates": 144,
+        "promoted": 5
+      },
+      "eu_jurisdiction": {
+        "count": 4,
+        "success": 4,
+        "candidates": 46,
+        "promoted": 3
+      }
+    },
+    "byArtifactType": {
+      "pdf_native_text": {
+        "count": 40,
+        "success": 40,
+        "candidates": 1568,
+        "promoted": 93
+      },
+      "txt": {
+        "count": 3,
+        "success": 3,
+        "candidates": 152,
+        "promoted": 7
+      },
+      "mhtml": {
+        "count": 2,
+        "success": 2,
+        "candidates": 83,
+        "promoted": 3
+      },
+      "xml": {
+        "count": 1,
+        "success": 1,
+        "candidates": 4,
+        "promoted": 0
+      }
+    },
+    "byClauseFamily": {
+      "claim_deadline_days": 87,
+      "refund_eligibility_rule": 284,
+      "trip_interruption_limit": 71,
+      "trip_cancellation_limit": 53,
+      "requires_medical_certificate": 28,
+      "requires_police_report": 19,
+      "requires_receipts": 27,
+      "round_trip_requirement": 395,
+      "common_carrier_requirement": 373,
+      "payment_method_requirement": 328,
+      "trip_delay_threshold": 50,
+      "baggage_liability_limit": 31,
+      "hotel_cancellation_window": 17,
+      "requires_baggage_pir": 17,
+      "trip_delay_limit": 13,
+      "carrier_liability_cap": 14
+    },
+    "byPass": {
+      "delay-threshold-pass": 150,
+      "refund-cancellation-pass": 425,
+      "documentation-requirements-pass": 91,
+      "payment-eligibility-pass": 1096,
+      "liability-pass": 45
+    },
+    "confidenceTierDistribution": {
+      "CONFLICT_PRESENT": 1630,
+      "DOCUMENTATION_INCOMPLETE": 49,
+      "HIGH": 115,
+      "CONDITIONAL": 6,
+      "AMBIGUOUS": 7
+    },
+    "zeroYieldDocs": [
+      "G23.pdf",
+      "United Airlines Lenghty Tarmac Plan.txt",
+      "air-new-zealand-modern-slavery-act-statement-2023.pdf",
+      "budget-us-protections-coverages-brochure-010224.pdf",
+      "cellar_2f65bf46-8f8a-11ee-8aa6-01aa75ed71a1.xml",
+      "eu Documents..pdf",
+      "main.govpilot.com_web_public_b5c0642b-18f_Citizen-Incident-Reports-City-of-Elizabeth_uid=7414&ust=NJ&pu=1&id=0.pdf"
+    ],
+    "degradedButUseful": []
+  }
+}
