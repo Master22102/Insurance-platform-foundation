@@ -6,10 +6,16 @@ Phases: Inventory → Baseline → Remediation → Final Eval → Rule Inventory
 """
 
 import os, sys, re, json, csv, hashlib, traceback
-from datetime import datetime
+from datetime import datetime, UTC
 from pathlib import Path
 from collections import defaultdict, Counter
 from typing import Optional, Any
+
+# Ensure Windows consoles can print Unicode (✓, em-dashes, etc.)
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
 
 # PDF libraries
 import pdfplumber
@@ -20,8 +26,9 @@ from bs4 import BeautifulSoup
 import pytesseract
 from pdf2image import convert_from_path
 
-CORPUS_DIR = "/home/claude/repo/document-intelligence"
-OUTPUT_DIR = "/home/claude/repo/tmp/hardening"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+CORPUS_DIR = str(REPO_ROOT / "document-intelligence")
+OUTPUT_DIR = str(REPO_ROOT / "tmp" / "hardening")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ============================================================
@@ -1338,7 +1345,7 @@ def promote_rules(candidates):
             'confidence': c['confidence'],
             'sourceSection': c.get('sourceSection'),
             'detectedByPass': c.get('detectedByPass'),
-            'promotedAt': datetime.utcnow().isoformat(),
+                    'promotedAt': datetime.now(UTC).isoformat(),
         })
     return promoted
 
@@ -1691,7 +1698,7 @@ def aggregate_metrics(doc_metrics):
 # REPORT GENERATION
 # ============================================================
 def generate_inventory_md(inventory):
-    lines = ['# Corpus Inventory', f'**Generated:** {datetime.utcnow().isoformat()}',
+    lines = ['# Corpus Inventory', f'**Generated:** {datetime.now(UTC).isoformat()}',
              f'**Total Files:** {len(inventory)}', '']
     lines.append('| # | File | Ext | Family | Artifact Type | Density | Text Len | Notes |')
     lines.append('|---|------|-----|--------|---------------|---------|----------|-------|')
@@ -1702,7 +1709,7 @@ def generate_inventory_md(inventory):
     return '\n'.join(lines)
 
 def generate_evaluation_md(doc_metrics, agg, label):
-    lines = [f'# {label} Evaluation Report', f'**Generated:** {datetime.utcnow().isoformat()}', '']
+    lines = [f'# {label} Evaluation Report', f'**Generated:** {datetime.now(UTC).isoformat()}', '']
     lines.append('## Summary')
     lines.append(f"- Total Documents: {agg['totalDocuments']}")
     lines.append(f"- Successful Parses: {agg['successfulParses']}")
@@ -1844,9 +1851,9 @@ def main():
     print(f"Inventoried {len(inventory)} files")
 
     # Save
-    with open(os.path.join(OUTPUT_DIR, 'corpus-inventory.json'), 'w') as f:
+    with open(os.path.join(OUTPUT_DIR, 'corpus-inventory.json'), 'w', encoding='utf-8') as f:
         json.dump(inventory, f, indent=2)
-    with open(os.path.join(OUTPUT_DIR, 'corpus-inventory.md'), 'w') as f:
+    with open(os.path.join(OUTPUT_DIR, 'corpus-inventory.md'), 'w', encoding='utf-8') as f:
         f.write(generate_inventory_md(inventory))
 
     # Print summary
@@ -1864,11 +1871,11 @@ def main():
     ENABLE_TABLE_EXTRACTION = False
     baseline_docs, baseline_agg, baseline_promoted = evaluate_corpus(BASELINE_PASSES, 'Baseline')
 
-    with open(os.path.join(OUTPUT_DIR, 'baseline-output.json'), 'w') as f:
+    with open(os.path.join(OUTPUT_DIR, 'baseline-output.json'), 'w', encoding='utf-8') as f:
         json.dump({'documentMetrics': baseline_docs, 'aggregate': baseline_agg}, f, indent=2, default=str)
-    with open(os.path.join(OUTPUT_DIR, 'baseline-evaluation.md'), 'w') as f:
+    with open(os.path.join(OUTPUT_DIR, 'baseline-evaluation.md'), 'w', encoding='utf-8') as f:
         f.write(generate_evaluation_md(baseline_docs, baseline_agg, 'Baseline'))
-    with open(os.path.join(OUTPUT_DIR, 'baseline-summary.csv'), 'w') as f:
+    with open(os.path.join(OUTPUT_DIR, 'baseline-summary.csv'), 'w', encoding='utf-8') as f:
         f.write(generate_csv(baseline_docs))
 
     print(f"\n  BASELINE RESULTS:")
@@ -1905,11 +1912,11 @@ def main():
     # Don't clear cache — extract tables as overlay on cached text
     final_docs, final_agg, final_promoted = evaluate_corpus(ALL_PASSES, 'Final')
 
-    with open(os.path.join(OUTPUT_DIR, 'final-output.json'), 'w') as f:
+    with open(os.path.join(OUTPUT_DIR, 'final-output.json'), 'w', encoding='utf-8') as f:
         json.dump({'documentMetrics': final_docs, 'aggregate': final_agg}, f, indent=2, default=str)
-    with open(os.path.join(OUTPUT_DIR, 'final-evaluation.md'), 'w') as f:
+    with open(os.path.join(OUTPUT_DIR, 'final-evaluation.md'), 'w', encoding='utf-8') as f:
         f.write(generate_evaluation_md(final_docs, final_agg, 'Final'))
-    with open(os.path.join(OUTPUT_DIR, 'final-summary.csv'), 'w') as f:
+    with open(os.path.join(OUTPUT_DIR, 'final-summary.csv'), 'w', encoding='utf-8') as f:
         f.write(generate_csv(final_docs))
 
     print(f"\n  FINAL RESULTS:")
@@ -1968,11 +1975,11 @@ def main():
     print(f"  Requirement rules: {len(requirements)}")
     print(f"  High-value operational: {len(high_value)}")
 
-    with open(os.path.join(OUTPUT_DIR, 'rule-inventory.json'), 'w') as f:
+    with open(os.path.join(OUTPUT_DIR, 'rule-inventory.json'), 'w', encoding='utf-8') as f:
         json.dump(rule_inventory, f, indent=2, default=str)
 
     # CSV
-    with open(os.path.join(OUTPUT_DIR, 'rule-inventory.csv'), 'w', newline='') as f:
+    with open(os.path.join(OUTPUT_DIR, 'rule-inventory.csv'), 'w', newline='', encoding='utf-8') as f:
         if rule_inventory:
             writer = csv.DictWriter(f, fieldnames=rule_inventory[0].keys())
             writer.writeheader()
@@ -1986,12 +1993,12 @@ def main():
     for r in rule_inventory:
         val_str = str(r['normalized_value'])[:30]
         ri_lines.append(f"| {r['rule_id']} | {r['clause_type']} | {val_str} | {r['value_type']} | {r['confidence']} | {r['operational_or_requirement']} | {'✓' if r['high_value'] else ''} |")
-    with open(os.path.join(OUTPUT_DIR, 'rule-inventory.md'), 'w') as f:
+    with open(os.path.join(OUTPUT_DIR, 'rule-inventory.md'), 'w', encoding='utf-8') as f:
         f.write('\n'.join(ri_lines))
 
     # High-value only inventory
     hv_rules = [r for r in rule_inventory if r['high_value'] and r['value_type'] in ('currency','sdr','duration','days')]
-    with open(os.path.join(OUTPUT_DIR, 'high-value-rules-only.json'), 'w') as f:
+    with open(os.path.join(OUTPUT_DIR, 'high-value-rules-only.json'), 'w', encoding='utf-8') as f:
         json.dump(hv_rules, f, indent=2, default=str)
     print(f"  High-value numeric rules (thresholds/limits/caps/deadlines): {len(hv_rules)}")
 
@@ -2025,7 +2032,7 @@ def main():
     for et in eu_types:
         cnt = sum(1 for r in rule_inventory if r['clause_type'] == et)
         regression_lines.append(f"- {et}: {cnt}")
-    with open(os.path.join(OUTPUT_DIR, 'regression-report.md'), 'w') as f:
+    with open(os.path.join(OUTPUT_DIR, 'regression-report.md'), 'w', encoding='utf-8') as f:
         f.write('\n'.join(regression_lines))
 
     # Analysis report
@@ -2042,7 +2049,7 @@ def main():
         '6. trip_interruption_limit: New cluster with 15 primary phrases',
         '7. Text rule tightening: 3+ phrases required for text_rule HIGH',
     ]
-    with open(os.path.join(OUTPUT_DIR, 'analysis.md'), 'w') as f:
+    with open(os.path.join(OUTPUT_DIR, 'analysis.md'), 'w', encoding='utf-8') as f:
         f.write('\n'.join(analysis_lines))
 
     # ---- PHASE 6: READINESS REPORT ----
@@ -2055,11 +2062,11 @@ def main():
     successful_docs = final_agg['successfulParses']
 
     report = f"""# Final Readiness Report — Document Intelligence Pipeline
-**Generated:** {datetime.utcnow().isoformat()}
+**Generated:** {datetime.now(UTC).isoformat()}
 
 ## 1. Does the pipeline work on the real corpus?
 
-**YES.** The pipeline successfully parsed {successful_docs} of {total_docs} documents ({round(successful_docs/total_docs*100)}% success rate). It processes PDFs, HTML, MHTML, and TXT files across airline, insurance, cruise, rental, hotel, and academic source families.
+{('**YES.** The pipeline successfully parsed ' + str(successful_docs) + ' of ' + str(total_docs) + ' documents (' + str(round(successful_docs/total_docs*100)) + '% success rate). It processes PDFs, HTML, MHTML, and TXT files across airline, insurance, cruise, rental, hotel, and academic source families.') if total_docs > 0 else '**UNKNOWN.** No corpus files were found, so the pipeline could not be validated. Check that `document-intelligence/` contains documents on this machine.'}
 
 ## 2. How many documents actually produced useful rules?
 
@@ -2187,7 +2194,7 @@ All mandated implementations are complete:
 - ✓ Credit card + EU source family classification
 """
 
-    with open(os.path.join(OUTPUT_DIR, 'final-readiness-report.md'), 'w') as f:
+    with open(os.path.join(OUTPUT_DIR, 'final-readiness-report.md'), 'w', encoding='utf-8') as f:
         f.write(report)
 
     print(f"  Report written to {OUTPUT_DIR}/final-readiness-report.md")
@@ -2249,7 +2256,7 @@ All mandated implementations are complete:
     reg_lines.append('## Zero-Yield Documents')
     for d in final_agg.get('zeroYieldDocs', []):
         reg_lines.append(f"- {d}")
-    with open(os.path.join(OUTPUT_DIR, 'regression-report.md'), 'w') as f:
+    with open(os.path.join(OUTPUT_DIR, 'regression-report.md'), 'w', encoding='utf-8') as f:
         f.write('\n'.join(reg_lines))
 
     # Final summary to console
