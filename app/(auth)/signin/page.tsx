@@ -10,6 +10,7 @@ export default function SignInPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const fallbackRedirectRef = useRef<number | null>(null);
+  const submitWatchdogRef = useRef<number | null>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState('');
@@ -29,6 +30,9 @@ export default function SignInPage() {
       if (fallbackRedirectRef.current) {
         window.clearTimeout(fallbackRedirectRef.current);
       }
+      if (submitWatchdogRef.current) {
+        window.clearTimeout(submitWatchdogRef.current);
+      }
     };
   }, []);
 
@@ -39,6 +43,14 @@ export default function SignInPage() {
     setError('');
     setStatus('Signing in...');
     setLoading(true);
+    if (submitWatchdogRef.current) window.clearTimeout(submitWatchdogRef.current);
+    submitWatchdogRef.current = window.setTimeout(() => {
+      setLoading(false);
+      setStatus('');
+      setError(
+        'Sign-in is taking longer than expected. If this works in Incognito, a browser extension may be interfering with auth cookies. Try disabling extensions for this site and retry.',
+      );
+    }, 25_000);
 
     try {
       const signInResult = await Promise.race([
@@ -61,14 +73,15 @@ export default function SignInPage() {
 
       if (data.session) {
         setStatus('Success! Redirecting...');
-        // Don't navigate immediately — the AuthProvider's onAuthStateChange
-        // listener will pick up the new session, set user, and the useEffect
-        // above will handle the redirect. This avoids the race condition where
-        // window.location.replace fires before cookies are written.
-        // As a safety net, redirect after 2 seconds if onAuthStateChange hasn't fired.
+        if (submitWatchdogRef.current) {
+          window.clearTimeout(submitWatchdogRef.current);
+          submitWatchdogRef.current = null;
+        }
+        router.replace('/trips');
+        // Safety net in case client router is blocked by extension scripts.
         fallbackRedirectRef.current = window.setTimeout(() => {
-          window.location.replace('/trips');
-        }, 2000);
+          window.location.assign('/trips');
+        }, 1500);
         return;
       }
 
@@ -80,6 +93,11 @@ export default function SignInPage() {
       setError(msg);
       setStatus('');
       setLoading(false);
+    } finally {
+      if (submitWatchdogRef.current) {
+        window.clearTimeout(submitWatchdogRef.current);
+        submitWatchdogRef.current = null;
+      }
     }
   };
 
@@ -134,6 +152,9 @@ export default function SignInPage() {
       <p style={{ marginTop: 24, textAlign: 'center', fontSize: 13, color: '#888' }}>
         No account?{' '}
         <Link href="/signup" style={{ color: '#2E5FA3', fontWeight: 500, textDecoration: 'none' }}>Start free</Link>
+      </p>
+      <p style={{ marginTop: 10, textAlign: 'center', fontSize: 12, color: '#9ca3af', lineHeight: 1.5 }}>
+        If Chrome with extensions hangs but Incognito works, disable extensions for this site and allow cookies/storage.
       </p>
     </div>
   );
