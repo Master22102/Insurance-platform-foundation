@@ -21,12 +21,25 @@ await page.goto(`${baseURL}/trips`, { waitUntil: 'domcontentloaded' });
 console.log('[e2e:auth] If you see a sign-in screen, log in manually in this window.');
 console.log('[e2e:auth] Once the URL reaches an authenticated area (e.g. /trips), the session will be saved automatically.');
 
-// Wait for the authenticated app shell to load.
-// We avoid relying on specific DOM selectors, since the app may vary depending on user state.
-await page.waitForFunction(
-  () => location.pathname.startsWith('/trips') || location.pathname.startsWith('/account') || location.pathname.startsWith('/scan'),
-  { timeout: 0 }
-);
+// Wait for an authenticated app route. Some accounts land on onboarding/get-started first.
+const isAuthenticatedPath = () => {
+  const p = location.pathname;
+  const okPrefixes = [
+    '/trips',
+    '/account',
+    '/scan',
+    '/coverage',
+    '/claims',
+    '/incidents',
+    '/policies',
+    '/onboarding',
+    '/get-started',
+  ];
+  return okPrefixes.some((prefix) => p.startsWith(prefix));
+};
+
+await page.waitForFunction(isAuthenticatedPath, { timeout: 0 });
+console.log(`[e2e:auth] Auth route detected at ${page.url()}`);
 
 await context.storageState({ path: outPath });
 console.log(`[e2e:auth] Saved storage state to ${outPath}`);

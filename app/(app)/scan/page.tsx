@@ -64,13 +64,17 @@ export default function ScanPage() {
       const res = await fetch('/api/quick-scan', { method: 'POST', body: formData });
       clearInterval(cycle);
 
-      if (!res.ok) { throw new Error('Scan failed'); }
+      if (!res.ok) {
+        const errPayload = await res.json().catch(() => null);
+        throw new Error(errPayload?.error || 'Scan failed');
+      }
       const data = await res.json();
       setProgress(100);
       setResult(data);
-    } catch {
+    } catch (err) {
       clearInterval(cycle);
-      setError('Something went wrong with the scan. Try again or use a different file.');
+      const message = err instanceof Error ? err.message : 'Something went wrong with the scan.';
+      setError(`${message} Try again or use a different file.`);
     }
 
     setUploading(false);

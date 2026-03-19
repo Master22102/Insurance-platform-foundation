@@ -77,6 +77,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const isOnboardingRoute = pathname?.startsWith('/onboarding');
+  const isGetStartedRoute = pathname?.startsWith('/get-started');
+  const hasAnchorSelection =
+    profile?.preferences?.onboarding?.anchor_selection?.completed === true;
 
   useEffect(() => {
     if (!loading && !user) {
@@ -94,6 +97,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       router.replace('/onboarding');
     }
   }, [user, profile, loading, pathname, router]);
+
+  useEffect(() => {
+    if (loading || !user || !profile) return;
+    if (profile.onboarding_completed !== true) return;
+    if (isGetStartedRoute) return;
+    if (!hasAnchorSelection) {
+      router.replace('/get-started');
+    }
+  }, [loading, user, profile, isGetStartedRoute, hasAnchorSelection, router]);
 
   if (loading) {
     return (

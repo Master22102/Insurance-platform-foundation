@@ -53,3 +53,51 @@ This log tracks **observable mismatches** between the documented product flows/s
   - **Impact**: Phone users see responsive web styling instead of the previously designed mobile-specific visual treatment.
   - **Status**: requires integration pass to map prototype mobile shell tokens/components into production route surfaces.
 
+- **Quick Scan did not provide actionable guidance**: F-6.5.2 / F-6.5.5 intent calls for immediate interpretation + next-step guidance (what to do, evidence needed, claim order). The UI previously showed extracted categories/highlights but lacked explicit recommendations.
+  - **Fix**: Added API-generated advisory summary, action plan, and suggested filing order, then surfaced those blocks in the Quick Scan result UI.
+  - **Files**: `app/api/quick-scan/route.ts`, `components/scan/QuickScanResult.tsx`
+
+- **Quick Scan credits decrement query mismatch (regression risk)**: Credits update used `eq('id', user.id)` while profile lookups use `user_id`; this can silently fail on common schemas.
+  - **Fix**: Aligned credits decrement to `eq('user_id', user.id)` to match the existing profile key pattern.
+  - **Files**: `app/api/quick-scan/route.ts`
+
+- **E2E suite not runnable in current snapshot**: `playwright.config.ts` targets `./tests/e2e`, but the folder/specs are missing from this local workspace snapshot.
+  - **Impact**: Full desktop/mobile regression run cannot execute until test specs are restored.
+  - **Status**: blocked in this checkout; requires restoring committed tests folder.
+
+## 2026-03-20
+
+- **Section 5 Step 0 splash flow missing**: Canonical flow requires a dedicated splash screen ("Travel is chaotic...") with "Let's get started" and "Log in" as Step 0 before account flow. Current runtime starts on marketing/home and does not implement this explicit mobile-first splash step.
+  - **Source**: `C:\Users\Supsa\Desktop\current documentation\SECTION 5.0 — Core Product Flows.txt`
+  - **Status**: pending implementation.
+
+- **Section 5 Step 4A itinerary ingestion capability gap**: Spec requires itinerary upload/import support for PDF, ICS, DOCX, AI itinerary text, and manual entry. Current `trips/new` surface supports typed narration + manual fields only; no ICS/DOCX/import workflow is exposed.
+  - **Source**: `C:\Users\Supsa\Desktop\current documentation\SECTION 5.0 — Core Product Flows.txt`
+  - **Files inspected**: `app/(app)/trips/new/page.tsx`
+  - **Status**: pending implementation.
+
+- **Section 5 Step 4B policy-only intake options incomplete**: Spec requires PDF upload + email forwarding + manual plan detail entry. Current UI supports PDF upload flow only.
+  - **Source**: `C:\Users\Supsa\Desktop\current documentation\SECTION 5.0 — Core Product Flows.txt`
+  - **Files inspected**: `app/(app)/policies/upload/page.tsx`
+  - **Status**: pending implementation.
+
+- **Section 5 Step 4D Draft Home workflow not mapped to runtime routes**: Route-building, validation severity bands, activity planning, unresolved blockers, and readiness gate are specified as first-class steps with dedicated screen IDs. Current runtime still uses simplified trip creation and does not expose the full Draft Home sequence.
+  - **Source**: `C:\Users\Supsa\Desktop\current documentation\SECTION 5.0 — Core Product Flows.txt`
+  - **Status**: pending implementation.
+
+- **F-6.5.7 FOCL founder surface gap remains**: Incident natural-language query, threshold configuration sliders, pattern dashboard, weekly digest-linked decision queue, and retrospective storytelling surfaces are specified but not present in current FOCL runtime (current FOCL primarily provides feature intelligence + notification destination settings).
+  - **Source**: `C:\Users\Supsa\Desktop\current documentation\Feature ID_ F-6.5.7.txt`
+  - **Files inspected**: `app/focl/features/intelligence/page.tsx`, `app/focl/features/intelligence/hooks.ts`, `app/focl/notifications/page.tsx`
+  - **Status**: pending implementation.
+
+- **F-6.5.5 claim routing depth partially addressed**: Quick Scan now surfaces suggested filing order and action guidance, but the full incident-time acceptance checkpoint (refund/voucher/rebooking accepted), small-claim warning band, and explicit cause-classification flow described in F-6.5.5 are not fully implemented as a dedicated guided sequence.
+  - **Source**: `C:\Users\Supsa\Desktop\current documentation\Feature ID F-6.5.5.txt`
+  - **Status**: in progress.
+
+- **Authenticated nav behavior is currently anchor-gated to "Let's get started"**: Deployed tests with valid session repeatedly redirect `/trips`, `/coverage`, `/scan`, etc. to the anchor selection surface (`/get-started`) for this account state. Public routes pass, but full tab traversal fails until an anchor completion path is finalized.
+  - **Observed in tests**: `tests/e2e/app-everything-smoke.spec.ts` (desktop + mobile), deployed run on `https://luxury-lebkuchen-6d1677.netlify.app/`
+  - **Implication**: We cannot yet claim "all tabs load end-to-end" for fresh/anchor-incomplete users; this is either intended hard-gating or a UX mismatch depending on expected navigation behavior.
+  - **Fix (code-level, pending redeploy verification)**: Added explicit anchor-selection persistence in `get-started` actions and an app-layout gate that redirects to `/get-started` only until `preferences.onboarding.anchor_selection.completed === true`.
+  - **Files**: `app/(app)/get-started/page.tsx`, `app/(app)/layout.tsx`
+  - **Status**: in progress; needs redeploy + rerun to confirm.
+

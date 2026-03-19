@@ -1,8 +1,50 @@
 'use client';
 
-import Link from 'next/link';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth/auth-context';
+import { supabase } from '@/lib/auth/supabase-client';
 
 export default function GetStartedPage() {
+  const { user, profile, refreshProfile } = useAuth();
+  const router = useRouter();
+  const [savingChoice, setSavingChoice] = useState('');
+
+  const completeAnchorSelection = async (choice: 'trip' | 'policy' | 'planning', target: string) => {
+    if (!user || savingChoice) return;
+    setSavingChoice(choice);
+    try {
+      const existingPreferences = (profile?.preferences && typeof profile.preferences === 'object')
+        ? profile.preferences
+        : {};
+      const onboardingPrefs = (existingPreferences.onboarding && typeof existingPreferences.onboarding === 'object')
+        ? existingPreferences.onboarding
+        : {};
+
+      const preferences = {
+        ...existingPreferences,
+        onboarding: {
+          ...onboardingPrefs,
+          anchor_selection: {
+            completed: true,
+            choice,
+            completed_at: new Date().toISOString(),
+          },
+        },
+      };
+
+      await supabase
+        .from('user_profiles')
+        .update({ preferences })
+        .eq('user_id', user.id);
+
+      await refreshProfile();
+      router.push(target);
+    } finally {
+      setSavingChoice('');
+    }
+  };
+
   return (
     <div style={{ maxWidth: 720, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <h1 style={{ fontSize: 28, fontWeight: 900, color: '#1A2B4A', margin: '0 0 10px', letterSpacing: '-0.6px' }}>
@@ -13,30 +55,36 @@ export default function GetStartedPage() {
       </p>
 
       <div style={{ display: 'grid', gap: 12 }}>
-        <Link href="/trips" style={{
+        <button onClick={() => completeAnchorSelection('trip', '/trips')} disabled={savingChoice.length > 0} style={{
           background: 'white', border: '1px solid #eaeaea', borderRadius: 14, padding: '16px 16px',
-          textDecoration: 'none', color: '#1A2B4A',
+          color: '#1A2B4A', width: '100%', textAlign: 'left', cursor: savingChoice ? 'not-allowed' : 'pointer',
         }}>
           <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 4 }}>Add a trip itinerary</div>
           <div style={{ fontSize: 13, color: '#666', lineHeight: 1.5 }}>Upload, import, paste, or enter your itinerary.</div>
-        </Link>
+        </button>
 
-        <Link href="/policies/upload" style={{
+        <button onClick={() => completeAnchorSelection('policy', '/policies/upload')} disabled={savingChoice.length > 0} style={{
           background: 'white', border: '1px solid #eaeaea', borderRadius: 14, padding: '16px 16px',
-          textDecoration: 'none', color: '#1A2B4A',
+          color: '#1A2B4A', width: '100%', textAlign: 'left', cursor: savingChoice ? 'not-allowed' : 'pointer',
         }}>
           <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 4 }}>Add an insurance policy</div>
           <div style={{ fontSize: 13, color: '#666', lineHeight: 1.5 }}>Upload a policy PDF or enter details manually.</div>
-        </Link>
+        </button>
 
-        <Link href="/trips" style={{
+        <button onClick={() => completeAnchorSelection('planning', '/trips')} disabled={savingChoice.length > 0} style={{
           background: '#f7f8fa', border: '1px solid #eaeaea', borderRadius: 14, padding: '16px 16px',
-          textDecoration: 'none', color: '#1A2B4A',
+          color: '#1A2B4A', width: '100%', textAlign: 'left', cursor: savingChoice ? 'not-allowed' : 'pointer',
         }}>
           <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 4 }}>I&apos;m still planning</div>
           <div style={{ fontSize: 13, color: '#666', lineHeight: 1.5 }}>Create a trip when you&apos;re ready.</div>
-        </Link>
+        </button>
       </div>
+
+      {savingChoice && (
+        <p style={{ fontSize: 12, color: '#888', marginTop: 10 }}>
+          Saving your starting point...
+        </p>
+      )}
     </div>
   );
 }

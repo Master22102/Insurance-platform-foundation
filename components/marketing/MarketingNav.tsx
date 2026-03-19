@@ -10,7 +10,26 @@ export default function MarketingNav() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const pathname = usePathname();
+
+  const handleOpenApp = () => {
+    setMenuOpen(false);
+    // Full navigation is more reliable on mobile after auth transitions.
+    window.location.assign('/trips');
+  };
+
+  const handleSignOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await signOut();
+      setMenuOpen(false);
+      window.location.assign('/');
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -90,17 +109,22 @@ export default function MarketingNav() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }} className="marketing-desktop-nav">
           {user ? (
             <>
-              <Link href="/trips" style={{
+              <button
+                onClick={handleOpenApp}
+                style={{
                 padding: '8px 16px', fontSize: 14, fontWeight: 600,
                 color: isScrolled ? '#1A2B4A' : 'white',
-                textDecoration: 'none',
                 borderRadius: 8,
                 border: isScrolled ? '1px solid #e5e7eb' : '1px solid rgba(255,255,255,0.25)',
-              }}>
+                background: 'transparent',
+                cursor: 'pointer',
+              }}
+              >
                 Open app
-              </Link>
+              </button>
               <button
-                onClick={signOut}
+                onClick={handleSignOut}
+                disabled={signingOut}
                 style={{
                   padding: '8px 14px',
                   fontSize: 14,
@@ -108,10 +132,11 @@ export default function MarketingNav() {
                   color: isScrolled ? '#6b7280' : 'rgba(255,255,255,0.85)',
                   background: 'transparent',
                   border: 'none',
-                  cursor: 'pointer',
+                  cursor: signingOut ? 'not-allowed' : 'pointer',
+                  opacity: signingOut ? 0.6 : 1,
                 }}
               >
-                Sign out
+                {signingOut ? 'Signing out…' : 'Sign out'}
               </button>
             </>
           ) : (
@@ -177,18 +202,19 @@ export default function MarketingNav() {
           <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {user ? (
               <>
-                <Link href="/trips" onClick={() => setMenuOpen(false)} style={{
-                  display: 'block', padding: '12px 0', textAlign: 'center',
-                  fontSize: 15, fontWeight: 700, color: 'white',
-                  textDecoration: 'none', background: '#1A2B4A', borderRadius: 10,
-                }}>
-                  Open app
-                </Link>
                 <button
-                  onClick={() => {
-                    setMenuOpen(false);
-                    signOut();
-                  }}
+                  onClick={handleOpenApp}
+                  style={{
+                  display: 'block', width: '100%', padding: '12px 0', textAlign: 'center',
+                  fontSize: 15, fontWeight: 700, color: 'white',
+                  background: '#1A2B4A', borderRadius: 10, border: 'none', cursor: 'pointer',
+                }}
+                >
+                  Open app
+                </button>
+                <button
+                  onClick={handleSignOut}
+                  disabled={signingOut}
                   style={{
                     display: 'block',
                     width: '100%',
@@ -200,10 +226,11 @@ export default function MarketingNav() {
                     border: '1px solid #e5e7eb',
                     borderRadius: 10,
                     background: 'white',
-                    cursor: 'pointer',
+                    cursor: signingOut ? 'not-allowed' : 'pointer',
+                    opacity: signingOut ? 0.6 : 1,
                   }}
                 >
-                  Sign out
+                  {signingOut ? 'Signing out…' : 'Sign out'}
                 </button>
               </>
             ) : (

@@ -1,16 +1,18 @@
-import { expect, Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 export async function ensureOnboarded(page: Page) {
   const tripsHeading = page.getByRole('heading', { name: /your trips/i });
   const planTripLink = page.getByRole('link', { name: /plan a trip/i });
-  const termsHeading = page.getByRole('heading', { name: /terms & privacy/i });
+  const termsHeading = page.getByRole('heading', { name: /terms/i });
   const letsGetStartedHeading = page.getByRole('heading', { name: /let's get started/i });
+  const addTripItineraryAction = page.getByRole('button', { name: /add a trip itinerary/i });
+  const stillPlanningAction = page.getByRole('button', { name: /i'?m still planning/i });
 
   const completeTermsStep = async () => {
     const acceptBtn = page.getByRole('button', { name: /accept and continue/i });
     await expect(termsHeading).toBeVisible({ timeout: 20_000 });
-    await page.getByLabel(/i agree to terms/i).check();
-    await page.getByLabel(/i agree to privacy/i).check();
+    await page.getByLabel(/i agree to terms/i).first().check({ force: true });
+    await page.getByLabel(/i agree to privacy/i).first().check({ force: true });
     await expect(acceptBtn).toBeEnabled();
 
     await Promise.all([
@@ -26,10 +28,13 @@ export async function ensureOnboarded(page: Page) {
   };
 
   const waitForTripsUI = async () => {
-    // Some tests only need the protected Trips surface; the "Plan a trip" link can render a bit later.
+    // Some accounts route via "Let's get started" before showing trips.
+    if (await letsGetStartedHeading.isVisible().catch(() => false)) return;
     await Promise.race([
       tripsHeading.waitFor({ state: 'visible', timeout: 60_000 }),
       planTripLink.waitFor({ state: 'visible', timeout: 60_000 }),
+      page.getByRole('link', { name: /^trips$/i }).first().waitFor({ state: 'visible', timeout: 60_000 }),
+      letsGetStartedHeading.waitFor({ state: 'visible', timeout: 60_000 }),
     ]);
   };
 
@@ -56,7 +61,19 @@ export async function ensureOnboarded(page: Page) {
     }
 
     if (atMenu) {
-      await page.goto('/trips', { waitUntil: 'domcontentloaded' });
+      if (await stillPlanningAction.isVisible().catch(() => false)) {
+        await Promise.all([
+          page.waitForURL(/\/trips/, { timeout: 30_000 }).catch(() => {}),
+          stillPlanningAction.click({ force: true }),
+        ]);
+      } else if (await addTripItineraryAction.isVisible().catch(() => false)) {
+        await Promise.all([
+          page.waitForURL(/\/trips/, { timeout: 30_000 }).catch(() => {}),
+          addTripItineraryAction.click({ force: true }),
+        ]);
+      } else {
+        await page.goto('/trips', { waitUntil: 'domcontentloaded' });
+      }
       await waitForTripsUI();
       return;
     }

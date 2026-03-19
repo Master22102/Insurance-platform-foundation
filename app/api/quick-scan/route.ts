@@ -18,6 +18,100 @@ const FAMILY_CATEGORY_MAP: Record<string, string> = {
   'eu-passenger-rights-pass':   'EU Passenger Rights',
 };
 
+function toTitleCase(input: string): string {
+  return input
+    .split('_')
+    .filter(Boolean)
+    .map((word) => word[0].toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function formatRuleValue(rule: any): string | null {
+  if (!rule?.value) return null;
+  const value = rule.value.value;
+  const unit = rule.value.unit;
+  if (value === undefined || value === null || value === '') return null;
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  return unit ? `${value} ${unit}` : String(value);
+}
+
+function buildActionPlan(promotedRules: any[]): string[] {
+  const plan: string[] = [];
+
+  const delayThreshold = promotedRules.find((r) => r.clauseType === 'trip_delay_threshold');
+  const delayLimit = promotedRules.find((r) => r.clauseType === 'trip_delay_limit');
+  if (delayThreshold || delayLimit) {
+    const thresholdText = formatRuleValue(delayThreshold);
+    const limitText = formatRuleValue(delayLimit);
+    const details = [
+      thresholdText ? `delay threshold ${thresholdText}` : null,
+      limitText ? `coverage limit ${limitText}` : null,
+    ].filter(Boolean).join(', ');
+    plan.push(
+      details
+        ? `For trip delays, check if your event crosses the ${details}.`
+        : 'For trip delays, verify the delay threshold and maximum benefit amount before spending.',
+    );
+  }
+
+  const evidenceMap: Record<string, string> = {
+    requires_receipts: 'Keep itemized receipts for covered expenses.',
+    requires_carrier_delay_letter: 'Request a carrier delay letter as soon as possible.',
+    requires_itinerary: 'Save your itinerary and booking confirmations.',
+    requires_payment_proof: 'Keep card statements or payment confirmations.',
+    requires_baggage_pir: 'Get a Property Irregularity Report (PIR) from the airline.',
+    requires_medical_certificate: 'Obtain a medical certificate if illness/injury is involved.',
+    requires_police_report: 'File a police report where required by the policy.',
+  };
+
+  for (const rule of promotedRules) {
+    if (rule.value?.value === true && evidenceMap[rule.clauseType]) {
+      plan.push(evidenceMap[rule.clauseType]);
+    }
+  }
+
+  const claimDeadline = promotedRules.find((r) => r.clauseType === 'claim_deadline_days');
+  if (claimDeadline) {
+    const deadlineText = formatRuleValue(claimDeadline);
+    if (deadlineText) {
+      plan.push(`Start the claim packet now. Your filing window appears to be ${deadlineText}.`);
+    }
+  }
+
+  return Array.from(new Set(plan)).slice(0, 5);
+}
+
+function buildClaimRouting(promotedRules: any[]): string[] {
+  const hasCardSignals = promotedRules.some(
+    (r) =>
+      r.clauseType === 'payment_method_requirement' ||
+      r.clauseType === 'common_carrier_requirement',
+  );
+  const hasCarrierSignals = promotedRules.some(
+    (r) =>
+      r.clauseType === 'carrier_liability_cap' ||
+      r.clauseType === 'eu_delay_compensation_threshold' ||
+      r.clauseType === 'eu_denied_boarding_compensation',
+  );
+  const hasPolicySignals = promotedRules.some(
+    (r) =>
+      r.clauseType.startsWith('trip_') ||
+      r.clauseType.startsWith('medical_') ||
+      r.clauseType === 'rental_car_damage_limit',
+  );
+
+  const routing: string[] = [];
+  if (hasCardSignals) routing.push('1) Card benefits administrator (if paid with eligible card)');
+  if (hasCarrierSignals) routing.push('2) Airline/carrier channel for delay or baggage obligations');
+  if (hasPolicySignals) routing.push('3) Primary travel insurer with your full evidence packet');
+  if (routing.length === 0) {
+    routing.push('1) Policy insurer (primary)');
+    routing.push('2) Card benefits administrator (if card terms apply)');
+    routing.push('3) Carrier channel where legal obligations exist');
+  }
+  return routing.slice(0, 3);
+}
+
 export async function POST(req: NextRequest) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -78,7 +172,7 @@ export async function POST(req: NextRequest) {
     await supabase
       .from('user_profiles')
       .update({ scan_credits_remaining: Math.max(0, creditsRemaining - 1) })
-      .eq('id', user.id);
+      .eq('user_id', user.id);
 
     await supabase.from('scan_credit_ledger').insert({
       account_id: user.id,
@@ -120,12 +214,22 @@ export async function POST(req: NextRequest) {
       promotedRules.length >= 5 ? 'high' :
       promotedRules.length >= 2 ? 'medium' : 'low';
 
+    const actionPlan = buildActionPlan(promotedRules);
+    const claimRouting = buildClaimRouting(promotedRules);
+    const strongestRule = promotedRules[0];
+    const advisorySummary = strongestRule
+      ? `${toTitleCase(strongestRule.clauseType)} detected${formatRuleValue(strongestRule) ? ` (${formatRuleValue(strongestRule)})` : ''}.`
+      : 'No strong coverage rules were promoted from this document.';
+
     return NextResponse.json({
       document_name: file.name,
       quality,
       coverage_categories: coverageCategories,
       highlights: highlights.filter(Boolean),
       documentation_hints: docHints.filter(Boolean),
+      advisory_summary: advisorySummary,
+      action_plan: actionPlan,
+      claim_routing: claimRouting,
       expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       raw_rule_count: promotedRules.length,
     });

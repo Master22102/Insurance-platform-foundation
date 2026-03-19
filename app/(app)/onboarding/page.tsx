@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
@@ -35,6 +35,10 @@ export default function OnboardingPage() {
   const [typed, setTyped] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [voiceState, setVoiceState] = useState<'idle' | 'recording' | 'recorded'>('idle');
+  const [voiceError, setVoiceError] = useState('');
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const proposed = useMemo(() => {
     const text = typed.trim();
@@ -50,6 +54,53 @@ export default function OnboardingPage() {
   const privacyVersion = 'vA.B';
 
   const canContinueTerms = termsAccepted && privacyAccepted;
+
+  useEffect(() => {
+    return () => {
+      if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+        recorderRef.current.stop();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
+  const toggleVoiceCapture = async () => {
+    if (voiceState === 'recorded') {
+      setVoiceState('idle');
+      setVoiceError('');
+      return;
+    }
+
+    if (voiceState === 'recording') {
+      if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+        recorderRef.current.stop();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+      setVoiceState('recorded');
+      return;
+    }
+
+    setVoiceError('');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      recorderRef.current = recorder;
+      streamRef.current = stream;
+      recorder.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      };
+      recorder.start();
+      setVoiceState('recording');
+    } catch {
+      setVoiceError('Microphone permission was blocked. You can still type your expectations.');
+    }
+  };
 
   const saveAndFinish = async (payload: any) => {
     if (!user) return;
@@ -205,36 +256,42 @@ export default function OnboardingPage() {
             </div>
 
             {mode === 'voice' ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#f8fbff', border: '1px solid #e3eefc', borderRadius: 12, padding: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, background: '#f8fbff', border: '1px solid #e3eefc', borderRadius: 12, padding: 16 }}>
                 <button
                   type="button"
-                  disabled
+                  onClick={toggleVoiceCapture}
                   style={{
                     width: 56,
                     height: 56,
                     borderRadius: '50%',
-                    border: '1px solid #dbeafe',
-                    background: '#eff6ff',
-                    cursor: 'not-allowed',
+                    border: voiceState === 'recording' ? '1px solid #fecaca' : '1px solid #dbeafe',
+                    background: voiceState === 'recording' ? '#fee2e2' : voiceState === 'recorded' ? '#dcfce7' : '#eff6ff',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
-                  aria-label="Microphone (coming soon)"
-                  title="Microphone capture is pluggable and will be added next."
+                  aria-label="Microphone"
+                  title="Tap to start or stop microphone capture"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 14a3 3 0 003-3V5a3 3 0 10-6 0v6a3 3 0 003 3z" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" />
-                    <path d="M19 11a7 7 0 01-14 0" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" />
-                    <path d="M12 18v3" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" />
-                    <path d="M8 21h8" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" />
+                    <path d="M12 14a3 3 0 003-3V5a3 3 0 10-6 0v6a3 3 0 003 3z" stroke={voiceState === 'recording' ? '#b91c1c' : '#1e40af'} strokeWidth="1.8" strokeLinecap="round" />
+                    <path d="M19 11a7 7 0 01-14 0" stroke={voiceState === 'recording' ? '#b91c1c' : '#1e40af'} strokeWidth="1.8" strokeLinecap="round" />
+                    <path d="M12 18v3" stroke={voiceState === 'recording' ? '#b91c1c' : '#1e40af'} strokeWidth="1.8" strokeLinecap="round" />
+                    <path d="M8 21h8" stroke={voiceState === 'recording' ? '#b91c1c' : '#1e40af'} strokeWidth="1.8" strokeLinecap="round" />
                   </svg>
                 </button>
-                <div>
-                  <p style={{ fontSize: 14, color: '#555', margin: '0 0 4px', lineHeight: 1.5 }}>
-                    Go ahead and speak.
+                <p style={{ fontSize: 14, color: '#555', margin: '0 0 2px', lineHeight: 1.5, textAlign: 'center' }}>
+                  {voiceState === 'recording' ? 'Listening now - tap again to stop.' : voiceState === 'recorded' ? 'Voice note captured. Tap to re-record.' : 'Tap the microphone and speak.'}
+                </p>
+                <p style={{ fontSize: 12, color: '#999', margin: 0, lineHeight: 1.5, textAlign: 'center' }}>
+                  Max 5 minutes. Voice is proposal-only until you confirm.
+                </p>
+                {voiceError && (
+                  <p style={{ fontSize: 12, color: '#b45309', margin: 0, textAlign: 'center' }}>
+                    {voiceError}
                   </p>
-                  <p style={{ fontSize: 12, color: '#999', margin: 0, lineHeight: 1.5 }}>
-                    Max 5 minutes. Voice is proposal-only until you confirm.
-                  </p>
-                </div>
+                )}
               </div>
             ) : (
               <div>

@@ -19,6 +19,9 @@ interface ScanResult {
   }>;
   highlights?: string[];
   documentation_hints?: string[];
+  advisory_summary?: string;
+  action_plan?: string[];
+  claim_routing?: string[];
   expires_at?: string;
 }
 
@@ -85,6 +88,19 @@ export default function QuickScanResult({ result }: { result: ScanResult }) {
         </div>
       )}
 
+      {result.advisory_summary && (
+        <div style={{ marginBottom: 20 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
+            What this means right now
+          </p>
+          <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '12px 14px' }}>
+            <p style={{ fontSize: 13, color: '#1e3a8a', margin: 0, lineHeight: 1.55 }}>
+              {result.advisory_summary}
+            </p>
+          </div>
+        </div>
+      )}
+
       {result.highlights && result.highlights.length > 0 && (
         <div style={{ marginBottom: 20 }}>
           <p style={{ fontSize: 12, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
@@ -118,6 +134,39 @@ export default function QuickScanResult({ result }: { result: ScanResult }) {
                 </svg>
                 <span style={{ fontSize: 13, color: '#555', lineHeight: 1.5 }}>{h}</span>
               </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {result.action_plan && result.action_plan.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
+            What to do next
+          </p>
+          <div style={{ background: 'white', border: '0.5px solid #e8e8e8', borderRadius: 10, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {result.action_plan.map((step, i) => (
+              <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <span style={{ minWidth: 18, height: 18, borderRadius: '50%', background: '#f3f4f6', color: '#374151', fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
+                  {i + 1}
+                </span>
+                <span style={{ fontSize: 13, color: '#444', lineHeight: 1.5 }}>{step}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {result.claim_routing && result.claim_routing.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
+            Suggested filing order
+          </p>
+          <div style={{ background: '#f9fafb', border: '0.5px solid #e8e8e8', borderRadius: 10, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {result.claim_routing.map((route, i) => (
+              <p key={i} style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.45 }}>
+                {route}
+              </p>
             ))}
           </div>
         </div>
