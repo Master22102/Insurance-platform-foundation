@@ -88,7 +88,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Primary operations email is required.' }, { status: 400 });
   }
 
-  const dedupedBackups = [...new Set(backupEmails.filter((e) => e.includes('@') && e !== primaryOpsEmail))];
+  const dedupedBackups = Array.from(
+    new Set(backupEmails.filter((e) => e.includes('@') && e !== primaryOpsEmail)),
+  );
 
   const { error } = await supabase
     .from('focl_notification_destinations')
