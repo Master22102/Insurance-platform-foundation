@@ -8,15 +8,16 @@ import { CircleAlert as AlertCircle } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredTier?: 'FREE' | 'STANDARD' | 'PREMIUM' | 'CORPORATE';
+  requiredTier?: 'FREE' | 'STANDARD' | 'PREMIUM' | 'CORPORATE' | 'FOUNDER';
   fallback?: React.ReactNode;
 }
 
-const tierHierarchy = {
+const tierHierarchy: Record<NonNullable<ProtectedRouteProps['requiredTier']>, number> = {
   FREE: 0,
   STANDARD: 1,
   PREMIUM: 2,
-  CORPORATE: 3
+  CORPORATE: 3,
+  FOUNDER: 4,
 };
 
 export function ProtectedRoute({ children, requiredTier, fallback }: ProtectedRouteProps) {
@@ -45,7 +46,7 @@ export function ProtectedRoute({ children, requiredTier, fallback }: ProtectedRo
   }
 
   if (requiredTier && profile) {
-    const userTierLevel = tierHierarchy[profile.membership_tier];
+    const userTierLevel = tierHierarchy[profile.membership_tier as keyof typeof tierHierarchy] ?? 0;
     const requiredTierLevel = tierHierarchy[requiredTier];
 
     if (userTierLevel < requiredTierLevel) {
