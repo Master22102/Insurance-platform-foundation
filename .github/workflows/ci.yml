@@ -2,8 +2,10 @@
 # Build uses placeholder NEXT_PUBLIC_* so `next build` can inline client env (no real keys).
 # Playwright / contract tests: see docs/CI_E2E_SAMPLE.md (requires secrets + storage state).
 #
-# If this app lives in a monorepo and git root is the parent folder, move this workflow
-# to `<repo>/.github/workflows/` and keep `working-directory: Insurance-platform-foundation-main`.
+# This workflow assumes the Git repo root IS this app (package.json at repo root).
+# If instead the repo root is a parent folder that contains `Insurance-platform-foundation-main/`,
+# set `defaults.run.working-directory` to that subfolder and set cache-dependency-path to
+# `Insurance-platform-foundation-main/package-lock.json`.
 name: CI
 on:
   push:
@@ -14,16 +16,13 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: Insurance-platform-foundation-main
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: '24'
           cache: npm
-          cache-dependency-path: Insurance-platform-foundation-main/package-lock.json
+          cache-dependency-path: package-lock.json
       - name: Install
         run: npm ci
       - name: Typecheck
