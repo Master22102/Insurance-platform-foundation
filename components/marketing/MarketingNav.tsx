@@ -150,7 +150,7 @@ export default function MarketingNav() {
               }}>
                 Sign in
               </Link>
-              <Link href="/signup" style={{
+              <Link href="/splash" style={{
                 padding: '8px 18px', fontSize: 14, fontWeight: 600,
                 background: isScrolled ? '#1A2B4A' : 'white',
                 color: isScrolled ? 'white' : '#1A2B4A',
@@ -242,7 +242,7 @@ export default function MarketingNav() {
                 }}>
                   Sign in
                 </Link>
-                <Link href="/signup" onClick={() => setMenuOpen(false)} style={{
+                <Link href="/splash" onClick={() => setMenuOpen(false)} style={{
                   display: 'block', padding: '12px 0', textAlign: 'center',
                   fontSize: 15, fontWeight: 700, color: 'white',
                   textDecoration: 'none', background: '#1A2B4A', borderRadius: 10,

@@ -1267,6 +1267,7 @@ function TripDetailSheet({ trip, onDismiss, onContinuePlanning, onOpenIncident }
 
         {/* Hero image */}
         <div style={{ position: "relative", height: 120, overflow: "hidden", margin: "10px 16px 0", borderRadius: 16 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- mock / external hero URLs in prototype */}
           <img src={trip.heroImage} alt={trip.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(0,0,0,0.5) 0%, transparent 60%)" }} />
           <div style={{ position: "absolute", bottom: 10, left: 14 }}>
@@ -1537,6 +1538,7 @@ function TripCard({ trip, onOpen, onOpenTrip }) {
       }}
     >
       <div onClick={() => onOpen(trip)} style={{ position: "relative", height: 88, overflow: "hidden" }}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- mock / external hero URLs in prototype */}
         <img src={trip.heroImage} alt={trip.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55))" }} />
 
@@ -1782,7 +1784,7 @@ function ImportConfirmationSheet({ onDismiss }) {
         </div>
         <div style={{ padding: "14px 20px 0", flexShrink: 0 }}>
           <p style={{ fontSize: 17, fontWeight: 700, color: "#111", margin: "0 0 4px", letterSpacing: "-0.3px" }}>Import travel confirmation</p>
-          <p style={{ fontSize: 12, color: "#888", margin: "0 0 16px" }}>Connect your email or upload a file — we'll extract your itinerary automatically.</p>
+          <p style={{ fontSize: 12, color: "#888", margin: "0 0 16px" }}>Connect your email or upload a file — we&apos;ll extract your itinerary automatically.</p>
         </div>
 
         <div style={{ flex: 1, overflowY: "auto", padding: "0 20px" }}>

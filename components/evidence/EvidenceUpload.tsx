@@ -63,29 +63,34 @@ export default function EvidenceUpload({ incidentId, onUploaded }: EvidenceUploa
     if (!file || !user) return;
     setUploadState('uploading');
     setProgress(20);
-
-    const { data: regData, error: regError } = await supabase.rpc('register_evidence', {
-      p_incident_id: incidentId,
-      p_name: file.name,
-      p_type: 'file',
-      p_description: null,
-      p_actor_id: user.id,
-      p_idempotency_key: `evidence-${Date.now()}`,
-    });
-
-    if (regError || !regData?.success) {
-      setUploadState('error');
-      return;
-    }
-
-    setProgress(50);
-
     const path = `${user.id}/${incidentId}/${Date.now()}-${file.name}`;
     const { error: storageError } = await supabase.storage
       .from('evidence')
       .upload(path, file, { contentType: file.type });
 
     if (storageError) {
+      setUploadState('error');
+      return;
+    }
+
+    setProgress(60);
+
+    const idempotencyKey = `evidence-${incidentId}-${path}`;
+    const { data: regData, error: regError } = await supabase.rpc('register_evidence', {
+      p_incident_id: incidentId,
+      p_name: file.name,
+      p_type: 'file',
+      p_description: null,
+      p_file_path: path,
+      p_file_size_bytes: file.size,
+      p_mime_type: file.type || 'application/octet-stream',
+      p_metadata: { category },
+      p_actor_id: user.id,
+      p_idempotency_key: idempotencyKey,
+    });
+
+    if (regError || !regData?.success) {
+      await supabase.storage.from('evidence').remove([path]).catch(() => {});
       setUploadState('error');
       return;
     }

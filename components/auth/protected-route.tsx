@@ -12,13 +12,19 @@ interface ProtectedRouteProps {
   fallback?: React.ReactNode;
 }
 
-const tierHierarchy: Record<NonNullable<ProtectedRouteProps['requiredTier']>, number> = {
+type CanonicalTier = 'FREE' | 'CORPORATE' | 'FOUNDER';
+
+const tierHierarchy: Record<CanonicalTier, number> = {
   FREE: 0,
-  STANDARD: 1,
-  PREMIUM: 2,
-  CORPORATE: 3,
-  FOUNDER: 4,
+  CORPORATE: 1,
+  FOUNDER: 2,
 };
+
+function normalizeTier(tier: string | null | undefined): CanonicalTier {
+  if (tier === 'FOUNDER') return 'FOUNDER';
+  if (tier === 'CORPORATE') return 'CORPORATE';
+  return 'FREE';
+}
 
 export function ProtectedRoute({ children, requiredTier, fallback }: ProtectedRouteProps) {
   const { user, profile, loading } = useAuth();
@@ -46,8 +52,10 @@ export function ProtectedRoute({ children, requiredTier, fallback }: ProtectedRo
   }
 
   if (requiredTier && profile) {
-    const userTierLevel = tierHierarchy[profile.membership_tier as keyof typeof tierHierarchy] ?? 0;
-    const requiredTierLevel = tierHierarchy[requiredTier];
+    const userTier = normalizeTier(profile.membership_tier);
+    const required = normalizeTier(requiredTier);
+    const userTierLevel = tierHierarchy[userTier];
+    const requiredTierLevel = tierHierarchy[required];
 
     if (userTierLevel < requiredTierLevel) {
       if (fallback) {
@@ -60,7 +68,7 @@ export function ProtectedRoute({ children, requiredTier, fallback }: ProtectedRo
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Upgrade Required</AlertTitle>
             <AlertDescription>
-              This feature requires a {requiredTier} membership or higher. You currently have {profile.membership_tier} tier.
+              This feature requires a {required} membership or higher. You currently have {userTier} tier.
             </AlertDescription>
           </Alert>
         </div>

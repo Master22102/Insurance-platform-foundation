@@ -1,6 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import InterpretiveBoundaryNotice from '@/components/InterpretiveBoundaryNotice';
+import { CANONICAL_CONFIDENCE_LABELS, normalizeConfidenceLabel } from '@/lib/confidence/labels';
 
 const QUALITY_DOT: Record<string, { color: string; label: string }> = {
   high:   { color: '#16a34a', label: 'High quality' },
@@ -8,9 +10,20 @@ const QUALITY_DOT: Record<string, { color: string; label: string }> = {
   low:    { color: '#dc2626', label: 'Low quality' },
 };
 
+const CONFIDENCE_DOT: Record<string, { color: string; label: string }> = {
+  [CANONICAL_CONFIDENCE_LABELS.HIGH_STRUCTURAL_ALIGNMENT]: { color: '#16a34a', label: 'High structural alignment' },
+  [CANONICAL_CONFIDENCE_LABELS.CONDITIONAL_ALIGNMENT]: { color: '#d97706', label: 'Conditional alignment' },
+  [CANONICAL_CONFIDENCE_LABELS.DOCUMENTATION_INCOMPLETE]: { color: '#6b7280', label: 'Documentation incomplete' },
+  [CANONICAL_CONFIDENCE_LABELS.INSUFFICIENT_DATA]: { color: '#dc2626', label: 'Insufficient data' },
+};
+
 interface ScanResult {
   document_name?: string;
   quality?: 'high' | 'medium' | 'low';
+  confidence?: {
+    confidence_label?: string;
+    confidence_version?: string;
+  };
   coverage_categories?: Array<{
     category: string;
     description?: string;
@@ -21,13 +34,21 @@ interface ScanResult {
   documentation_hints?: string[];
   advisory_summary?: string;
   action_plan?: string[];
-  claim_routing?: string[];
+  transit_flags?: string[];
+  quick_scan_tier?: 'surface';
+  detected_locations?: string[];
+  stay_hints?: string[];
+  itinerary_hash?: string;
   expires_at?: string;
 }
 
 export default function QuickScanResult({ result }: { result: ScanResult }) {
   const router = useRouter();
-  const quality = QUALITY_DOT[result.quality || 'medium'];
+  const fallbackQuality = QUALITY_DOT[result.quality || 'medium'];
+  const canonicalConfidence = result.confidence?.confidence_label
+    ? normalizeConfidenceLabel(result.confidence.confidence_label)
+    : null;
+  const quality = canonicalConfidence ? CONFIDENCE_DOT[canonicalConfidence] : fallbackQuality;
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
@@ -88,16 +109,74 @@ export default function QuickScanResult({ result }: { result: ScanResult }) {
         </div>
       )}
 
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '12px 14px' }}>
+          <p style={{ margin: '0 0 4px', fontSize: 13, fontWeight: 700, color: '#1e3a8a' }}>
+            Quick Scan Overview
+          </p>
+          <p style={{ fontSize: 13, color: '#1e3a8a', margin: 0, lineHeight: 1.55 }}>
+            A fast look at your trip. This is not a full analysis.
+          </p>
+        </div>
+      </div>
+
+      {(result.detected_locations && result.detected_locations.length > 0) && (
+        <div style={{ marginBottom: 20 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
+            What we detected
+          </p>
+          <div style={{ background: 'white', border: '0.5px solid #e8e8e8', borderRadius: 10, padding: '12px 14px' }}>
+            <p style={{ margin: '0 0 8px', fontSize: 12, color: '#475569', lineHeight: 1.5 }}>
+              We identified key parts of your trip, including travel and booking details.
+            </p>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: result.stay_hints?.length ? 8 : 0 }}>
+              {result.detected_locations.map((loc, i) => (
+                <span key={i} style={{ fontSize: 11, color: '#1e3a8a', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 999, padding: '3px 8px' }}>
+                  {loc}
+                </span>
+              ))}
+            </div>
+            {result.stay_hints && result.stay_hints.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {result.stay_hints.map((hint, i) => (
+                  <p key={i} style={{ margin: 0, fontSize: 12, color: '#334155', lineHeight: 1.45 }}>
+                    • {hint}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {result.advisory_summary && (
         <div style={{ marginBottom: 20 }}>
           <p style={{ fontSize: 12, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
-            What this means right now
+            Possible coverage areas
           </p>
           <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '12px 14px' }}>
             <p style={{ fontSize: 13, color: '#1e3a8a', margin: 0, lineHeight: 1.55 }}>
-              {result.advisory_summary}
+              Some protections may apply to parts of this trip, depending on your providers. {result.advisory_summary}
             </p>
           </div>
+        </div>
+      )}
+
+      {result.transit_flags && result.transit_flags.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
+            Potential gaps
+          </p>
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {result.transit_flags.map((flag, i) => (
+              <p key={i} style={{ margin: 0, fontSize: 12, color: '#334155', lineHeight: 1.5 }}>
+                • {flag}
+              </p>
+            ))}
+          </div>
+          <p style={{ margin: '8px 0 0', fontSize: 12, color: '#64748b', lineHeight: 1.5 }}>
+            We couldn&apos;t clearly detect coverage for some parts of this trip.
+          </p>
         </div>
       )}
 
@@ -142,7 +221,7 @@ export default function QuickScanResult({ result }: { result: ScanResult }) {
       {result.action_plan && result.action_plan.length > 0 && (
         <div style={{ marginBottom: 20 }}>
           <p style={{ fontSize: 12, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
-            What to do next
+            What we can help with
           </p>
           <div style={{ background: 'white', border: '0.5px solid #e8e8e8', borderRadius: 10, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
             {result.action_plan.map((step, i) => (
@@ -157,24 +236,29 @@ export default function QuickScanResult({ result }: { result: ScanResult }) {
         </div>
       )}
 
-      {result.claim_routing && result.claim_routing.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
-            Suggested filing order
+      <div style={{ marginBottom: 20 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
+          What this means
+        </p>
+        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 14px' }}>
+          <p style={{ margin: 0, fontSize: 12, color: '#334155', lineHeight: 1.55 }}>
+            This is a quick scan and does not include full policy or rule analysis.
           </p>
-          <div style={{ background: '#f9fafb', border: '0.5px solid #e8e8e8', borderRadius: 10, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {result.claim_routing.map((route, i) => (
-              <p key={i} style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.45 }}>
-                {route}
-              </p>
-            ))}
-          </div>
         </div>
-      )}
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <InterpretiveBoundaryNotice />
+      </div>
 
       {result.expires_at && (
         <p style={{ fontSize: 12, color: '#bbb', margin: '0 0 20px' }}>
           This scan result is visible for 7 days.
+        </p>
+      )}
+      {result.itinerary_hash && (
+        <p style={{ fontSize: 11, color: '#94a3b8', margin: '0 0 20px', wordBreak: 'break-all' }}>
+          Itinerary hash: {result.itinerary_hash}
         </p>
       )}
 
@@ -186,16 +270,26 @@ export default function QuickScanResult({ result }: { result: ScanResult }) {
           Want the full picture?
         </p>
         <p style={{ fontSize: 13, color: '#666', margin: '0 0 14px', lineHeight: 1.5 }}>
-          A trip unlock includes deep coverage analysis across all your policies.
+          Run Deep Scan for a full breakdown of your coverage, gaps, and next steps.
         </p>
         <button
           onClick={() => router.push('/trips')}
           style={{
             padding: '9px 18px', background: '#1A2B4A', color: 'white',
             border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            marginRight: 8,
           }}
         >
-          Unlock a trip
+          Run Deep Scan
+        </button>
+        <button
+          onClick={() => router.push('/trips')}
+          style={{
+            padding: '9px 18px', background: 'white', color: '#1A2B4A',
+            border: '1px solid #dbeafe', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+          }}
+        >
+          See insurance options
         </button>
       </div>
     </div>

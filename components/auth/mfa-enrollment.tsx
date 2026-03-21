@@ -189,6 +189,7 @@ export function MFAEnrollment() {
               </p>
               {qrCode && (
                 <div className="bg-white p-4 rounded-lg border inline-block">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- data URL from MFA setup */}
                   <img src={qrCode} alt="MFA QR Code" className="w-48 h-48" />
                 </div>
               )}
