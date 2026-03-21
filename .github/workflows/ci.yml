@@ -1,0 +1,43 @@
+# CI without Supabase secrets: typecheck + lint + verify:csp-config + verify:migration-chain + production build.
+# Build uses placeholder NEXT_PUBLIC_* so `next build` can inline client env (no real keys).
+# Playwright / contract tests: see docs/CI_E2E_SAMPLE.md (requires secrets + storage state).
+#
+# If this app lives in a monorepo and git root is the parent folder, move this workflow
+# to `<repo>/.github/workflows/` and keep `working-directory: Insurance-platform-foundation-main`.
+name: CI
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Insurance-platform-foundation-main
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: Insurance-platform-foundation-main/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Verify CSP config (report-only vs enforce)
+        run: npm run verify:csp-config
+      - name: Verify pass12–14 migration files present
+        run: npm run verify:migration-chain
+      - name: Verify A1 RPC inventory baseline (no new HIGH without allowlist)
+        run: npm run verify:a1-inventory
+      - name: Build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key-for-ci-build-only
+        run: npm run build

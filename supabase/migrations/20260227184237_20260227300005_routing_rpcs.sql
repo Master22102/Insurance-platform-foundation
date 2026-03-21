@@ -244,7 +244,7 @@ BEGIN
   END IF;
 
   IF v_outcome_event IS NOT NULL THEN
-    PERFORM emit_event(
+    v_emit_result := emit_event(
       p_event_type      := v_outcome_event,
       p_feature_id      := 'F-6.5.5',
       p_scope_type      := 'incident',
@@ -254,6 +254,9 @@ BEGIN
       p_reason_code     := CASE p_action WHEN 'accepted' THEN 'routing_accepted_ok' ELSE 'routing_rejected_ok' END,
       p_metadata        := jsonb_build_object('rec_id', p_rec_id, 'checkpoint_id', v_checkpoint_id)
     );
+    IF NOT (v_emit_result->>'success')::boolean THEN
+      RAISE EXCEPTION 'emit_event failed for %: %', v_outcome_event, v_emit_result->>'error';
+    END IF;
   END IF;
 
   RETURN jsonb_build_object(

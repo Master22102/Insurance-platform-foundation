@@ -1,0 +1,1199 @@
+{
+  "generatedAt": "2026-03-20T21:30:04.418Z",
+  "summary": {
+    "high": 50,
+    "medium": 26,
+    "mitigated": 39,
+    "lower": 0,
+    "review": 11,
+    "total": 126
+  },
+  "functions": [
+    {
+      "name": "acknowledge_alignment_change",
+      "file": "supabase/migrations/20260305213152_20260305210003_f6_f7_itinerary_hash_and_ledger_events.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "add_action_inbox_note",
+      "file": "supabase/migrations/20260323150001_pass13_action_inbox_actor_auth_binding.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "add_deep_scan_credits",
+      "file": "supabase/migrations/20260323123000_pass9_idempotency_hardening.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "add_emergency_delegate",
+      "file": "supabase/migrations/20260322113000_f663_f664_f666_foundations.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "advance_trip_maturity",
+      "file": "supabase/migrations/20260325100000_a1_advance_trip_maturity_auth_bind.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "approve_connector_manual_review",
+      "file": "supabase/migrations/20260227030411_20260227030000_option_a_ledger_takeover.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "archive_trip",
+      "file": "supabase/migrations/20260315083115_20260315080001_archive_trip_rpc.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": false,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "assign_action_inbox_item",
+      "file": "supabase/migrations/20260323150001_pass13_action_inbox_actor_auth_binding.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "block_itr_delete",
+      "file": "supabase/migrations/20260227031157_20260227040001_fix_itr_triggers.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "block_itr_update",
+      "file": "supabase/migrations/20260227031157_20260227040001_fix_itr_triggers.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "build_founder_readable_explanation",
+      "file": "supabase/migrations/20260227184036_20260227300003_timeline_view_registries_observability.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "can_organizer_export_subject",
+      "file": "supabase/migrations/20260320113000_minor_guardian_export_controls.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": false,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "change_connector_state",
+      "file": "supabase/migrations/20260227030411_20260227030000_option_a_ledger_takeover.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "change_disruption_resolution_state",
+      "file": "supabase/migrations/20260323130000_pass10_statutory_fsm_foundation.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "change_incident_status",
+      "file": "supabase/migrations/20260324130000_fix_change_incident_status_text_canonical.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "check_feature_gate",
+      "file": "supabase/migrations/20260227193614_20260227400000_universal_event_metadata_rails.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "check_membership_entitlement",
+      "file": "supabase/migrations/20260323120000_pass8_payment_entitlement_auth_emit_hardening.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "complete_step_up_verification",
+      "file": "supabase/migrations/20260323150000_pass12_membership_self_rpc_auth_binding.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "compute_coverage_graph",
+      "file": "supabase/migrations/20260305202130_compute_coverage_graph_rpc.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "confirm_itinerary_snapshot",
+      "file": "supabase/migrations/20260305213152_20260305210003_f6_f7_itinerary_hash_and_ledger_events.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "consume_basic_scan_credit_strict",
+      "file": "supabase/migrations/20260321200000_strict_quick_scan_credit_consumption.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "consume_dual_presence_bypass_code",
+      "file": "supabase/migrations/20260322113000_f663_f664_f666_foundations.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "consume_scan_credit",
+      "file": "supabase/migrations/20260305213033_20260305210001_f1_per_trip_unlock_membership_model.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "create_claim_packet_from_incident",
+      "file": "supabase/migrations/20260323151000_pass14_claim_packet_routing_ready_guard.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "create_dual_presence_bypass_code",
+      "file": "supabase/migrations/20260322113000_f663_f664_f666_foundations.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "create_incident",
+      "file": "supabase/migrations/20260305202519_create_trip_guarded_rpc_v2.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "create_session_token",
+      "file": "supabase/migrations/20260323150000_pass12_membership_self_rpc_auth_binding.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "create_trip",
+      "file": "supabase/migrations/20260315070916_update_create_trip_rpc_with_destination_dates.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "create_user_profile_on_signup",
+      "file": "supabase/migrations/20260305213033_20260305210001_f1_per_trip_unlock_membership_model.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "emit_event",
+      "file": "supabase/migrations/20260227014056_20260227020000_governance_substrate_v1_1_patch.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "emit_itr",
+      "file": "supabase/migrations/20260227170119_20260227200002_itr_output_idempotency_and_emit_itr_failhard.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "end_emergency_mode_guardian_confirm",
+      "file": "supabase/migrations/20260322113000_f663_f664_f666_foundations.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "enqueue_policy_parse_job_atomic",
+      "file": "supabase/migrations/20260321193000_atomic_policy_parse_enqueue.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "enrich_policy_parse_confidence_metadata",
+      "file": "supabase/migrations/20260321183000_policy_parse_confidence_event_enrichment.sql",
+      "security": "implicit",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "review",
+      "notes": "Security clause not explicit in header; Postgres default is typically INVOKER — verify."
+    },
+    {
+      "name": "enter_protective_safety_mode",
+      "file": "supabase/migrations/20260322110000_f662_protective_safety_mode_foundation.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "evaluate_feature_rollout_health",
+      "file": "supabase/migrations/20260227200921_20260227500005_auto_rollback_evaluator_rpcs.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "evaluate_protective_safety_mode_exit",
+      "file": "supabase/migrations/20260322110000_f662_protective_safety_mode_foundation.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "evaluate_statutory_rights",
+      "file": "supabase/migrations/20260323130000_pass10_statutory_fsm_foundation.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "event_logs_insert_trigger",
+      "file": "supabase/migrations/20260227012733_20260226190000_governance_substrate_v1.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "feature_registry_immutable",
+      "file": "supabase/migrations/20260320193000_pass4_focl_lifecycle_guardrails.sql",
+      "security": "implicit",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "review",
+      "notes": "Security clause not explicit in header; Postgres default is typically INVOKER — verify."
+    },
+    {
+      "name": "founder_readable_explanation",
+      "file": "supabase/migrations/20260227031913_20260227041000_patch_founder_readable_explanation.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "founder_reset_relationship_block",
+      "file": "supabase/migrations/20260320160000_section2_identity_guarded_mutations.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": false,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "generate_routing_recommendation",
+      "file": "supabase/migrations/20260227184237_20260227300005_routing_rpcs.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "get_confidence_label_text",
+      "file": "supabase/migrations/20260227184036_20260227300003_timeline_view_registries_observability.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "get_connector_failures_24h",
+      "file": "supabase/migrations/20260227030411_20260227030000_option_a_ledger_takeover.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "get_doctrine_refs_for_event",
+      "file": "supabase/migrations/20260227194053_20260227400004_explain_fix_hooks.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "get_explain_fix_context",
+      "file": "supabase/migrations/20260227194751_20260227400009_fix_explain_fix_mode_column.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "get_fix_hints_for_event",
+      "file": "supabase/migrations/20260227194053_20260227400004_explain_fix_hooks.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "get_mode_display_name",
+      "file": "supabase/migrations/20260227193614_20260227400000_universal_event_metadata_rails.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "get_rpc_context_for_event",
+      "file": "supabase/migrations/20260227194053_20260227400004_explain_fix_hooks.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "grant_consent",
+      "file": "supabase/migrations/20260227184146_20260227300004_benefit_guide_rpcs.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "grant_export_authorization",
+      "file": "supabase/migrations/20260320160000_section2_identity_guarded_mutations.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": false,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "ingest_corpus_rules",
+      "file": "supabase/migrations/20260311090001_extraction_bridge_ingest_rpc.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "ingest_guide_version",
+      "file": "supabase/migrations/20260227184146_20260227300004_benefit_guide_rpcs.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "initiate_deep_scan",
+      "file": "supabase/migrations/20260324120000_fix_pgrst203_and_job_queue_job_name.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "initiate_policy_upload",
+      "file": "supabase/migrations/20260305200017_update_rpcs_for_new_schema.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "initiate_quick_scan",
+      "file": "supabase/migrations/20260324120000_fix_pgrst203_and_job_queue_job_name.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "invoke_authority_disruption",
+      "file": "supabase/migrations/20260227193756_20260227400001_prewire_feature_registry.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_carrier_deeplink",
+      "file": "supabase/migrations/20260227193756_20260227400001_prewire_feature_registry.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_carrier_discrepancy",
+      "file": "supabase/migrations/20260227193756_20260227400001_prewire_feature_registry.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_causality_link",
+      "file": "supabase/migrations/20260227193756_20260227400001_prewire_feature_registry.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_claim_packet",
+      "file": "supabase/migrations/20260227193756_20260227400001_prewire_feature_registry.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_claim_progress",
+      "file": "supabase/migrations/20260227193756_20260227400001_prewire_feature_registry.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_coverage_graph",
+      "file": "supabase/migrations/20260227194423_20260227400005_fix_stub_rpc_null_scope.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_dcel_enrich",
+      "file": "supabase/migrations/20260227193756_20260227400001_prewire_feature_registry.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_disruption_ingest",
+      "file": "supabase/migrations/20260227194423_20260227400005_fix_stub_rpc_null_scope.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_feature_stub",
+      "file": "supabase/migrations/20260227194423_20260227400005_fix_stub_rpc_null_scope.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_financial_model",
+      "file": "supabase/migrations/20260227193756_20260227400001_prewire_feature_registry.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_itinerary_risk",
+      "file": "supabase/migrations/20260227193756_20260227400001_prewire_feature_registry.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_pipeline_ingest",
+      "file": "supabase/migrations/20260227193756_20260227400001_prewire_feature_registry.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_policy_parse",
+      "file": "supabase/migrations/20260227194423_20260227400005_fix_stub_rpc_null_scope.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_rair_report",
+      "file": "supabase/migrations/20260227193756_20260227400001_prewire_feature_registry.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_rebooking_log",
+      "file": "supabase/migrations/20260227193756_20260227400001_prewire_feature_registry.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_timeline_enrich",
+      "file": "supabase/migrations/20260227193756_20260227400001_prewire_feature_registry.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "invoke_voice_capture",
+      "file": "supabase/migrations/20260227193756_20260227400001_prewire_feature_registry.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "is_feature_eligible",
+      "file": "supabase/migrations/20260227200750_20260227500003_deterministic_eligibility_function.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "link_event_to_inbox_item",
+      "file": "supabase/migrations/20260323150001_pass13_action_inbox_actor_auth_binding.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "list_action_inbox_items",
+      "file": "supabase/migrations/20260227193950_20260227400003_action_inbox_rpcs.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "log_connector_failure",
+      "file": "supabase/migrations/20260227030411_20260227030000_option_a_ledger_takeover.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "log_residence_change",
+      "file": "supabase/migrations/20260305213033_20260305210001_f1_per_trip_unlock_membership_model.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "mark_policy_version_user_confirmed",
+      "file": "supabase/migrations/20260321170000_section41_policy_governance_determinism.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "policy_version_is_gap_closure_eligible",
+      "file": "supabase/migrations/20260321170000_section41_policy_governance_determinism.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "policy_versions_immutable",
+      "file": "supabase/migrations/20260321170000_section41_policy_governance_determinism.sql",
+      "security": "implicit",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "review",
+      "notes": "Security clause not explicit in header; Postgres default is typically INVOKER — verify."
+    },
+    {
+      "name": "precheck_mutation_guard",
+      "file": "supabase/migrations/20260322110000_f662_protective_safety_mode_foundation.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "prevent_event_ledger_mutation",
+      "file": "supabase/migrations/20260227014056_20260227020000_governance_substrate_v1_1_patch.sql",
+      "security": "implicit",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "review",
+      "notes": "Security clause not explicit in header; Postgres default is typically INVOKER — verify."
+    },
+    {
+      "name": "prior_relationship_exists",
+      "file": "supabase/migrations/20260320103000_group_authority_foundation.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "psm_operation_availability",
+      "file": "supabase/migrations/20260322110000_f662_protective_safety_mode_foundation.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "record_acceptance_checkpoint",
+      "file": "supabase/migrations/20260227184237_20260227300005_routing_rpcs.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "record_alignment_comparison",
+      "file": "supabase/migrations/20260305213152_20260305210003_f6_f7_itinerary_hash_and_ledger_events.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "record_extraction_complete",
+      "file": "supabase/migrations/20260305201809_update_record_extraction_complete_emit_policy_version_created.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "record_mfa_enrollment",
+      "file": "supabase/migrations/20260323150000_pass12_membership_self_rpc_auth_binding.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "register_evidence",
+      "file": "supabase/migrations/20260227165925_20260227200000_guarded_create_incident_register_evidence.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "release_battery_failures",
+      "file": "supabase/migrations/20260227042552_20260227070000_fix_integrity_lock_overwrites.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "request_group_participant_add",
+      "file": "supabase/migrations/20260320160000_section2_identity_guarded_mutations.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "request_step_up_verification",
+      "file": "supabase/migrations/20260323150000_pass12_membership_self_rpc_auth_binding.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "reset_monthly_scan_credits",
+      "file": "supabase/migrations/20260305203621_account_membership_infrastructure.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "resolve_protective_mode_trigger",
+      "file": "supabase/migrations/20260322110000_f662_protective_safety_mode_foundation.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "resolve_relationship_verification_request",
+      "file": "supabase/migrations/20260320160000_section2_identity_guarded_mutations.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": false,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "revoke_consent",
+      "file": "supabase/migrations/20260227184146_20260227300004_benefit_guide_rpcs.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "revoke_export_authorization",
+      "file": "supabase/migrations/20260320160000_section2_identity_guarded_mutations.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": false,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "revoke_session_token",
+      "file": "supabase/migrations/20260305203621_account_membership_infrastructure.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "route_claim",
+      "file": "supabase/migrations/20260325101000_a1_route_claim_auth_bind.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "run_action_inbox_projector",
+      "file": "supabase/migrations/20260227194642_20260227400008_fix_projector_orphan_incident_fk.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "run_benefit_eval",
+      "file": "supabase/migrations/20260227184146_20260227300004_benefit_guide_rpcs.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "run_connector_health_check_job",
+      "file": "supabase/migrations/20260227030411_20260227030000_option_a_ledger_takeover.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "run_feature_rollout_auto_rollback",
+      "file": "supabase/migrations/20260227200921_20260227500005_auto_rollback_evaluator_rpcs.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "scan_credit_ledger_immutable",
+      "file": "supabase/migrations/20260305195952_create_scan_jobs_and_scan_credit_ledger.sql",
+      "security": "implicit",
+      "hasAuthUid": true,
+      "hasUserParams": false,
+      "risk": "review",
+      "notes": "Security clause not explicit in header; Postgres default is typically INVOKER — verify."
+    },
+    {
+      "name": "set_action_inbox_status",
+      "file": "supabase/migrations/20260323150001_pass13_action_inbox_actor_auth_binding.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "set_feature_activation_state",
+      "file": "supabase/migrations/20260320193000_pass4_focl_lifecycle_guardrails.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "set_feature_rollout_percentage",
+      "file": "supabase/migrations/20260320193000_pass4_focl_lifecycle_guardrails.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "set_feature_rollout_rules",
+      "file": "supabase/migrations/20260320193000_pass4_focl_lifecycle_guardrails.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "set_region_operational_mode",
+      "file": "supabase/migrations/20260323140000_pass11_region_mode_auth_binding.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "snooze_action_inbox_item",
+      "file": "supabase/migrations/20260323150001_pass13_action_inbox_actor_auth_binding.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "unlock_trip",
+      "file": "supabase/migrations/20260323123000_pass9_idempotency_hardening.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "update_action_inbox_items_updated_at",
+      "file": "supabase/migrations/20260227193834_20260227400002_action_inbox_tables.sql",
+      "security": "implicit",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "review",
+      "notes": "Security clause not explicit in header; Postgres default is typically INVOKER — verify."
+    },
+    {
+      "name": "update_emergency_delegate_updated_at",
+      "file": "supabase/migrations/20260322113000_f663_f664_f666_foundations.sql",
+      "security": "implicit",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "review",
+      "notes": "Security clause not explicit in header; Postgres default is typically INVOKER — verify."
+    },
+    {
+      "name": "update_feature_activation_updated_at",
+      "file": "supabase/migrations/20260227183850_20260227300000_feature_flag_system.sql",
+      "security": "implicit",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "review",
+      "notes": "Security clause not explicit in header; Postgres default is typically INVOKER — verify."
+    },
+    {
+      "name": "update_feature_rollout_health_updated_at",
+      "file": "supabase/migrations/20260227200700_20260227500001_rollout_health_state_table.sql",
+      "security": "implicit",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "review",
+      "notes": "Security clause not explicit in header; Postgres default is typically INVOKER — verify."
+    },
+    {
+      "name": "update_feature_rollout_rules_updated_at",
+      "file": "supabase/migrations/20260227200725_20260227500002_rollout_rules_table.sql",
+      "security": "implicit",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "review",
+      "notes": "Security clause not explicit in header; Postgres default is typically INVOKER — verify."
+    },
+    {
+      "name": "update_group_participant_residence_profile",
+      "file": "supabase/migrations/20260320160000_section2_identity_guarded_mutations.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": false,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "update_itinerary_hash",
+      "file": "supabase/migrations/20260305213152_20260305210003_f6_f7_itinerary_hash_and_ledger_events.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": true,
+      "risk": "high",
+      "notes": "DEFINER + user/actor params but no auth.uid() in parsed body — **manual review**."
+    },
+    {
+      "name": "update_membership_tier",
+      "file": "supabase/migrations/20260323150000_pass12_membership_self_rpc_auth_binding.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": true,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "update_trip",
+      "file": "supabase/migrations/20260315070927_add_update_trip_rpc.sql",
+      "security": "DEFINER",
+      "hasAuthUid": true,
+      "hasUserParams": false,
+      "risk": "mitigated",
+      "notes": "References auth.uid() / auth.jwt() in body."
+    },
+    {
+      "name": "update_updated_at_column",
+      "file": "supabase/migrations/20260220191104_00001_initial_schema.sql",
+      "security": "implicit",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "review",
+      "notes": "Security clause not explicit in header; Postgres default is typically INVOKER — verify."
+    },
+    {
+      "name": "validate_interpretive_trace_reference",
+      "file": "supabase/migrations/20260227041431_20260227060000_canonical_emit_itr_and_battery_contract.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    },
+    {
+      "name": "validate_suppression_event_metadata",
+      "file": "supabase/migrations/20260227193614_20260227400000_universal_event_metadata_rails.sql",
+      "security": "DEFINER",
+      "hasAuthUid": false,
+      "hasUserParams": false,
+      "risk": "medium",
+      "notes": "DEFINER but no obvious auth.uid() — may be internal/trusted-only; verify grants."
+    }
+  ],
+  "highNames": [
+    "acknowledge_alignment_change",
+    "approve_connector_manual_review",
+    "change_connector_state",
+    "compute_coverage_graph",
+    "confirm_itinerary_snapshot",
+    "consume_scan_credit",
+    "create_incident",
+    "create_trip",
+    "create_user_profile_on_signup",
+    "emit_event",
+    "emit_itr",
+    "enqueue_policy_parse_job_atomic",
+    "enter_protective_safety_mode",
+    "evaluate_feature_rollout_health",
+    "evaluate_protective_safety_mode_exit",
+    "generate_routing_recommendation",
+    "grant_consent",
+    "ingest_corpus_rules",
+    "ingest_guide_version",
+    "initiate_policy_upload",
+    "invoke_authority_disruption",
+    "invoke_carrier_deeplink",
+    "invoke_carrier_discrepancy",
+    "invoke_causality_link",
+    "invoke_claim_packet",
+    "invoke_claim_progress",
+    "invoke_coverage_graph",
+    "invoke_dcel_enrich",
+    "invoke_disruption_ingest",
+    "invoke_feature_stub",
+    "invoke_financial_model",
+    "invoke_itinerary_risk",
+    "invoke_pipeline_ingest",
+    "invoke_policy_parse",
+    "invoke_rair_report",
+    "invoke_rebooking_log",
+    "invoke_timeline_enrich",
+    "invoke_voice_capture",
+    "log_connector_failure",
+    "mark_policy_version_user_confirmed",
+    "record_acceptance_checkpoint",
+    "record_alignment_comparison",
+    "record_extraction_complete",
+    "register_evidence",
+    "revoke_consent",
+    "run_action_inbox_projector",
+    "run_benefit_eval",
+    "run_connector_health_check_job",
+    "run_feature_rollout_auto_rollback",
+    "update_itinerary_hash"
+  ]
+}
