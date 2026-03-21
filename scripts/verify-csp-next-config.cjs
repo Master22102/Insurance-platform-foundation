@@ -13,7 +13,20 @@ async function assertCspBranch(enforce) {
     delete process.env.CSP_MODE;
   }
   delete require.cache[require.resolve(path.join(root, 'next.config.js'))];
-  const cfg = require(path.join(root, 'next.config.js'));
+  const loaded = require(path.join(root, 'next.config.js'));
+  /** CJS interop: `module.exports = { default: nextConfig }`. */
+  let cfg = loaded && typeof loaded === 'object' && 'default' in loaded && loaded.default
+    ? loaded.default
+    : loaded;
+  /** Next.js allows `module.exports = (phase, ctx) => ({ ... })`. */
+  if (typeof cfg === 'function') {
+    cfg = cfg('phase-development-server', { defaultConfig: {} });
+  }
+  if (typeof cfg.headers !== 'function') {
+    throw new Error(
+      `verify-csp-next-config: next.config must export headers() async function; got ${typeof cfg.headers} (keys: ${Object.keys(cfg || {}).join(', ')})`,
+    );
+  }
   const rows = await cfg.headers();
   const headers = rows[0]?.headers ?? [];
   const keys = headers.map((h) => h.key);
