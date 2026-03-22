@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
@@ -10,12 +10,25 @@ export default function GetStartedPage() {
   const router = useRouter();
   const [savingChoice, setSavingChoice] = useState('');
 
+  // Returning users who already completed onboarding + anchor should never sit on this screen again.
+  useEffect(() => {
+    if (!user || !profile) return;
+    if (profile.onboarding_completed !== true) return;
+    if (profile.preferences?.onboarding?.anchor_selection?.completed !== true) return;
+    router.replace('/trips');
+  }, [user, profile, router]);
+
   const completeAnchorSelection = async (choice: 'trip' | 'policy' | 'planning', target: string) => {
-    if (!user || savingChoice) return;
+    if (savingChoice) return;
     setSavingChoice(choice);
     try {
       if (typeof window !== 'undefined') {
         window.sessionStorage.setItem('wayfarer_anchor_selected', '1');
+      }
+      if (!user) {
+        // If auth context is still warming up, keep forward progress instead of dead-clicking.
+        router.push(target);
+        return;
       }
       const existingPreferences = (profile?.preferences && typeof profile.preferences === 'object')
         ? profile.preferences
@@ -36,12 +49,14 @@ export default function GetStartedPage() {
         },
       };
 
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('user_profiles')
         .update({ preferences })
-        .eq('user_id', user.id);
-      if (error) {
-        console.warn('[get-started] could not persist anchor selection', error.message);
+        .eq('user_id', user.id)
+        .select('user_id')
+        .maybeSingle();
+      if (error || !data) {
+        console.warn('[get-started] could not persist anchor selection', error?.message ?? 'profile row missing');
       }
 
       await refreshProfile();

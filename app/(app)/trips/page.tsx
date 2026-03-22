@@ -101,7 +101,7 @@ function WelcomeBanner() {
       fontSize: 14, color: '#1e40af', lineHeight: 1.5,
       fontFamily: 'system-ui, -apple-system, sans-serif',
     }}>
-      Your account is ready. Let's build your first trip.
+      Your account is ready. Let&apos;s build your first trip.
     </div>
   );
 }
@@ -122,8 +122,9 @@ interface TripWithStats {
 }
 
 function TripCard({ trip }: { trip: TripWithStats }) {
-  const palette = getPaletteForName(trip.trip_name);
-  const initials = getInitials(trip.trip_name);
+  const safeTripName = (trip.trip_name && String(trip.trip_name).trim()) ? String(trip.trip_name) : 'Trip';
+  const palette = getPaletteForName(safeTripName);
+  const initials = getInitials(safeTripName);
   const dateRange = formatDateRange(trip.departure_date, trip.return_date);
   const mode = trip.travel_mode_primary || 'air';
   const modeIconPath = TRAVEL_MODE_ICON_PATHS[mode] || TRAVEL_MODE_ICON_PATHS.air;
@@ -162,7 +163,7 @@ function TripCard({ trip }: { trip: TripWithStats }) {
       <div style={{ padding: '14px 18px 16px' }}>
         <Link href={`/trips/${trip.trip_id}`} style={{ textDecoration: 'none' }}>
           <p style={{ fontSize: 15, fontWeight: 700, color: '#1A2B4A', margin: '0 0 3px', lineHeight: 1.3, letterSpacing: '-0.2px' }}>
-            {trip.trip_name}
+            {safeTripName}
           </p>
           {trip.destination_summary && (
             <p style={{ fontSize: 12, color: '#666', margin: '0 0 3px' }}>{trip.destination_summary}</p>
@@ -222,6 +223,27 @@ function TripCard({ trip }: { trip: TripWithStats }) {
               )}
             </span>
           )}
+
+          {trip.maturity_state === 'DRAFT' && (
+            <Link
+              href={`/trips/${trip.trip_id}/draft`}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '7px 12px',
+                borderRadius: 999,
+                border: '1px solid #bfdbfe',
+                background: '#eff4fc',
+                color: '#2E5FA3',
+                fontSize: 11,
+                fontWeight: 900,
+              }}
+            >
+              Continue planning
+            </Link>
+          )}
         </div>
       </div>
     </div>
@@ -242,7 +264,7 @@ function EmptyState() {
         </svg>
       </div>
       <p style={{ fontSize: 16, fontWeight: 600, color: '#1A2B4A', margin: '0 0 8px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-        You haven't planned any trips yet.
+        You haven&apos;t planned any trips yet.
       </p>
       <p style={{ fontSize: 14, color: '#888', margin: '0 0 28px', lineHeight: 1.6, maxWidth: 340, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
         When you add a trip, your coverage analysis and incident history will appear here.

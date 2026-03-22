@@ -10,13 +10,13 @@ const CLAIM_STATUSES = ['CLAIM_ROUTING_READY', 'SUBMITTED', 'DISPUTED'];
 const STATUS_CONFIG: Record<string, { bg: string; border: string; text: string; label: string; description: string }> = {
   CLAIM_ROUTING_READY: {
     bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a',
-    label: 'Ready to route',
-    description: 'This incident is ready to route to a claim. Open it to see your options.',
+    label: 'Routing ready',
+    description: 'This incident record is ready for your next filing step. Open it to review options.',
   },
   SUBMITTED: {
     bg: '#eff4fc', border: '#bfdbfe', text: '#2E5FA3',
-    label: 'Submitted',
-    description: 'This claim has been submitted. Keep your documentation on file.',
+    label: 'Routing recorded',
+    description: 'Claim routing was recorded. Keep documentation on file and confirm submission with the provider.',
   },
   DISPUTED: {
     bg: '#fef2f2', border: '#fecaca', text: '#dc2626',
@@ -111,7 +111,7 @@ export default function ClaimsPage() {
           Claims
         </h1>
         <p style={{ fontSize: 13, color: '#888', margin: 0 }}>
-          Incidents that are ready to file, submitted, or under dispute
+          Incidents ready for filing, with routing recorded, or in dispute
         </p>
       </div>
 

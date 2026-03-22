@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+  /* Never echo env prefixes — even in dev — to reduce accidental disclosure in screenshots/logs. */
   return NextResponse.json({
     url_set: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
     key_set: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    url_prefix: process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 30) || 'NOT SET',
-    key_prefix: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.slice(0, 20) || 'NOT SET',
   });
 }

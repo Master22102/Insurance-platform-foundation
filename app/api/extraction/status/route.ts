@@ -14,6 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { CONFIDENCE_VERSION, statusToConfidenceLabel } from '@/lib/confidence/labels';
 
 const CALM_MESSAGES: Record<string, string> = {
   uploaded: 'Your document has been uploaded.',
@@ -83,6 +84,8 @@ export async function GET(request: NextRequest) {
       ? 'failed'
       : 'processing';
 
+  const confidenceLabel = statusToConfidenceLabel(doc.document_status);
+
   // Get clause counts if extraction is complete
   let clauseCounts = null;
   if (doc.document_status === 'complete') {
@@ -122,10 +125,17 @@ export async function GET(request: NextRequest) {
       started_at: doc.extraction_started_at,
       completed_at: doc.extraction_completed_at,
       pipeline_version: doc.pipeline_version,
-      error: doc.document_status === 'failed' ? doc.extraction_error_message : undefined,
+      error: doc.document_status === 'failed'
+        ? "We couldn't read this document automatically. Your file is still saved."
+        : undefined,
     },
     clauses: clauseCounts,
     rules_found: clauseCounts?.auto_accepted ?? null,
+    confidence: {
+      confidence_label: confidenceLabel,
+      confidence_version: CONFIDENCE_VERSION,
+      cco_reference_id: null,
+    },
     job: job ? {
       id: job.id,
       status: job.status,

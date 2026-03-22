@@ -12,6 +12,17 @@ import type {
 
 const DEFAULT_REGION = '00000000-0000-0000-0000-000000000000';
 
+function toPlainActionError(input: unknown): string {
+  const msg = String(input || '').toLowerCase();
+  if (msg.includes('protective') || msg.includes('blocked by governance guard')) {
+    return 'This action is blocked while the platform is in protective mode.';
+  }
+  if (msg.includes('forbidden') || msg.includes('unauthorized')) {
+    return 'You do not have permission to change this feature right now.';
+  }
+  return 'We could not apply this feature change right now. Please try again.';
+}
+
 function deriveStatus(
   registry: FeatureRegistryRow,
   activation: FeatureActivationStateRow | null,
@@ -62,9 +73,11 @@ export function useFeatureIntelligence() {
         .eq('region_id', DEFAULT_REGION),
     ]);
 
-    if (regRes.error) { setError(regRes.error.message); setLoading(false); return; }
-    if (actRes.error) { setError(actRes.error.message); setLoading(false); return; }
-    if (healthRes.error) { setError(healthRes.error.message); setLoading(false); return; }
+    if (regRes.error || actRes.error || healthRes.error) {
+      setError('feature_intelligence_load_failed');
+      setLoading(false);
+      return;
+    }
 
     const registry = (regRes.data ?? []) as FeatureRegistryRow[];
     const activation = (actRes.data ?? []) as FeatureActivationStateRow[];
@@ -104,25 +117,37 @@ export function useFeatureIntelligence() {
 
   const toggleFeature = useCallback(async (featureId: string, enabled: boolean) => {
     const { data: { user } } = await supabase.auth.getUser();
-    await supabase.rpc('set_feature_activation_state', {
+    const { data, error } = await supabase.rpc('set_feature_activation_state', {
       p_feature_id: featureId,
       p_region_id: DEFAULT_REGION,
       p_enabled: enabled,
       p_reason_code: enabled ? 'feature_activated_ok' : 'feature_deactivated_ok',
       p_actor_id: user?.id ?? null,
     });
+    if (error) {
+      throw new Error(toPlainActionError(error.message));
+    }
+    if (data?.success !== true) {
+      throw new Error(toPlainActionError(data?.error));
+    }
     await load();
   }, [load]);
 
   const setRolloutPercentage = useCallback(async (featureId: string, percentage: number) => {
     const { data: { user } } = await supabase.auth.getUser();
-    await supabase.rpc('set_feature_rollout_percentage', {
+    const { data, error } = await supabase.rpc('set_feature_rollout_percentage', {
       p_feature_id: featureId,
       p_region_id: DEFAULT_REGION,
       p_percentage: percentage,
       p_actor_id: user?.id ?? null,
       p_reason_code: 'rollout_percentage_increased',
     });
+    if (error) {
+      throw new Error(toPlainActionError(error.message));
+    }
+    if (data?.ok !== true) {
+      throw new Error(toPlainActionError(data?.error));
+    }
     await load();
   }, [load]);
 

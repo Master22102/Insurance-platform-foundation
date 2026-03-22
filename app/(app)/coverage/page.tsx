@@ -114,6 +114,7 @@ export default function CoveragePage() {
 
   const activeTrips = trips.filter(isTripActive);
   const pastTrips = trips.filter((t) => !isTripActive(t));
+  const hasTripsButNoPolicies = trips.length > 0 && trips.every((t) => t.policy_count === 0);
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
@@ -178,6 +179,26 @@ export default function CoveragePage() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+          {hasTripsButNoPolicies && (
+            <div
+              role="status"
+              style={{
+                padding: '14px 18px',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: 10,
+                fontSize: 14,
+                color: '#334155',
+                lineHeight: 1.55,
+              }}
+            >
+              None of your trips have insurance attached yet. Add a policy to see how you&apos;re covered for each trip. Use{' '}
+              <Link href="/policies/upload" style={{ color: '#1A2B4A', fontWeight: 600 }}>
+                Upload a policy
+              </Link>{' '}
+              to get started.
+            </div>
+          )}
           {activeTrips.length > 0 && (
             <div>
               <p style={{ fontSize: 12, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 14px' }}>

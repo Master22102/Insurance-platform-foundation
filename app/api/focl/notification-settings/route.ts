@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     .eq('user_id', user.id)
     .maybeSingle();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: 'Could not load notification settings right now.' }, { status: 500 });
 
   return NextResponse.json({
     settings: data ?? {
@@ -102,6 +102,6 @@ export async function POST(req: NextRequest) {
       incident_alerts_enabled: incidentAlertsEnabled,
     });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: 'Could not save notification settings right now.' }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

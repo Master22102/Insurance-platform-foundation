@@ -257,19 +257,19 @@ export default function Home() {
             fontWeight: 800, color: "white", margin: "0 0 20px",
             letterSpacing: "-1.5px", lineHeight: 1.1,
           }}>
-            Know exactly what
+            Structural clarity from
             <br />
-            <span style={{ color: "rgba(255,255,255,0.45)" }}>covers you.</span>
+            <span style={{ color: "rgba(255,255,255,0.45)" }}>your documents.</span>
           </h1>
           <p style={{
             fontSize: "clamp(16px, 2vw, 19px)",
             color: "rgba(255,255,255,0.5)",
             margin: "0 0 36px", lineHeight: 1.65, maxWidth: 540, marginLeft: "auto", marginRight: "auto",
           }}>
-            Wayfarer reads your insurance policies, credit card benefits, and airline contracts — then routes your claims when something goes wrong.
+            Wayfarer structures your insurance policies, card benefits, and carrier terms — then helps you document and route claims without predicting outcomes.
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <Link href="/signup" style={{
+            <Link href="/splash" style={{
               padding: "14px 30px", background: "white", color: "#1A2B4A",
               borderRadius: 12, textDecoration: "none", fontSize: 16, fontWeight: 700,
               letterSpacing: "-0.2px",
@@ -414,6 +414,68 @@ export default function Home() {
         </div>
       </section>
 
+      <section style={{ padding: "96px 24px", background: "#f8fafc", borderTop: "1px solid #eef2f7", borderBottom: "1px solid #eef2f7" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 44 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: "#2E5FA3", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 12px" }}>
+              Product preview
+            </p>
+            <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 800, color: "#0d1b2a", margin: "0 0 12px", letterSpacing: "-0.6px" }}>
+              Fast signals first, depth when you need it
+            </h2>
+            <p style={{ fontSize: 16, color: "#64748b", margin: "0 auto", maxWidth: 640, lineHeight: 1.7 }}>
+              We show practical trip-readiness and coverage cues without exposing proprietary decision logic on the public site.
+            </p>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20 }}>
+            <div style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 14, padding: "18px 18px" }}>
+              <p style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: "#1e3a8a", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                Quick Scan Overview
+              </p>
+              <p style={{ margin: "0 0 10px", fontSize: 13, color: "#334155", lineHeight: 1.6 }}>
+                A fast look at your trip. This is not a full analysis.
+              </p>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+                {["Tampa, Florida", "Orlando, Florida", "Miami, Florida"].map((chip) => (
+                  <span key={chip} style={{ fontSize: 11, color: "#1e3a8a", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 999, padding: "3px 8px" }}>
+                    {chip}
+                  </span>
+                ))}
+              </div>
+              <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 12px" }}>
+                <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.5 }}>
+                  Potential gaps and transit flags appear here, then users can run Deep Scan for full coverage mapping.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 14, padding: "18px 18px" }}>
+              <p style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: "#334155", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                Readiness checklist
+              </p>
+              <p style={{ margin: "0 0 10px", fontSize: 13, color: "#475569", lineHeight: 1.6 }}>
+                Nationality-aware guidance for passport, visa, and vaccination prep.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {[
+                  { label: "Passport readiness", status: "Ready", color: "#166534", bg: "#f0fdf4", border: "#bbf7d0" },
+                  { label: "Visa / entry requirements", status: "In progress", color: "#92400e", bg: "#fffbeb", border: "#fde68a" },
+                  { label: "Vaccinations / health entry", status: "Not started", color: "#475569", bg: "#f8fafc", border: "#e2e8f0" },
+                ].map((row) => (
+                  <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid #edf2f7", borderRadius: 8, padding: "8px 10px" }}>
+                    <span style={{ fontSize: 12, color: "#1f2937" }}>{row.label}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: row.color, background: row.bg, border: `1px solid ${row.border}`, borderRadius: 20, padding: "2px 7px" }}>
+                      {row.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section style={{ padding: "96px 24px", background: "#f7f8fa" }}>
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 56 }}>
@@ -448,7 +510,7 @@ export default function Home() {
               },
               {
                 step: "4", title: "Route your claim",
-                desc: "When your incident is fully documented, the claim routing engine matches it against your policies and tells you exactly what to submit to each insurer, card, and carrier that applies — you take it from there.",
+                desc: "When your incident is fully documented, the claim routing engine matches it against your policies and produces a structured filing checklist per applicable insurer, card, and carrier — you decide what to submit; we do not predict approval.",
                 color: "#b45309", bg: "#fff7ed", border: "#fed7aa",
               },
             ].map((step, i, arr) => (
@@ -484,7 +546,7 @@ export default function Home() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
             {[
               { name: "Marcus W.", initials: "MW", role: "Digital nomad", quote: "I had no idea my Chase Sapphire covered baggage delay until Wayfarer extracted it. Filed my first claim in under 20 minutes." },
-              { name: "Priya S.", initials: "PS", role: "Business traveler", quote: "My company trips across Asia involve 3–4 carriers and two insurance policies. Wayfarer keeps everything organized and tells me exactly what to file when something goes sideways." },
+              { name: "Priya S.", initials: "PS", role: "Business traveler", quote: "My company trips across Asia involve 3–4 carriers and two insurance policies. Wayfarer keeps everything organized and surfaces structured filing guidance when something goes sideways." },
               { name: "James & Elena K.", initials: "JE", role: "Family travelers", quote: "We used to lose track of which policy covered what. Now we upload everything before we leave and have peace of mind the whole trip." },
             ].map((t, i) => (
               <div key={i} style={{

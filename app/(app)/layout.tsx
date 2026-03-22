@@ -78,6 +78,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
   const [anchorSelectedInSession, setAnchorSelectedInSession] = useState(false);
+  const [platformMode, setPlatformMode] = useState<string>('NORMAL');
   const isOnboardingRoute = pathname?.startsWith('/onboarding');
   const isGetStartedRoute = pathname?.startsWith('/get-started');
   const hasAnchorSelection =
@@ -110,7 +111,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     if (!loading && !user) {
       router.replace(`/signin?return_url=${encodeURIComponent(pathname)}`);
     }
-  }, [user, loading, pathname]);
+  }, [user, loading, pathname, router]);
+
+  useEffect(() => {
+    if (loading || !user) return;
+    let cancelled = false;
+    const run = async () => {
+      const res = await fetch('/api/platform/posture', { cache: 'no-store' }).catch(() => null);
+      const body = res ? await res.json().catch(() => null) : null;
+      if (cancelled) return;
+      if (res?.ok && body?.mode) {
+        setPlatformMode(String(body.mode));
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, user]);
 
   useEffect(() => {
     if (loading || !user) return;
@@ -123,14 +141,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [user, profile, loading, pathname, router]);
 
-  useEffect(() => {
-    if (loading || !user || !profile) return;
-    if (profile.onboarding_completed !== true) return;
-    if (isGetStartedRoute) return;
-    if (!hasAnchorSelection && !anchorSelectedInSession) {
-      router.replace('/get-started');
-    }
-  }, [loading, user, profile, isGetStartedRoute, hasAnchorSelection, anchorSelectedInSession, router]);
+  // NOTE: `/get-started` is the onboarding landing experience, not a persistent
+  // app-wide lock. We intentionally avoid forcing global redirects here because
+  // they can interrupt deep links and in-progress flows.
 
   if (loading) {
     if (loadingTimedOut) {
@@ -286,6 +299,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div style={{ maxWidth: 1080, margin: '0 auto', padding: '32px 24px 120px' }}
           className="main-content-padding"
         >
+          {platformMode === 'PROTECTIVE' && (
+            <div style={{
+              marginBottom: 14,
+              background: '#fff7ed',
+              border: '1px solid #fdba74',
+              color: '#9a3412',
+              borderRadius: 10,
+              padding: '10px 12px',
+              fontSize: 13,
+              lineHeight: 1.5,
+            }}>
+              <strong style={{ fontWeight: 700 }}>Safe mode active</strong> — Some advanced features are temporarily unavailable while we protect your data. Core planning, incident capture, and evidence workflows remain available.
+            </div>
+          )}
           {children}
         </div>
       </main>

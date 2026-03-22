@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
 import EvidenceUpload from '@/components/evidence/EvidenceUpload';
+import VoiceNarrationPanel from '@/components/voice/VoiceNarrationPanel';
 
 const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }> = {
   OPEN:                  { bg: '#eff4fc', border: '#bfdbfe', text: '#2E5FA3' },
@@ -17,19 +18,46 @@ const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }
   DISPUTED:              { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' },
 };
 
+const CARRIER_ACTION_TYPES: Array<{ value: string; label: string }> = [
+  { value: 'rebooking_offered', label: 'Rebooking offered' },
+  { value: 'rebooking_completed', label: 'Rebooking completed' },
+  { value: 'rebooking_declined_by_carrier', label: 'Alternative travel not offered by carrier' },
+  { value: 'rebooking_declined_by_traveler', label: 'Traveler declined offered alternative' },
+  { value: 'voucher_issued', label: 'Voucher issued' },
+  { value: 'meal_voucher_issued', label: 'Meal voucher issued' },
+  { value: 'hotel_accommodation_offered', label: 'Hotel accommodation offered' },
+  { value: 'hotel_accommodation_denied', label: 'Hotel accommodation not offered' },
+  { value: 'cash_compensation_offered', label: 'Cash compensation offered' },
+  { value: 'refund_offered', label: 'Refund offered' },
+  { value: 'denied_boarding_compensation', label: 'Denied boarding — compensation discussed' },
+  { value: 'baggage_claim_filed', label: 'Baggage claim filed' },
+  { value: 'baggage_delivery_arranged', label: 'Baggage delivery arranged' },
+  { value: 'no_response', label: 'No response yet from carrier' },
+  { value: 'other', label: 'Other (describe in notes)' },
+];
+
+function defaultLabelForAction(actionType: string): string {
+  return CARRIER_ACTION_TYPES.find((x) => x.value === actionType)?.label || 'Carrier action';
+}
+
 const STATUS_NEXT_STEPS: Record<string, string> = {
   OPEN: 'Add your initial description and any evidence you already have.',
   EVIDENCE_GATHERING: 'Upload supporting documents — receipts, confirmation emails, photos.',
   REVIEW_PENDING: 'Your documentation is being reviewed. Add anything you missed.',
-  CLAIM_ROUTING_READY: 'Your incident is ready to route to a claim. Use the options below.',
-  SUBMITTED: 'Your claim has been submitted. Keep this record for follow-up.',
+  CLAIM_ROUTING_READY: 'Your incident record is ready for the next filing step. Use the options below.',
+  SUBMITTED: 'Your claim routing details were saved. Follow up with the provider directly.',
   CLOSED: 'This incident is closed.',
   DISPUTED: 'This claim is under dispute. Continue documenting.',
 };
 
 function StatusBadge({ status }: { status: string }) {
   const cfg = STATUS_COLORS[status] || STATUS_COLORS.OPEN;
-  const label = status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+  const label =
+    status === 'CLAIM_ROUTING_READY'
+      ? 'Routing ready'
+      : status === 'SUBMITTED'
+        ? 'Routing recorded'
+        : status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
   return (
     <span style={{
       fontSize: 12, fontWeight: 600, color: cfg.text,
@@ -41,12 +69,49 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function NarrationPanel({ incidentId, onAdded }: { incidentId: string; onAdded: (ev: any) => void }) {
+function buildNoteFromVoiceFields(
+  fields: Record<string, unknown>,
+  fallbackTranscript: string,
+): string {
+  const parts: string[] = [];
+  const add = typeof fields.additional_details === 'string' ? fields.additional_details.trim() : '';
+  if (add) parts.push(add);
+  const evs = fields.timeline_events;
+  if (Array.isArray(evs)) {
+    for (const ev of evs) {
+      if (ev && typeof ev === 'object') {
+        const o = ev as Record<string, unknown>;
+        const t = typeof o.time === 'string' ? o.time : '';
+        const d = typeof o.description === 'string' ? o.description : '';
+        if (t || d) parts.push(`• ${t} ${d}`.trim());
+      }
+    }
+  }
+  const res = typeof fields.resolution_info === 'string' ? fields.resolution_info.trim() : '';
+  if (res) parts.push(res);
+  const ne = fields.new_expenses;
+  if (typeof ne === 'number' && Number.isFinite(ne)) parts.push(`Expenses mentioned: $${ne}`);
+  const joined = parts.join('\n\n').trim();
+  return joined || fallbackTranscript.trim();
+}
+
+function NarrationPanel({
+  incidentId,
+  tripId,
+  accountId,
+  onAdded,
+}: {
+  incidentId: string;
+  tripId: string;
+  accountId: string;
+  onAdded: (ev: any) => void;
+}) {
   const { user } = useAuth();
   const [text, setText] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSave = async () => {
@@ -56,11 +121,12 @@ function NarrationPanel({ incidentId, onAdded }: { incidentId: string; onAdded: 
 
     const { error: rpcError } = await supabase.rpc('register_evidence', {
       p_incident_id: incidentId,
-      p_type: 'narrative_note',
+      p_type: 'other',
       p_name: 'Narrated note',
       p_description: text.trim(),
+      p_metadata: { category: 'narrative_note' },
       p_actor_id: user!.id,
-      p_idempotency_key: `note-${Date.now()}`,
+      p_idempotency_key: `note-type-${incidentId}-${Date.now()}`,
     });
 
     setSaving(false);
@@ -85,6 +151,25 @@ function NarrationPanel({ incidentId, onAdded }: { incidentId: string; onAdded: 
       <p style={{ fontSize: 13, fontWeight: 600, color: '#1A2B4A', margin: '0 0 10px' }}>
         Add more detail
       </p>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={() => setVoiceOpen(true)}
+          style={{
+            padding: '7px 12px',
+            fontSize: 12,
+            fontWeight: 600,
+            borderRadius: 8,
+            border: '1px solid #fecaca',
+            background: '#fff1f2',
+            color: '#9f1239',
+            cursor: 'pointer',
+          }}
+        >
+          Narrate update
+        </button>
+        <span style={{ fontSize: 11, color: '#94a3b8', alignSelf: 'center' }}>or type below</span>
+      </div>
       <textarea
         ref={textareaRef}
         value={text}
@@ -120,6 +205,54 @@ function NarrationPanel({ incidentId, onAdded }: { incidentId: string; onAdded: 
       >
         {saving ? 'Saving…' : 'Save note'}
       </button>
+
+      {voiceOpen && (
+        <>
+          <div
+            role="presentation"
+            style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', zIndex: 70 }}
+            onClick={() => setVoiceOpen(false)}
+          />
+          <VoiceNarrationPanel
+            context="incident_update"
+            accountId={accountId}
+            tripId={tripId}
+            incidentId={incidentId}
+            onCancel={() => setVoiceOpen(false)}
+            onFieldsConfirmed={async (fields, meta) => {
+              const body = buildNoteFromVoiceFields(fields, meta.transcriptRaw);
+              if (!body.trim()) {
+                setVoiceOpen(false);
+                return;
+              }
+              setSaving(true);
+              setError('');
+              const { error: rpcError } = await supabase.rpc('register_evidence', {
+                p_incident_id: incidentId,
+                p_type: 'other',
+                p_name: 'Narrated note',
+                p_description: body.trim(),
+                p_metadata: {
+                  category: 'narrative_note',
+                  transcript_raw: meta.transcriptRaw,
+                  voice_parse: meta.parseAttempt,
+                },
+                p_actor_id: user!.id,
+                p_idempotency_key: `note-voice-${incidentId}-${Date.now()}`,
+              });
+              setSaving(false);
+              setVoiceOpen(false);
+              if (rpcError) {
+                setError('Could not save note. Please try again.');
+                return;
+              }
+              onAdded({ name: 'Narrated note', category: 'narrative_note', created_at: new Date().toISOString() });
+              setSuccess(true);
+              setTimeout(() => setSuccess(false), 3000);
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }
@@ -139,6 +272,21 @@ export default function IncidentDetailPage() {
   const [showNarration, setShowNarration] = useState(false);
   const [showOptionsSheet, setShowOptionsSheet] = useState(false);
   const [advancing, setAdvancing] = useState(false);
+  const [advanceError, setAdvanceError] = useState('');
+  const [carrierResponses, setCarrierResponses] = useState<any[]>([]);
+  const [showCarrierForm, setShowCarrierForm] = useState(false);
+  const [carrierSaving, setCarrierSaving] = useState(false);
+  const [carrierError, setCarrierError] = useState('');
+  const [carrierForm, setCarrierForm] = useState({
+    action_type: 'no_response',
+    action_label: '',
+    value_amount: '',
+    carrier_ref: '',
+    new_flight: '',
+    new_departure: '',
+    notes: '',
+  });
+  const [carrierVoiceOpen, setCarrierVoiceOpen] = useState(false);
 
   useEffect(() => {
     if (!user || !incidentId) return;
@@ -153,8 +301,16 @@ export default function IncidentDetailPage() {
       setEvidence(evRes.data || []);
       setEvents(ledgerRes.data || []);
       setLoading(false);
+      supabase
+        .from('carrier_responses')
+        .select('*')
+        .eq('incident_id', incidentId)
+        .order('created_at', { ascending: true })
+        .then(({ data, error }) => {
+          if (!error) setCarrierResponses(data || []);
+        });
     }).catch((err) => { console.error("[fetch] error:", err); setLoading(false); });
-  }, [user, incidentId]);
+  }, [user, incidentId, tripId, router]);
 
   if (loading) {
     return (
@@ -178,25 +334,80 @@ export default function IncidentDetailPage() {
 
   const handleAdvanceStatus = async () => {
     if (!canAdvance || advancing) return;
+    setAdvanceError('');
     setAdvancing(true);
 
     const nextStatus = status === 'OPEN' ? 'EVIDENCE_GATHERING'
       : status === 'EVIDENCE_GATHERING' ? 'REVIEW_PENDING'
       : 'CLAIM_ROUTING_READY';
 
-    const { error: rpcErr } = await supabase.rpc('change_incident_status', {
+    const { data: rpcData, error: rpcErr } = await supabase.rpc('change_incident_status', {
       p_incident_id: incidentId,
       p_new_status: nextStatus,
       p_actor_id: user!.id,
-      p_reason: 'user_manual_advance',
+      p_reason_code: 'user_manual_advance',
     });
 
     setAdvancing(false);
 
-    if (!rpcErr) {
+    if (!rpcErr && rpcData?.success) {
       setIncident((prev: any) => ({ ...prev, canonical_status: nextStatus }));
       setEvents((prev) => [...prev, { event_type: 'status_changed', created_at: new Date().toISOString() }]);
+      return;
     }
+    setAdvanceError(String(rpcData?.error || rpcErr?.message || 'We could not advance this incident right now.'));
+  };
+
+  const saveCarrierResponse = async () => {
+    if (!user) return;
+    setCarrierError('');
+    const label = (carrierForm.action_label || '').trim() || defaultLabelForAction(carrierForm.action_type);
+    const amt = carrierForm.value_amount.trim() ? Number(carrierForm.value_amount) : null;
+    if (carrierForm.value_amount.trim() && (amt == null || Number.isNaN(amt))) {
+      setCarrierError('Enter a valid amount or leave it blank.');
+      return;
+    }
+    setCarrierSaving(true);
+    const { data, error } = await supabase.rpc('add_carrier_response', {
+      p_incident_id: incidentId,
+      p_action_type: carrierForm.action_type,
+      p_action_label: label,
+      p_value_amount: amt,
+      p_currency_code: 'USD',
+      p_carrier_name: null,
+      p_carrier_ref: carrierForm.carrier_ref.trim() || null,
+      p_new_flight: ['rebooking_offered', 'rebooking_completed'].includes(carrierForm.action_type)
+        ? (carrierForm.new_flight.trim() || null)
+        : null,
+      p_new_departure: carrierForm.new_departure
+        ? new Date(carrierForm.new_departure).toISOString()
+        : null,
+      p_notes: carrierForm.notes.trim() || null,
+      p_action_occurred_at: null,
+      p_evidence_id: null,
+      p_actor_id: user.id,
+    });
+    setCarrierSaving(false);
+    if (error || !(data as { ok?: boolean })?.ok) {
+      setCarrierError('Could not save this carrier action. If this is new, apply the latest database migration and try again.');
+      return;
+    }
+    const { data: rows } = await supabase
+      .from('carrier_responses')
+      .select('*')
+      .eq('incident_id', incidentId)
+      .order('created_at', { ascending: true });
+    setCarrierResponses(rows || []);
+    setShowCarrierForm(false);
+    setCarrierForm({
+      action_type: 'no_response',
+      action_label: '',
+      value_amount: '',
+      carrier_ref: '',
+      new_flight: '',
+      new_departure: '',
+      notes: '',
+    });
   };
 
   return (
@@ -300,6 +511,8 @@ export default function IncidentDetailPage() {
             <div style={{ marginTop: 12 }}>
               <NarrationPanel
                 incidentId={incidentId}
+                tripId={tripId}
+                accountId={user!.id}
                 onAdded={(ev) => {
                   setEvidence((prev) => [{ ...ev }, ...prev]);
                   setEvents((prev) => [...prev, { event_type: 'narrative_note_added', created_at: new Date().toISOString() }]);
@@ -330,6 +543,8 @@ export default function IncidentDetailPage() {
             <div style={{ background: 'white', border: '0.5px solid #e8e8e8', borderRadius: 12, padding: '16px 18px', marginBottom: 12 }}>
               <EvidenceUpload
                 incidentId={incidentId}
+                tripId={tripId}
+                accountId={user!.id}
                 onUploaded={(ev) => {
                   setEvidence((prev) => [{ ...ev, created_at: new Date().toISOString() }, ...prev]);
                   setShowUpload(false);
@@ -374,6 +589,170 @@ export default function IncidentDetailPage() {
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: '#999', margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Carrier responses
+          </p>
+          <button
+            type="button"
+            onClick={() => { setShowCarrierForm((s) => !s); setCarrierError(''); }}
+            style={{
+              fontSize: 12, fontWeight: 600, color: '#2E5FA3',
+              background: '#eff4fc', border: '1px solid #bfdbfe',
+              borderRadius: 8, padding: '5px 12px', cursor: 'pointer',
+            }}
+          >
+            {showCarrierForm ? 'Close' : 'Add carrier action'}
+          </button>
+        </div>
+        <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 12px', lineHeight: 1.55, maxWidth: 720 }}>
+          Record what the airline or carrier communicated (offers, vouchers, or no reply). This stays factual and helps
+          with your filing packet.
+        </p>
+
+        {showCarrierForm && (
+          <div style={{
+            background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12,
+            padding: '14px 16px', marginBottom: 14,
+          }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+              <button
+                type="button"
+                onClick={() => setCarrierVoiceOpen(true)}
+                style={{
+                  padding: '8px 14px',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  borderRadius: 8,
+                  border: '1px solid #fecaca',
+                  background: '#fff1f2',
+                  color: '#9f1239',
+                  cursor: 'pointer',
+                }}
+              >
+                Tell me what happened (voice)
+              </button>
+              <span style={{ fontSize: 11, color: '#94a3b8', alignSelf: 'center' }}>or choose fields below</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#475569' }}>Action type</label>
+              <select
+                value={carrierForm.action_type}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setCarrierForm((f) => ({
+                    ...f,
+                    action_type: v,
+                    action_label: f.action_label || defaultLabelForAction(v),
+                  }));
+                }}
+                style={{ padding: 8, borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }}
+              >
+                {CARRIER_ACTION_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#475569' }}>Short label (editable)</label>
+              <input
+                value={carrierForm.action_label}
+                onChange={(e) => setCarrierForm((f) => ({ ...f, action_label: e.target.value }))}
+                placeholder={defaultLabelForAction(carrierForm.action_type)}
+                style={{ padding: 8, borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }}
+              />
+              {['rebooking_offered', 'rebooking_completed'].includes(carrierForm.action_type) && (
+                <>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: '#475569' }}>New flight (optional)</label>
+                  <input
+                    value={carrierForm.new_flight}
+                    onChange={(e) => setCarrierForm((f) => ({ ...f, new_flight: e.target.value }))}
+                    placeholder="e.g. AC782"
+                    style={{ padding: 8, borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }}
+                  />
+                  <label style={{ fontSize: 11, fontWeight: 600, color: '#475569' }}>New departure (optional)</label>
+                  <input
+                    type="datetime-local"
+                    value={carrierForm.new_departure}
+                    onChange={(e) => setCarrierForm((f) => ({ ...f, new_departure: e.target.value }))}
+                    style={{ padding: 8, borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }}
+                  />
+                </>
+              )}
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#475569' }}>Value (optional)</label>
+              <input
+                value={carrierForm.value_amount}
+                onChange={(e) => setCarrierForm((f) => ({ ...f, value_amount: e.target.value }))}
+                placeholder="USD amount"
+                style={{ padding: 8, borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }}
+              />
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#475569' }}>Carrier reference (optional)</label>
+              <input
+                value={carrierForm.carrier_ref}
+                onChange={(e) => setCarrierForm((f) => ({ ...f, carrier_ref: e.target.value }))}
+                placeholder="PNR / file reference"
+                style={{ padding: 8, borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }}
+              />
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#475569' }}>Notes (optional)</label>
+              <textarea
+                value={carrierForm.notes}
+                onChange={(e) => setCarrierForm((f) => ({ ...f, notes: e.target.value }))}
+                rows={3}
+                style={{ padding: 8, borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13, resize: 'vertical' }}
+              />
+              {carrierError ? <p style={{ fontSize: 12, color: '#b91c1c', margin: 0 }}>{carrierError}</p> : null}
+              <button
+                type="button"
+                disabled={carrierSaving}
+                onClick={saveCarrierResponse}
+                style={{
+                  alignSelf: 'flex-start',
+                  padding: '9px 18px',
+                  background: carrierSaving ? '#93afd4' : '#1A2B4A',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: carrierSaving ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {carrierSaving ? 'Saving…' : 'Save carrier action'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div style={{ background: 'white', border: '0.5px solid #e8e8e8', borderRadius: 12, padding: '14px 16px' }}>
+          {carrierResponses.length === 0 ? (
+            <p style={{ fontSize: 13, color: '#94a3b8', margin: 0 }}>No carrier actions recorded yet.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {carrierResponses.map((cr: any) => (
+                <div
+                  key={cr.response_id}
+                  style={{
+                    padding: '10px 12px',
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: 10,
+                  }}
+                >
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#1A2B4A' }}>{cr.action_label}</p>
+                  <p style={{ margin: '4px 0 0', fontSize: 11, color: '#64748b' }}>
+                    {cr.action_type?.replace(/_/g, ' ')}
+                    {cr.value_amount != null ? ` · ${cr.currency_code || 'USD'} ${cr.value_amount}` : ''}
+                    {cr.carrier_ref ? ` · Ref ${cr.carrier_ref}` : ''}
+                  </p>
+                  <p style={{ margin: '4px 0 0', fontSize: 11, color: '#94a3b8' }}>
+                    {cr.created_at ? new Date(cr.created_at).toLocaleString() : ''}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -429,6 +808,11 @@ export default function IncidentDetailPage() {
             </button>
           ) : null}
         </div>
+        {advanceError && (
+          <p style={{ fontSize: 12, color: '#dc2626', margin: '10px 0 0', lineHeight: 1.5 }}>
+            {advanceError}
+          </p>
+        )}
         {!canRoute && !canAdvance && status !== 'CLOSED' && status !== 'SUBMITTED' && (
           <p style={{ fontSize: 12, color: '#aaa', margin: '10px 0 0', lineHeight: 1.5 }}>
             Add evidence or a narration above to advance this incident toward claim routing.
@@ -529,6 +913,45 @@ export default function IncidentDetailPage() {
             </p>
           </div>
         </div>
+      )}
+
+      {carrierVoiceOpen && user && showCarrierForm && (
+        <>
+          <div
+            role="presentation"
+            style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', zIndex: 85 }}
+            onClick={() => setCarrierVoiceOpen(false)}
+          />
+          <VoiceNarrationPanel
+            context="carrier_response"
+            accountId={user.id}
+            tripId={tripId}
+            incidentId={incidentId}
+            onCancel={() => setCarrierVoiceOpen(false)}
+            onFieldsConfirmed={(fields) => {
+              const at = typeof fields.action_type === 'string' ? fields.action_type : '';
+              const valid = CARRIER_ACTION_TYPES.some((x) => x.value === at);
+              setCarrierForm((f) => ({
+                ...f,
+                action_type: valid ? at : f.action_type,
+                action_label:
+                  typeof fields.action_label === 'string' && fields.action_label.trim()
+                    ? fields.action_label.trim()
+                    : valid
+                      ? defaultLabelForAction(at)
+                      : f.action_label,
+                value_amount:
+                  typeof fields.value_amount === 'number' && Number.isFinite(fields.value_amount)
+                    ? String(fields.value_amount)
+                    : f.value_amount,
+                new_flight: typeof fields.new_flight === 'string' ? fields.new_flight : f.new_flight,
+                new_departure: typeof fields.new_departure === 'string' ? fields.new_departure : f.new_departure,
+                notes: typeof fields.notes === 'string' ? fields.notes : f.notes,
+              }));
+              setCarrierVoiceOpen(false);
+            }}
+          />
+        </>
       )}
 
       <style>{`

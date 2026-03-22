@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
+import { MFAChallenge } from '@/components/auth/MFAChallenge';
 
 export default function SignInPage() {
   const { user, loading: authLoading } = useAuth();
@@ -17,13 +18,23 @@ export default function SignInPage() {
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [show, setShow] = useState(false);
+  const [phase, setPhase] = useState<'password' | 'mfa'>('password');
+  const [mfaBlocked, setMfaBlocked] = useState(false);
+  const TERMS_KEY = 'wayfarer_terms_consent_v1';
 
-  // If already signed in, redirect immediately
   useEffect(() => {
-    if (!authLoading && user) {
+    if (typeof window === 'undefined') return;
+    const accepted = window.localStorage.getItem(TERMS_KEY) === '1';
+    if (!accepted) {
+      router.replace('/terms-consent?next=/signin');
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (!authLoading && user && phase === 'password') {
       router.replace('/trips');
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, phase]);
 
   useEffect(() => {
     return () => {
@@ -36,12 +47,41 @@ export default function SignInPage() {
     };
   }, []);
 
+  const recordLoginAttempt = async (success: boolean, email?: string) => {
+    try {
+      await fetch('/api/auth/login-attempt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'record',
+          success,
+          email: email || undefined,
+        }),
+      });
+    } catch {
+      /* non-fatal */
+    }
+  };
+
+  const completeSignInRedirect = () => {
+    setStatus('Success! Redirecting...');
+    if (submitWatchdogRef.current) {
+      window.clearTimeout(submitWatchdogRef.current);
+      submitWatchdogRef.current = null;
+    }
+    void recordLoginAttempt(true);
+    router.replace('/trips');
+    fallbackRedirectRef.current = window.setTimeout(() => {
+      window.location.assign('/trips');
+    }, 1500);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const email = (emailRef.current?.value || '').trim();
-    const password = passwordRef.current?.value || '';
+    const password = (passwordRef.current?.value || '');
     setError('');
-    setStatus('Signing in...');
+    setStatus('');
     setLoading(true);
     if (submitWatchdogRef.current) window.clearTimeout(submitWatchdogRef.current);
     submitWatchdogRef.current = window.setTimeout(() => {
@@ -53,6 +93,19 @@ export default function SignInPage() {
     }, 25_000);
 
     try {
+      const pre = await fetch('/api/auth/login-attempt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'precheck' }),
+      });
+      if (pre.status === 429) {
+        const j = (await pre.json().catch(() => ({}))) as { error?: string };
+        setError(j.error || 'Too many login attempts. Please try again later.');
+        setStatus('');
+        setLoading(false);
+        return;
+      }
+
       const signInResult = await Promise.race([
         supabase.auth.signInWithPassword({ email, password }),
         new Promise<never>((_, reject) =>
@@ -68,20 +121,29 @@ export default function SignInPage() {
         setError(msg);
         setStatus('');
         setLoading(false);
+        void recordLoginAttempt(false, email);
         return;
       }
 
       if (data.session) {
-        setStatus('Success! Redirecting...');
         if (submitWatchdogRef.current) {
           window.clearTimeout(submitWatchdogRef.current);
           submitWatchdogRef.current = null;
         }
-        router.replace('/trips');
-        // Safety net in case client router is blocked by extension scripts.
-        fallbackRedirectRef.current = window.setTimeout(() => {
-          window.location.assign('/trips');
-        }, 1500);
+        const { data: factors, error: lfErr } = await supabase.auth.mfa.listFactors();
+        if (lfErr) {
+          setError(lfErr.message);
+          setLoading(false);
+          return;
+        }
+        const hasTOTP = (factors?.totp?.length ?? 0) > 0;
+        if (hasTOTP) {
+          setPhase('mfa');
+          setLoading(false);
+          return;
+        }
+        completeSignInRedirect();
+        setLoading(false);
         return;
       }
 
@@ -93,13 +155,32 @@ export default function SignInPage() {
       setError(msg);
       setStatus('');
       setLoading(false);
-    } finally {
-      if (submitWatchdogRef.current) {
-        window.clearTimeout(submitWatchdogRef.current);
-        submitWatchdogRef.current = null;
-      }
     }
   };
+
+  if (phase === 'mfa') {
+    if (mfaBlocked) {
+      return (
+        <div style={{ fontFamily: 'system-ui, sans-serif', maxWidth: 400, margin: '80px auto', padding: '0 24px' }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1A2B4A' }}>Too many attempts</h1>
+          <p style={{ fontSize: 14, color: '#666', marginTop: 12 }}>
+            Please wait before trying again or contact support if you are locked out.
+          </p>
+          <Link href="/signin" style={{ display: 'inline-block', marginTop: 20, color: '#2E5FA3', fontWeight: 600 }}>
+            Start over
+          </Link>
+        </div>
+      );
+    }
+    return (
+      <div style={{ fontFamily: 'system-ui, sans-serif', maxWidth: 440, margin: '60px auto', padding: '0 24px' }}>
+        <MFAChallenge
+          onVerified={() => completeSignInRedirect()}
+          onExhaustedTries={() => setMfaBlocked(true)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif', maxWidth: 400, margin: '80px auto', padding: '0 24px' }}>
@@ -155,6 +236,9 @@ export default function SignInPage() {
       </p>
       <p style={{ marginTop: 10, textAlign: 'center', fontSize: 12, color: '#9ca3af', lineHeight: 1.5 }}>
         If Chrome with extensions hangs but Incognito works, disable extensions for this site and allow cookies/storage.
+      </p>
+      <p style={{ marginTop: 8, textAlign: 'center', fontSize: 12, color: '#9ca3af', lineHeight: 1.5 }}>
+        By continuing, you agree to our Terms and Privacy Policy.
       </p>
     </div>
   );

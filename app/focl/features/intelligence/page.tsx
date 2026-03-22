@@ -105,7 +105,7 @@ export default function FeatureIntelligencePage() {
         {/* Error state */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg px-5 py-4 text-sm text-red-700">
-            Failed to load feature registry: {error}
+            We could not load feature controls right now. Please refresh and try again.
           </div>
         )}
 

@@ -56,7 +56,7 @@ const FEATURE_SECTIONS = [
     tagColor: '#92400e',
     tagBg: '#fffbeb',
     title: 'Document everything while it\'s happening.',
-    desc: 'When a flight is delayed or luggage is lost, the clock starts immediately. Wayfarer\'s incident workspace keeps you organized — from initial narration through evidence upload to the moment your incident is documented and ready to route.',
+    desc: 'When a flight is delayed or luggage is lost, the clock starts immediately. Wayfarer\'s incident workspace keeps you organized — from initial narration through evidence upload to the moment your incident record is ready for filing.',
     bullets: [
       'Structured incident types: flight delay, cancellation, baggage, medical, and more',
       'Evidence upload with file type tracking (photo, receipt, carrier notice, medical)',
