@@ -18,11 +18,14 @@
     "e2e": "playwright test",
     "e2e:core:cross-browser": "playwright test tests/e2e/onboarding-gating-regression.spec.ts tests/e2e/policy-governance-e2e.spec.ts tests/e2e/doctrine-contracts.spec.ts --project=chromium-desktop --project=firefox-desktop --project=webkit-desktop",
     "e2e:quick-scan-determinism": "playwright test tests/e2e/quick-scan-determinism.spec.ts",
-    "e2e:contracts": "playwright test tests/e2e/pass9-idempotency-replay.spec.ts tests/e2e/claim-packet-contract.spec.ts tests/e2e/claim-route-happy-path.spec.ts tests/e2e/a1-rpc-auth-contract.spec.ts --project=chromium-desktop",
+    "e2e:contracts": "playwright test tests/e2e/pass9-idempotency-replay.spec.ts tests/e2e/claim-packet-contract.spec.ts tests/e2e/claim-route-happy-path.spec.ts tests/e2e/pipeline-coverage-golden-path.spec.ts tests/e2e/pipeline-step4-coverage-upload.spec.ts tests/e2e/a1-rpc-auth-contract.spec.ts --project=chromium-desktop",
+    "e2e:contracts:fresh": "node scripts/e2e/run-contracts-fresh-server.mjs",
     "e2e:contracts:required": "node scripts/e2e-contracts-required.mjs",
+    "e2e:step4:fresh": "node scripts/e2e/run-step4-fresh-server.mjs",
     "e2e:policy-governance": "playwright test tests/e2e/policy-governance-e2e.spec.ts --project=chromium-desktop",
     "e2e:claim-route-gate": "playwright test tests/e2e/claim-route-gate.spec.ts --project=chromium-desktop",
-    "e2e:claim-route": "playwright test tests/e2e/claim-route-gate.spec.ts tests/e2e/claim-route-happy-path.spec.ts --project=chromium-desktop"
+    "e2e:claim-route": "playwright test tests/e2e/claim-route-gate.spec.ts tests/e2e/claim-route-happy-path.spec.ts --project=chromium-desktop",
+    "e2e:draft-readiness": "playwright test tests/e2e/draft-readiness-gate.spec.ts --project=chromium-desktop"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -55,6 +58,7 @@
     "@radix-ui/react-toggle": "^1.1.0",
     "@radix-ui/react-toggle-group": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.2",
+    "@react-pdf/renderer": "^4.3.2",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.58.0",
     "@types/react": "18.2.22",
@@ -95,6 +99,7 @@
     "@types/node": "^25.3.5",
     "pdf-parse": "^2.4.5",
     "pdf-parse-fork": "^1.2.0",
-    "playwright": "^1.58.2"
+    "playwright": "^1.58.2",
+    "supabase": "^2.83.0"
   }
 }

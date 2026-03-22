@@ -1,6 +1,9 @@
+# App Router route handlers (/api/*, SSR) need the Netlify Next.js runtime (OpenNext).
+# In Site settings → Environment variables: do NOT set NETLIFY_NEXT_PLUGIN_SKIP=true
+# unless you intentionally use static export only (that skips serverless functions).
+
 [build]
-command = "npx next build"
-publish = ".next"
+command = "npm run build"
 
 [[plugins]]
 package = "@netlify/plugin-nextjs"

@@ -37,6 +37,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    serverComponentsExternalPackages: ['@react-pdf/renderer'],
+  },
   images: { unoptimized: true },
   async headers() {
     return [
