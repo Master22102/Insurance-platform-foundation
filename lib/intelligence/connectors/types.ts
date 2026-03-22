@@ -2,6 +2,7 @@ export type ScanTier = 'quick' | 'deep';
 
 export type IntelligenceAxis =
   | 'transit_reliability'
+  | 'coverage_itinerary_match'
   | 'regional_risk'
   | 'hyperlocal_weather'
   | 'hidden_opportunity'
@@ -22,6 +23,11 @@ export interface ConnectorContext {
   tripId?: string;
   itineraryHash?: string;
   locations?: string[];
+  /** Populated after Deep Scan so `coverage_itinerary_match` can summarize server signals. */
+  deepScanSnapshot?: {
+    policiesAnalyzed?: number;
+    signals?: Array<{ type?: string }>;
+  };
 }
 
 export interface AxisResult {

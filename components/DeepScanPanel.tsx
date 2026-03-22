@@ -10,6 +10,8 @@ import { AxisResult, initConnectorRegistry, runAxisConnectors } from '@/lib/inte
 import { CANONICAL_CONFIDENCE_LABELS, normalizeConfidenceLabel } from '@/lib/confidence/labels';
 import { formatUsd, PRICING } from '@/lib/config/pricing';
 import InterpretiveBoundaryNotice from '@/components/InterpretiveBoundaryNotice';
+import { computeCoverageGraphWithIntelligence } from '@/lib/pipeline/coverage-and-routing';
+import { validateRouteSegments, type RouteIssue } from '@/lib/route-validation';
 
 interface DeepScanPanelProps {
   trip: any;
@@ -279,6 +281,7 @@ export default function DeepScanPanel({ trip, onUnlock, onScanComplete }: DeepSc
     residence_country_code: string | null;
     residence_state_code: string | null;
   }>>([]);
+  const [routeScheduleIssues, setRouteScheduleIssues] = useState<RouteIssue[]>([]);
 
   const credits: number = trip.deep_scan_credits_remaining ?? 0;
   const activeGroupParticipants = groupParticipants.filter((p) => p.status === 'active');
@@ -326,7 +329,36 @@ export default function DeepScanPanel({ trip, onUnlock, onScanComplete }: DeepSc
       });
   }, [trip?.is_group_trip, trip?.trip_id]);
 
-  const runDeepScanConnectors = async (scanResult: any) => {
+  useEffect(() => {
+    if (!trip?.trip_id) {
+      setRouteScheduleIssues([]);
+      return;
+    }
+    supabase
+      .from('route_segments')
+      .select('*')
+      .eq('trip_id', trip.trip_id)
+      .order('sort_order', { ascending: true })
+      .then(({ data }) => {
+        const rows = data || [];
+        const inputs = rows.map((s: any) => ({
+          segment_id: s.segment_id,
+          segment_type: s.segment_type,
+          origin: s.origin,
+          destination: s.destination,
+          depart_at: s.depart_at,
+          arrive_at: s.arrive_at,
+          sort_order: s.sort_order,
+        }));
+        const { issues } = validateRouteSegments(inputs, {
+          tripDepartureDate: trip.departure_date,
+          tripReturnDate: trip.return_date,
+        });
+        setRouteScheduleIssues(issues);
+      });
+  }, [trip?.trip_id, trip?.departure_date, trip?.return_date]);
+
+  const runDeepScanConnectors = async (scanResult: any, jobQueueId?: string | null) => {
     const destinationText = String(trip?.destination_summary || '');
     const isInternational =
       /\b(uk|france|germany|japan|italy|spain|portugal|greece|canada|mexico|brazil|thailand|singapore|korea|india|china|australia|new zealand)\b/i.test(destinationText);
@@ -346,19 +378,35 @@ export default function DeepScanPanel({ trip, onUnlock, onScanComplete }: DeepSc
       tripId: trip?.trip_id,
       itineraryHash: trip?.itinerary_hash || undefined,
       locations,
+      deepScanSnapshot: {
+        policiesAnalyzed: typeof scanResult?.policies_analyzed === 'number' ? scanResult.policies_analyzed : undefined,
+        signals: Array.isArray(scanResult?.signals) ? scanResult.signals : undefined,
+      },
     });
     setAxisResults(connectorResults);
+
+    if (user?.id && trip?.trip_id && jobQueueId) {
+      const { error: persistErr } = await supabase.from('scan_connector_axis_results').insert({
+        trip_id: trip.trip_id,
+        account_id: user.id,
+        job_queue_id: jobQueueId,
+        axis_results: connectorResults as unknown as object,
+      });
+      if (persistErr) {
+        console.warn('[scan_connector_axis_results] persist failed', persistErr);
+      }
+    }
   };
 
-  // Load most recent completed scan for this trip
+  // Load most recent completed deep scan for this trip (`initiate_deep_scan` uses `job_queue.id` as `scan_id`).
   useEffect(() => {
     if (!trip.trip_id) return;
     supabase
-      .from('scan_jobs')
-      .select('scan_id, scan_status, created_at, result_id')
-      .eq('trip_id', trip.trip_id)
-      .eq('scan_type', 'deep')
-      .eq('scan_status', 'completed')
+      .from('job_queue')
+      .select('id, status, metadata, created_at, payload')
+      .eq('job_type', 'deep_scan')
+      .eq('status', 'completed')
+      .contains('payload', { trip_id: trip.trip_id })
       .order('created_at', { ascending: false })
       .limit(1)
       .then(({ data }) => {
@@ -369,6 +417,7 @@ export default function DeepScanPanel({ trip, onUnlock, onScanComplete }: DeepSc
 
   const runDeepScan = async () => {
     if (!user || !confirmed) return;
+    const actorId = user.id;
     setScanning(true);
     setError('');
     setMsgIdx(0);
@@ -414,46 +463,85 @@ export default function DeepScanPanel({ trip, onUnlock, onScanComplete }: DeepSc
 
       setProgress(95);
 
-      // Poll for scan completion
-      const scanId = data.scan_id;
+      // Poll for scan completion (`scan_id` from RPC is `job_queue.id`).
+      const scanId = data.scan_id as string;
+
+      if (process.env.NEXT_PUBLIC_E2E_DEEP_SCAN_AUTOCOMPLETE === '1') {
+        void fetch('/api/e2e/complete-deep-scan-job', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ job_id: scanId }),
+        }).catch(() => {});
+      }
+
       let attempts = 0;
-      const poll = setInterval(async () => {
+      const pollOnce = async () => {
         attempts++;
-        const { data: jobData } = await supabase
-          .from('scan_jobs')
-          .select('scan_status, result_id')
-          .eq('scan_id', scanId)
-          .maybeSingle();
+        try {
+          const { data: jobData } = await supabase
+            .from('job_queue')
+            .select('status, metadata')
+            .eq('id', scanId)
+            .eq('job_type', 'deep_scan')
+            .maybeSingle();
 
-        if (jobData?.scan_status === 'completed') {
-          clearInterval(poll);
-          setProgress(100);
+          const st = String(jobData?.status || '').toLowerCase();
 
-          // Try to load scan result
-          if (jobData.result_id) {
-            const { data: scanResult } = await supabase
-              .from('scan_results')
-              .select('*')
-              .eq('result_id', jobData.result_id)
-              .maybeSingle();
-            const finalResult = scanResult || { scan_id: scanId, policies_analyzed: 0, signals: [] };
+          if (st === 'completed') {
+            setProgress(100);
+            const meta = (jobData?.metadata && typeof jobData.metadata === 'object'
+              ? jobData.metadata
+              : {}) as Record<string, unknown>;
+            const deep = meta.deep_scan_result;
+            const finalResult =
+              deep && typeof deep === 'object' && !Array.isArray(deep)
+                ? { ...(deep as Record<string, unknown>), scan_id: scanId }
+                : { scan_id: scanId, policies_analyzed: 0, signals: [] };
+
             setResult(finalResult);
-            await runDeepScanConnectors(finalResult);
-          } else {
-            const finalResult = { scan_id: scanId, policies_analyzed: 0, signals: [] };
-            setResult(finalResult);
-            await runDeepScanConnectors(finalResult);
+            await runDeepScanConnectors(finalResult, scanId);
+
+            if (trip?.trip_id) {
+              void computeCoverageGraphWithIntelligence(supabase, trip.trip_id, actorId).then((res) => {
+                if (!res.ok) {
+                  console.warn('[compute_coverage_graph after deep scan]', res.message);
+                }
+              });
+            }
+
+            setScanning(false);
+            setConfirmed(false);
+            onScanComplete?.();
+            return true;
           }
 
-          setScanning(false);
-          setConfirmed(false);
-          onScanComplete?.();
-        } else if (jobData?.scan_status === 'failed' || attempts > 30) {
-          clearInterval(poll);
-          setError('The scan did not complete this time. If a credit was used for this attempt, it will be restored automatically. Please try again.');
-          setScanning(false);
+          if (st === 'failed' || attempts > 30) {
+            setError(
+              'The scan did not complete this time. If a credit was used for this attempt, it will be restored automatically. Please try again.',
+            );
+            setScanning(false);
+            return true;
+          }
+          return false;
+        } catch {
+          if (attempts > 30) {
+            setError(
+              'The scan did not complete this time. If a credit was used for this attempt, it will be restored automatically. Please try again.',
+            );
+            setScanning(false);
+            return true;
+          }
+          return false;
         }
-      }, 4000);
+      };
+
+      void (async () => {
+        if (await pollOnce()) return;
+        const poll = setInterval(async () => {
+          if (await pollOnce()) clearInterval(poll);
+        }, 2000);
+      })();
 
     } catch {
       clearInterval(cycle);
@@ -675,7 +763,18 @@ export default function DeepScanPanel({ trip, onUnlock, onScanComplete }: DeepSc
           </div>
           <button
             onClick={async () => {
-              if (!latestScan.result_id) return;
+              const meta = (latestScan?.metadata && typeof latestScan.metadata === 'object'
+                ? latestScan.metadata
+                : null) as Record<string, unknown> | null;
+              const deep = meta?.deep_scan_result;
+              if (deep && typeof deep === 'object' && !Array.isArray(deep)) {
+                const jobId = latestScan?.id as string | undefined;
+                const payload = { ...(deep as Record<string, unknown>), scan_id: jobId };
+                setResult(payload);
+                await runDeepScanConnectors(payload, jobId ?? null);
+                return;
+              }
+              if (!latestScan?.result_id) return;
               const { data } = await supabase
                 .from('scan_results')
                 .select('*')
@@ -683,7 +782,7 @@ export default function DeepScanPanel({ trip, onUnlock, onScanComplete }: DeepSc
                 .maybeSingle();
               if (data) {
                 setResult(data);
-                await runDeepScanConnectors(data);
+                await runDeepScanConnectors(data, latestScan?.scan_id ?? latestScan?.id ?? null);
               }
             }}
             style={{
@@ -794,6 +893,22 @@ export default function DeepScanPanel({ trip, onUnlock, onScanComplete }: DeepSc
               You&apos;ll use 1 Deep Scan credit. You have {credits} left for this trip.
             </p>
           </div>
+          {routeScheduleIssues.some((i) => i.severity === 'blocker') ? (
+            <div
+              style={{
+                marginBottom: 12,
+                padding: '10px 12px',
+                background: '#fffbeb',
+                border: '1px solid #fde68a',
+                borderRadius: 8,
+              }}
+            >
+              <p style={{ margin: 0, fontSize: 12, color: '#92400e', lineHeight: 1.55 }}>
+                Your route has schedule conflicts. You can still run Deep Scan, but results may be less accurate until
+                those times line up.
+              </p>
+            </div>
+          ) : null}
           <label style={{
             display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer',
             marginBottom: 16,

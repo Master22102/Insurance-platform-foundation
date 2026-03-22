@@ -5,7 +5,9 @@ import { createServiceRoleClient } from '@/lib/supabase/service-role';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-async function requireFounder(request: NextRequest) {
+type FounderGate = { error: NextResponse } | { userId: string };
+
+async function requireFounder(request: NextRequest): Promise<FounderGate> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!supabaseUrl || !supabaseAnon) {
@@ -32,9 +34,11 @@ async function requireFounder(request: NextRequest) {
 }
 
 /** GET summary + recent flagged rows for FOCL AI monitor */
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const gate = await requireFounder(request);
-  if ('error' in gate) return gate.error;
+  if ('error' in gate) {
+    return gate.error;
+  }
 
   const admin = createServiceRoleClient();
   if (!admin) {

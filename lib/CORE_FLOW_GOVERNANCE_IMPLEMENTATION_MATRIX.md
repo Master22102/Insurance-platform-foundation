@@ -60,6 +60,7 @@ This matrix converts Sections `3.0`, `3.1`, `3.2`, `3.3`, `3.4`, `3.5`, `3.6`, a
   - Incident creation with atomic CCO + evidence gate + routing recommendation versioning
   - Claim sequencing chain (incident -> claim packet(s) -> outcomes)
   - Statutory rights branch tests (EU261/DOT/Montreal) with deterministic fixtures
+- **Pipeline truth (trip → graph → `route_claim`):** See **`docs/CORE_PIPELINE_STATUS.md`**. **App:** `compute_coverage_graph` + `route_claim` run from the claim-route flow; deep scan triggers graph build best-effort; **`tests/e2e/pipeline-coverage-golden-path.spec.ts`** asserts graph + routing + packet (needs DB migration **`20260326120000_e2e_seed_minimal_coverage_for_trip.sql`**). **`docs/INVOKE_COVERAGE_GRAPH_DECISION.md`** — `invoke_coverage_graph` vs `compute_coverage_graph`.
 
 ## Next Three Build Slices (Execution Order)
 

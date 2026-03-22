@@ -4,6 +4,8 @@
 
 `/lib/business-logic.ts` is the **single source of truth** for all state machine rules and state transitions in the reliability orchestration system.
 
+**Scope note:** This module covers **orchestration / incident status** patterns used by the app. **Claim routing v2** (coverage graph + `route_claim`) lives in **Postgres** and is documented in **`lib/CLAIM_ROUTING_ENGINE_USAGE.md`** with product wiring status in **`docs/CORE_PIPELINE_STATUS.md`**. Do not assume every transition here matches the routing engine’s maturity rules without checking migrations.
+
 **Critical Design Principles:**
 - All state transitions are **transactional** (state update + event_logs insert succeed or fail together)
 - API routes **MUST** call functions from this module and **MUST NOT** duplicate rules
@@ -29,7 +31,7 @@ We use **Postgres RPC functions** (Option A) to guarantee atomicity:
 
 ## Database Functions
 
-Located in migration: `00002_business_logic_functions.sql`
+RPCs evolve across **`supabase/migrations/`** (and bundled SQL). The filename **`00002_business_logic_functions.sql`** is **historical** in this doc; search migrations for the function name you need.
 
 ### Helper Functions
 

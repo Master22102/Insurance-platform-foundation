@@ -56,6 +56,17 @@ export function rateLimitedJsonResponse(
   );
 }
 
+/** Per-user fixed window (same store as IP limits; key isolates by user id + route slug). */
+export function userRateLimitedJsonResponse(
+  userId: string,
+  route: string,
+  maxRequests: number,
+  windowMs: number,
+): NextResponse | null {
+  const key = `user:${userId}:${route}`;
+  return rateLimitedJsonResponse(key, maxRequests, windowMs);
+}
+
 /** Client IP for rate-limit keys (best effort behind proxies). */
 export function clientIpFromRequest(request: Request): string {
   const forwarded = request.headers.get('x-forwarded-for');

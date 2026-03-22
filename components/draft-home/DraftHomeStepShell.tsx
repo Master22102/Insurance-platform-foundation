@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '@/lib/auth/supabase-client';
+import { useAuth } from '@/lib/auth/auth-context';
 
 function StepIndicator({ step, total }: { step: number; total: number }) {
   return (
@@ -18,6 +20,132 @@ function StepIndicator({ step, total }: { step: number; total: number }) {
         />
       ))}
     </div>
+  );
+}
+
+const DRAFT_STEPS: Array<{ step: number; href: (tripId: string) => string; label: string; short: string }> = [
+  { step: 1, href: (id) => `/trips/${id}/draft`, label: 'Home', short: 'Home' },
+  { step: 2, href: (id) => `/trips/${id}/draft/voice`, label: 'Capture', short: 'Voice' },
+  { step: 3, href: (id) => `/trips/${id}/draft/route`, label: 'Route', short: 'Route' },
+  { step: 4, href: (id) => `/trips/${id}/draft/activities`, label: 'Activities', short: 'Act.' },
+  { step: 5, href: (id) => `/trips/${id}/draft/unresolved`, label: 'Blockers', short: 'Block' },
+  { step: 6, href: (id) => `/trips/${id}/draft/readiness`, label: 'Readiness', short: 'Ready' },
+];
+
+function DraftFlowSubNav({ tripId, activeStep }: { tripId: string; activeStep: number }) {
+  const { user } = useAuth();
+  const [openBlockers, setOpenBlockers] = useState(0);
+  const [userOpenBlockers, setUserOpenBlockers] = useState(0);
+  const [maturity, setMaturity] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!tripId) return;
+    let cancelled = false;
+    supabase
+      .from('trips')
+      .select('maturity_state')
+      .eq('trip_id', tripId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setMaturity(data?.maturity_state ?? null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tripId]);
+
+  useEffect(() => {
+    if (!tripId || !user) {
+      setOpenBlockers(0);
+      setUserOpenBlockers(0);
+      return;
+    }
+    let cancelled = false;
+    Promise.all([
+      supabase
+        .from('unresolved_items')
+        .select('item_id', { count: 'exact', head: true })
+        .eq('trip_id', tripId)
+        .eq('is_resolved', false)
+        .eq('item_type', 'blocker'),
+      supabase
+        .from('unresolved_items')
+        .select('item_id', { count: 'exact', head: true })
+        .eq('trip_id', tripId)
+        .eq('is_resolved', false)
+        .eq('item_type', 'blocker')
+        .eq('source', 'user'),
+    ]).then(([all, usr]) => {
+      if (!cancelled) {
+        setOpenBlockers(all.count ?? 0);
+        setUserOpenBlockers(usr.count ?? 0);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [tripId, user]);
+
+  const isDraft = !maturity || maturity === 'DRAFT';
+  const lockReadiness = isDraft && userOpenBlockers > 0;
+
+  return (
+    <nav
+      aria-label="Draft workflow steps"
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 6,
+        marginBottom: 16,
+        padding: '10px 0',
+        borderBottom: '1px solid #eef2f7',
+      }}
+    >
+      {DRAFT_STEPS.map(({ step, href, short }) => {
+        const isActive = step === activeStep;
+        const isBlockers = step === 5;
+        const isReady = step === 6;
+        return (
+          <Link
+            key={step}
+            href={href(tripId)}
+            title={DRAFT_STEPS.find((s) => s.step === step)?.label}
+            style={{
+              fontSize: 11,
+              fontWeight: isActive ? 900 : 600,
+              padding: '6px 10px',
+              borderRadius: 8,
+              textDecoration: 'none',
+              border: `1px solid ${isActive ? '#1A2B4A' : '#e5e7eb'}`,
+              background: isActive ? '#eff4fc' : 'white',
+              color: isActive ? '#1A2B4A' : '#6b7280',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+            }}
+          >
+            {short}
+            {isBlockers && openBlockers > 0 ? (
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 900,
+                  background: '#f97316',
+                  color: 'white',
+                  borderRadius: 999,
+                  padding: '1px 6px',
+                  minWidth: 18,
+                  textAlign: 'center',
+                }}
+              >
+                {openBlockers}
+              </span>
+            ) : null}
+            {isReady && lockReadiness ? <span aria-hidden>🔒</span> : null}
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
 
@@ -84,10 +212,10 @@ export default function DraftHomeStepShell({
           )}
         </div>
         <StepIndicator step={step} total={total} />
+        {tripId ? <DraftFlowSubNav tripId={tripId} activeStep={step} /> : null}
       </div>
 
       {children}
     </div>
   );
 }
-

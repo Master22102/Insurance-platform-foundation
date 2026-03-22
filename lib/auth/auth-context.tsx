@@ -71,6 +71,27 @@ const defaultAuthContext: AuthContextType = {
 
 const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 
+const CLIENT_SESSION_KEY = 'wayfarer_client_session_id_v1';
+
+function touchTrackedSession() {
+  if (typeof window === 'undefined') return;
+  try {
+    let id = sessionStorage.getItem(CLIENT_SESSION_KEY);
+    if (!id) {
+      id = crypto.randomUUID();
+      sessionStorage.setItem(CLIENT_SESSION_KEY, id);
+    }
+    void fetch('/api/session/touch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ clientSessionId: id }),
+    });
+  } catch {
+    /* non-fatal */
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -88,7 +109,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) await fetchProfile(session.user.id);
+      if (session?.user) {
+        await fetchProfile(session.user.id);
+        touchTrackedSession();
+      }
       setLoading(false);
     }).catch(() => {
       setLoading(false);
@@ -99,6 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
       if (session?.user) {
         await fetchProfile(session.user.id);
+        touchTrackedSession();
       } else {
         setProfile(null);
       }

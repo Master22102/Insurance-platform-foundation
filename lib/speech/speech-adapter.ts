@@ -6,6 +6,8 @@ export type SpeechErrorCallback = (message: string) => void;
 export type SpeechStartOptions = {
   lang?: string;
   interimResults?: boolean;
+  /** When true, recognition runs until stop() or maxDurationMs (better for long narration). */
+  continuous?: boolean;
   maxDurationMs?: number;
   onTranscript: SpeechTranscriptCallback;
   onError: SpeechErrorCallback;

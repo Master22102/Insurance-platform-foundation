@@ -89,16 +89,48 @@ export async function syncTripDraftUnresolvedItems(params: {
   return data as any;
 }
 
+export type EvaluateTripReadinessResult = {
+  success?: boolean;
+  ready?: boolean;
+  error?: string;
+  /** Present when trip is not in DRAFT (see `evaluate_trip_readiness` RPC). */
+  current_state?: string;
+  blockers?: Array<{
+    item_type: string;
+    item_title?: string | null;
+    description?: string;
+    severity?: string;
+    fix_action?: string;
+    segment_id?: string;
+  }>;
+  issues?: unknown;
+  warning_count?: number;
+  blocker_count?: number;
+  segment_count?: number;
+};
+
 export async function evaluateTripReadiness(params: {
   tripId: string;
   actorId: string;
-}): Promise<{ success: boolean; ready: boolean; blockers: DraftHomeBlocker[] }>{
+}): Promise<EvaluateTripReadinessResult> {
   const { data, error } = await supabase.rpc('evaluate_trip_readiness', {
     p_trip_id: params.tripId,
     p_actor_id: params.actorId,
   });
   if (error) throw error;
-  return data as any;
+  return (data || {}) as EvaluateTripReadinessResult;
+}
+
+export async function confirmTripReadiness(params: {
+  tripId: string;
+  actorId: string;
+}): Promise<{ ok?: boolean; reason?: string; error?: string; evaluation?: EvaluateTripReadinessResult }> {
+  const { data, error } = await supabase.rpc('confirm_trip_readiness', {
+    p_trip_id: params.tripId,
+    p_actor_id: params.actorId,
+  });
+  if (error) throw error;
+  return (data || {}) as any;
 }
 
 export async function resolveTripDraftUnresolvedItem(params: {

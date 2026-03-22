@@ -6,7 +6,9 @@ import { userRateLimitedJsonResponse } from '@/lib/rate-limit/simple-memory';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-async function requireFounder(request: NextRequest) {
+type FounderGate = { error: NextResponse } | { userId: string };
+
+async function requireFounder(request: NextRequest): Promise<FounderGate> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!supabaseUrl || !supabaseAnon) {
@@ -33,9 +35,11 @@ async function requireFounder(request: NextRequest) {
 }
 
 /** GET — recent erasure log rows (service role). */
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const gate = await requireFounder(request);
-  if ('error' in gate) return gate.error;
+  if ('error' in gate) {
+    return gate.error;
+  }
 
   const admin = createServiceRoleClient();
   if (!admin) {
@@ -55,9 +59,11 @@ export async function GET(request: NextRequest) {
 }
 
 /** POST — operator-triggered erasure for a target account (legal / support). */
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   const gate = await requireFounder(request);
-  if ('error' in gate) return gate.error;
+  if ('error' in gate) {
+    return gate.error;
+  }
 
   const postLimited = userRateLimitedJsonResponse(gate.userId, 'focl-erasure-audit', 10, 15 * 60 * 1000);
   if (postLimited) return postLimited;

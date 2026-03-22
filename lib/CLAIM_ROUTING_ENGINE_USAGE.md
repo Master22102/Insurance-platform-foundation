@@ -4,6 +4,15 @@
 
 The Claim Routing Engine aligns incidents against coverage graphs to determine structural alignment, evaluates causality with dual-branch logic when uncertain, and produces sequenced guidance for claim submission.
 
+### Product integration status (read before implementing UX)
+
+- **Postgres:** `route_claim`, `compute_coverage_graph`, `advance_trip_maturity`, and related tables are **implemented** in migrations (see signatures below).
+- **Next.js app (wired):** On save, the **claim route page** runs **`compute_coverage_graph` → `route_claim` →** updates incident metadata (including `claim_routing_engine`) **→** `create_claim_packet_from_incident` **→** `change_incident_status` (`SUBMITTED`). **`DeepScanPanel`** also calls **`compute_coverage_graph`** after a successful deep scan (best-effort, logs warnings on failure). Helpers: **`lib/pipeline/coverage-and-routing.ts`**.
+- **`invoke_coverage_graph`** remains a **stub** in migrations (feature-gated / “implementation pending”); the product path uses **`compute_coverage_graph`** directly. **Decision record:** **`docs/INVOKE_COVERAGE_GRAPH_DECISION.md`**.
+- **End-to-end tests:** **`pipeline-coverage-golden-path.spec.ts`** + **`claim-route-happy-path.spec.ts`** cover graph + **`route_claim`** + packet (**seeded** policies via **`e2e_seed_minimal_coverage_for_trip`**). **Full** trip→scan→extraction→graph browser chain is still **roadmap step 4** in **`docs/CORE_PIPELINE_STATUS.md`**.
+
+The **code samples below** match the RPC shapes used by the app helpers.
+
 ## Architecture
 
 The routing engine follows these steps:

@@ -19,6 +19,7 @@ function staticFallbackProvider(axis: IntelligenceAxis, source: string): AxisPro
 
 const providers: Record<IntelligenceAxis, AxisProvider> = {
   transit_reliability: staticFallbackProvider('transit_reliability', 'internal-fallback'),
+  coverage_itinerary_match: staticFallbackProvider('coverage_itinerary_match', 'internal-fallback'),
   regional_risk: staticFallbackProvider('regional_risk', 'internal-fallback'),
   hyperlocal_weather: staticFallbackProvider('hyperlocal_weather', 'internal-fallback'),
   hidden_opportunity: staticFallbackProvider('hidden_opportunity', 'internal-fallback'),
@@ -43,6 +44,7 @@ export function selectAxesForContext(context: ConnectorContext): IntelligenceAxi
   // Deep-scan axis gating: 1-8 always, 9-10 international, 11 signal-triggered.
   const base: IntelligenceAxis[] = [
     'transit_reliability',
+    'coverage_itinerary_match',
     'regional_risk',
     'hyperlocal_weather',
     'hidden_opportunity',

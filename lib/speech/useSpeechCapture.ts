@@ -8,6 +8,7 @@ import type { SpeechCaptureAdapter } from './speech-adapter';
 type UseSpeechCaptureOptions = {
   lang?: string;
   interimResults?: boolean;
+  continuous?: boolean;
   maxDurationMs?: number;
   onTranscript?: SpeechTranscriptCallback;
   onError?: (message: string) => void;
@@ -22,6 +23,8 @@ export function useSpeechCapture(options: UseSpeechCaptureOptions = {}) {
   const [error, setError] = useState('');
 
   const lastTranscriptRef = useRef('');
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
   useEffect(() => {
     setSupported(adapter.supported);
@@ -30,10 +33,11 @@ export function useSpeechCapture(options: UseSpeechCaptureOptions = {}) {
   const stopRef = useRef<() => void>(() => {});
 
   const start = useCallback(() => {
+    const opts = optionsRef.current;
     if (!adapter.supported) {
       const msg = 'Speech-to-text is not available in this browser. Please type your expectations.';
       setError(msg);
-      options.onError?.(msg);
+      opts.onError?.(msg);
       return;
     }
     setError('');
@@ -41,26 +45,26 @@ export function useSpeechCapture(options: UseSpeechCaptureOptions = {}) {
     let stopped = false;
 
     adapter.start({
-      lang: options.lang,
-      interimResults: options.interimResults ?? true,
-      maxDurationMs: options.maxDurationMs,
+      lang: opts.lang,
+      interimResults: opts.interimResults ?? true,
+      continuous: opts.continuous,
+      maxDurationMs: opts.maxDurationMs,
       onTranscript: (text, isFinal) => {
         if (stopped) return;
         lastTranscriptRef.current = text;
         setStatus('listening');
-        options.onTranscript?.(text, isFinal);
-        // We keep status as listening; the UI can treat isFinal as "captured".
+        opts.onTranscript?.(text, isFinal);
       },
       onError: (message) => {
         if (stopped) return;
         setError(message);
         setStatus('idle');
-        options.onError?.(message);
+        opts.onError?.(message);
       },
       onEnd: () => {
         if (stopped) return;
         setStatus('idle');
-        options.onEnd?.();
+        opts.onEnd?.();
       },
     });
 
@@ -72,7 +76,7 @@ export function useSpeechCapture(options: UseSpeechCaptureOptions = {}) {
         setStatus('idle');
       }
     };
-  }, [adapter, options]);
+  }, [adapter]);
 
   const stop = useCallback(() => {
     stopRef.current();

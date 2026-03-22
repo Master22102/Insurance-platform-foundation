@@ -52,7 +52,7 @@ export function createWebSpeechAdapter(): SpeechCaptureAdapter {
 
       recognitionInstance.lang = opts.lang || 'en-US';
       recognitionInstance.interimResults = opts.interimResults ?? true;
-      recognitionInstance.continuous = false;
+      recognitionInstance.continuous = opts.continuous ?? false;
       recognitionInstance.maxAlternatives = 1;
 
       recognitionInstance.onresult = (event: any) => {

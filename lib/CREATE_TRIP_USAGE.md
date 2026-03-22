@@ -247,7 +247,7 @@ const { data, error } = await supabase.rpc('create_trip', {
 
 - `create_incident()` - Create incident for a trip (uses trip_id, not project_id)
 - `register_evidence()` - Attach evidence to incident
-- `compute_coverage_graph()` - Compute coverage for trip
+- `compute_coverage_graph()` - Compute coverage for trip (RPC exists in DB; **trip creation does not call it** — wire separately when building the full pipeline; see **`docs/CORE_PIPELINE_STATUS.md`**)
 
 ## Testing
 
