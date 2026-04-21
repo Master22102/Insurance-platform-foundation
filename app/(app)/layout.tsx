@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -73,141 +73,17 @@ const NAV_LINKS = [
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, loading } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
-  const [anchorSelectedInSession, setAnchorSelectedInSession] = useState(false);
-  const [platformMode, setPlatformMode] = useState<string>('NORMAL');
-  const isOnboardingRoute = pathname?.startsWith('/onboarding');
-  const isGetStartedRoute = pathname?.startsWith('/get-started');
-  const hasAnchorSelection =
-    profile?.preferences?.onboarding?.anchor_selection?.completed === true;
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const syncAnchorFlag = () => {
-      const inSession = window.sessionStorage.getItem('wayfarer_anchor_selected') === '1';
-      setAnchorSelectedInSession(inSession);
-    };
-
-    syncAnchorFlag();
-    window.addEventListener('storage', syncAnchorFlag);
-    return () => window.removeEventListener('storage', syncAnchorFlag);
-  }, [pathname]);
-
-  useEffect(() => {
-    if (!loading) {
-      setLoadingTimedOut(false);
-      return;
-    }
-    const timeout = window.setTimeout(() => {
-      setLoadingTimedOut(true);
-    }, 15000);
-    return () => window.clearTimeout(timeout);
-  }, [loading]);
 
   useEffect(() => {
     if (!loading && !user) {
       router.replace(`/signin?return_url=${encodeURIComponent(pathname)}`);
     }
-  }, [user, loading, pathname, router]);
-
-  useEffect(() => {
-    if (loading || !user) return;
-    let cancelled = false;
-    const run = async () => {
-      const res = await fetch('/api/platform/posture', { cache: 'no-store' }).catch(() => null);
-      const body = res ? await res.json().catch(() => null) : null;
-      if (cancelled) return;
-      if (res?.ok && body?.mode) {
-        setPlatformMode(String(body.mode));
-      }
-    };
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [loading, user]);
-
-  useEffect(() => {
-    if (loading || !user) return;
-    if (pathname?.startsWith('/onboarding')) return;
-    // Keep the navigation surface locked until onboarding is completed.
-    // New accounts can briefly have no loaded profile row yet; treat that as
-    // onboarding-incomplete so users cannot bypass the onboarding flow.
-    if (!profile || profile.onboarding_completed !== true) {
-      router.replace('/onboarding');
-    }
-  }, [user, profile, loading, pathname, router]);
-
-  // NOTE: `/get-started` is the onboarding landing experience, not a persistent
-  // app-wide lock. We intentionally avoid forcing global redirects here because
-  // they can interrupt deep links and in-progress flows.
+  }, [user, loading, pathname]);
 
   if (loading) {
-    if (loadingTimedOut) {
-      return (
-        <div style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: '#fafafa',
-          padding: 20,
-          fontFamily: 'system-ui, -apple-system, sans-serif',
-        }}>
-          <div style={{
-            width: '100%',
-            maxWidth: 460,
-            background: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: 14,
-            padding: 20,
-            textAlign: 'center',
-          }}>
-            <h2 style={{ margin: '0 0 8px', fontSize: 18, color: '#1A2B4A' }}>
-              Still loading your session
-            </h2>
-            <p style={{ margin: '0 0 16px', fontSize: 13, color: '#666', lineHeight: 1.5 }}>
-              This can happen when browser storage or cookies are blocked. You can safely retry.
-            </p>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <button
-                onClick={() => window.location.reload()}
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: 10,
-                  border: 'none',
-                  background: '#1A2B4A',
-                  color: 'white',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                Retry loading
-              </button>
-              <Link
-                href="/signin"
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: 10,
-                  border: '1px solid #e5e7eb',
-                  background: 'white',
-                  color: '#374151',
-                  textDecoration: 'none',
-                  fontSize: 13,
-                  fontWeight: 700,
-                }}
-              >
-                Go to sign in
-              </Link>
-            </div>
-          </div>
-        </div>
-      );
-    }
     return (
       <div style={{
         minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -299,26 +175,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div style={{ maxWidth: 1080, margin: '0 auto', padding: '32px 24px 120px' }}
           className="main-content-padding"
         >
-          {platformMode === 'PROTECTIVE' && (
-            <div style={{
-              marginBottom: 14,
-              background: '#fff7ed',
-              border: '1px solid #fdba74',
-              color: '#9a3412',
-              borderRadius: 10,
-              padding: '10px 12px',
-              fontSize: 13,
-              lineHeight: 1.5,
-            }}>
-              <strong style={{ fontWeight: 700 }}>Safe mode active</strong> — Some advanced features are temporarily unavailable while we protect your data. Core planning, incident capture, and evidence workflows remain available.
-            </div>
-          )}
           {children}
         </div>
       </main>
 
       {/* Mobile bottom tab bar */}
-      {!isOnboardingRoute && !isGetStartedRoute && (
       <nav style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         height: 72, background: 'rgba(255,255,255,0.96)',
@@ -353,13 +214,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           );
         })}
       </nav>
-      )}
 
       <style>{`
         @media (min-width: 1024px) {
-          .hidden-mobile { display: ${isOnboardingRoute || isGetStartedRoute ? 'none' : 'flex'} !important; }
+          .hidden-mobile { display: flex !important; }
           .mobile-tab-bar { display: none !important; }
-          .main-with-sidebar { margin-left: ${isOnboardingRoute || isGetStartedRoute ? '0' : '240px'}; }
+          .main-with-sidebar { margin-left: 240px; }
           .main-content-padding { padding-bottom: 32px !important; }
         }
         @media (max-width: 1023px) {

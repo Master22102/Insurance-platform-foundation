@@ -554,7 +554,7 @@ function NarrateScreen({ onDone, onBack, tripType }) {
               <div style={{ background: "#f9fafb", border: "1px solid #f0f0f0", borderRadius: 14, padding: "10px 14px", width: "100%", boxSizing: "border-box" }}>
                 <p style={{ fontSize: 10, fontWeight: 600, color: "#9ca3af", margin: "0 0 5px", textTransform: "uppercase", letterSpacing: "0.06em" }}>Try saying</p>
                 <p style={{ fontSize: 12, color: "#555", margin: 0, lineHeight: 1.6, fontStyle: "italic" }}>
-                  &quot;My trip to Portugal, flying JFK to Lisbon on June 12th on TAP Air Portugal, then a short hop to Porto on June 18th. Maria is coming too.&quot;
+                  "My trip to Portugal, flying JFK to Lisbon on June 12th on TAP Air Portugal, then a short hop to Porto on June 18th. Maria is coming too."
                 </p>
               </div>
             )}
@@ -1426,7 +1426,7 @@ function AddCompanionSheet({ onDismiss }) {
           {tab === "email" ? (
             <div>
               <p style={{ fontSize: 11, color: "#6b7280", margin: "0 0 10px", lineHeight: 1.5 }}>
-                Enter your companion&apos;s email to add them as a placeholder. You can send a formal invite later from the Travelers tab.
+                Enter your companion's email to add them as a placeholder. You can send a formal invite later from the Travelers tab.
               </p>
               <input
                 type="email"

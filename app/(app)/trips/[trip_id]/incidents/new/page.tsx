@@ -5,20 +5,6 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
-import VoiceNarrationPanel from '@/components/voice/VoiceNarrationPanel';
-
-function mapVoiceDisruptionToKey(v: unknown): string {
-  if (typeof v !== 'string') return '';
-  const m: Record<string, string> = {
-    delay: 'flight_delay',
-    cancellation: 'flight_cancellation',
-    missed_connection: 'missed_connection',
-    denied_boarding: 'denied_boarding',
-    baggage: 'baggage_issue',
-    other: 'other',
-  };
-  return m[v.toLowerCase()] || '';
-}
 
 const DISRUPTION_TYPES = [
   {
@@ -111,8 +97,6 @@ export default function NewIncidentPage() {
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [voiceOpen, setVoiceOpen] = useState(false);
-  const [voiceExtraMeta, setVoiceExtraMeta] = useState<Record<string, unknown>>({});
 
   const handleDisruptionSelect = (key: string) => {
     setDisruption(key);
@@ -129,13 +113,12 @@ export default function NewIncidentPage() {
     setLoading(true);
 
     const { data, error: rpcError } = await supabase.rpc('create_incident', {
-      p_trip_id: tripId,
+      p_project_id: tripId,
       p_title: title.trim(),
-      p_description: description.trim() || '',
+      p_description: description.trim() || null,
       p_classification: 'External',
       p_control_type: 'External',
-      // create_incident() stores disruption_type via metadata for the incident intake UI.
-      p_metadata: { disruption_type: disruption || null, ...voiceExtraMeta },
+      p_disruption_type: disruption || null,
       p_actor_id: user!.id,
       p_idempotency_key: `incident-${Date.now()}`,
     });
@@ -167,35 +150,12 @@ export default function NewIncidentPage() {
         borderRadius: 10, padding: '12px 16px', marginBottom: 24,
         fontSize: 14, color: '#1e40af', lineHeight: 1.5,
       }}>
-        We&apos;ll help you document this clearly and understand your options.
+        We'll help you document this clearly and understand your options.
       </div>
 
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1A2B4A', margin: '0 0 12px', letterSpacing: '-0.3px' }}>
+      <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1A2B4A', margin: '0 0 24px', letterSpacing: '-0.3px' }}>
         What happened?
       </h1>
-      <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 16px', lineHeight: 1.5 }}>
-        Describe in your own words, or use voice — we&apos;ll show a draft you can edit before you continue.
-      </p>
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
-        <button
-          type="button"
-          onClick={() => user && setVoiceOpen(true)}
-          disabled={!user}
-          style={{
-            padding: '10px 16px',
-            borderRadius: 10,
-            border: '1px solid #fecaca',
-            background: '#fff1f2',
-            color: '#9f1239',
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: user ? 'pointer' : 'not-allowed',
-          }}
-        >
-          Narrate what happened
-        </button>
-        <span style={{ fontSize: 12, color: '#94a3b8', alignSelf: 'center' }}>or fill the form below</span>
-      </div>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         <div>
@@ -293,41 +253,6 @@ export default function NewIncidentPage() {
           {loading ? 'Creating…' : 'Start documenting'}
         </button>
       </form>
-
-      {voiceOpen && user && (
-        <>
-          <div
-            role="presentation"
-            style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', zIndex: 70 }}
-            onClick={() => setVoiceOpen(false)}
-            onKeyDown={() => {}}
-          />
-          <VoiceNarrationPanel
-            context="incident_create"
-            accountId={user.id}
-            tripId={tripId}
-            onCancel={() => setVoiceOpen(false)}
-            onFieldsConfirmed={(fields) => {
-              const t = typeof fields.title === 'string' ? fields.title.trim() : '';
-              const d = typeof fields.description === 'string' ? fields.description.trim() : '';
-              if (t) setTitle(t);
-              if (d) setDescription(d);
-              const dt = mapVoiceDisruptionToKey(fields.disruption_type);
-              if (dt) {
-                setDisruption(dt);
-                handleDisruptionSelect(dt);
-              }
-              const exp = fields.estimated_expenses;
-              if (typeof exp === 'number' && Number.isFinite(exp)) {
-                setVoiceExtraMeta({ estimated_expenses: exp });
-              } else {
-                setVoiceExtraMeta({});
-              }
-              setVoiceOpen(false);
-            }}
-          />
-        </>
-      )}
     </div>
   );
 }

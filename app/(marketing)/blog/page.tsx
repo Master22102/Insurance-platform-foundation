@@ -30,15 +30,9 @@ function formatDate(dateStr: string) {
 }
 
 async function getPosts(): Promise<BlogPost[]> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) {
-    // Allow static builds/dev without Supabase configured.
-    return [];
-  }
   const supabase = createClient(
-    url,
-    anonKey,
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     { auth: { persistSession: false } }
   );
   const { data } = await supabase

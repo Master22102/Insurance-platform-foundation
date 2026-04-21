@@ -21,8 +21,6 @@ const SOURCE_TYPES = [
   { value: 'other', label: 'Other document' },
 ];
 
-const SAFE_UPLOAD_ERROR = 'We could not finish this upload right now. Please try again.';
-
 export default function PolicyUploadPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -35,9 +33,6 @@ export default function PolicyUploadPage() {
   const [tripId, setTripId] = useState(preTripId || '');
   const [trips, setTrips] = useState<any[]>([]);
   const [file, setFile] = useState<File | null>(null);
-  const [policyMode, setPolicyMode] = useState<'pdf' | 'email' | 'manual'>('pdf');
-  const [forwardEmailText, setForwardEmailText] = useState('');
-  const [manualPlanText, setManualPlanText] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [msgIdx, setMsgIdx] = useState(0);
@@ -81,10 +76,9 @@ export default function PolicyUploadPage() {
   }, [documentId, extractionStatus]);
 
   const selectFile = (f: File) => {
-    const isPdf = f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf';
-    const isTxt = f.name.toLowerCase().endsWith('.txt') || (f.type && f.type.startsWith('text/'));
-    if (!isPdf && !isTxt) {
-      setError('Only PDF or TXT files are supported right now.');
+    const allowed = ['application/pdf'];
+    if (!allowed.includes(f.type) && !f.name.endsWith('.pdf')) {
+      setError('Only PDF files are supported right now.');
       return;
     }
     if (f.size > 30 * 1024 * 1024) {
@@ -105,15 +99,13 @@ export default function PolicyUploadPage() {
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!label.trim()) errs.label = 'Give this policy a name so you can find it later.';
-    if (policyMode === 'pdf' && !file) errs.file = 'Please select a document to upload.';
-    if (policyMode === 'email' && !forwardEmailText.trim()) errs.file = 'Please paste your forwarded email content.';
-    if (policyMode === 'manual' && !manualPlanText.trim()) errs.file = 'Please enter the plan details to process.';
+    if (!file) errs.file = 'Please select a PDF to upload.';
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  const uploadDocumentFile = async (uploadFile: File) => {
-    if (!user) return;
+  const runUpload = async () => {
+    if (!validate() || !user || !file) return;
     setUploading(true);
     setError('');
     setProgress(10);
@@ -124,81 +116,65 @@ export default function PolicyUploadPage() {
     }, 1500);
 
     try {
-      const ingestionSourceType =
-        policyMode === 'email'
-          ? 'email_forward'
-          : policyMode === 'manual'
-            ? 'manual_entry'
-            : 'pdf_upload';
-
-      const rpcRes = await supabase.rpc('initiate_policy_upload', {
+      // Step 1: Create policy + document records via RPC
+      // Build params conditionally — PostgREST can't type-match null uuid
+      const rpcParams: Record<string, any> = {
         p_account_id: user.id,
-        p_trip_id: tripId || null,
         p_policy_label: label.trim(),
-        p_source_type: ingestionSourceType,
-      });
+        p_source_type: 'pdf_upload',
+      };
+      if (tripId) rpcParams.p_trip_id = tripId;
 
-      if (rpcRes.error) throw rpcRes.error;
+      const rpcRes = await supabase.rpc('initiate_policy_upload', rpcParams);
 
-      const payload = rpcRes.data as { document_id?: string; upload_path?: string } | null;
-      const document_id = payload?.document_id;
-      if (!document_id) {
-        throw new Error(SAFE_UPLOAD_ERROR);
-      }
+      if (rpcRes.error) throw new Error(rpcRes.error.message);
 
-      const safeFileName = uploadFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const upload_path =
-        payload?.upload_path ||
-        `${user.id}/${document_id}/${Date.now()}-${safeFileName}`;
+      const rpcData = (typeof rpcRes.data === 'string' ? JSON.parse(rpcRes.data) : rpcRes.data) as Record<string, any>;
+      if (!rpcData?.ok) throw new Error(rpcData?.reason || 'Upload registration failed');
 
-      const uploadRes = await supabase.storage.from('policy-documents').upload(upload_path, uploadFile, {
-        contentType: uploadFile.type || (uploadFile.name.toLowerCase().endsWith('.txt') ? 'text/plain' : 'application/pdf'),
+      const document_id = rpcData.document_id;
+      const policy_id = rpcData.policy_id;
+
+      // Step 2: Upload file to Supabase Storage
+      const upload_path = `${user.id}/${policy_id}/${file.name}`;
+      const uploadRes = await supabase.storage.from('policy-documents').upload(upload_path, file, {
+        contentType: file.type || 'application/pdf',
         upsert: false,
       });
 
-      if (uploadRes.error) throw uploadRes.error;
+      if (uploadRes.error) throw new Error(uploadRes.error.message);
 
+      // Step 3: Update document record with storage path, then trigger extraction
       const completeRes = await fetch('/api/extraction/upload-complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           document_id,
-          trip_id: tripId || null,
+          account_id: user.id,
           policy_label: label.trim(),
           storage_path: upload_path,
-          file_size_bytes: uploadFile.size,
-          mime_type: uploadFile.type || (uploadFile.name.toLowerCase().endsWith('.txt') ? 'text/plain' : 'application/pdf'),
+          file_size_bytes: file.size,
+          mime_type: file.type || 'application/pdf',
           source_type: sourceType,
+          trip_id: tripId || null,
         }),
       });
+
       if (!completeRes.ok) {
-        throw new Error(SAFE_UPLOAD_ERROR);
+        const errData = await completeRes.json().catch(() => ({}));
+        console.error('[upload-complete] error:', errData);
       }
 
       clearInterval(cycle);
       setProgress(85);
       setDocumentId(document_id);
       setExtractionStatus('processing');
-    } catch (err) {
+    } catch (err: any) {
       clearInterval(cycle);
-      const message = err instanceof Error ? err.message : SAFE_UPLOAD_ERROR;
-      setError(message);
+      console.error('[upload] error:', err);
+      setError(err?.message || 'Something went wrong during the upload. Please try again.');
       setUploading(false);
     }
-  };
-
-  const runUploadPdf = async () => {
-    if (!validate() || !user || !file) return;
-    await uploadDocumentFile(file);
-  };
-
-  const runUploadFromText = async (text: string, filename: string) => {
-    if (!user) return;
-    const trimmed = text.trim();
-    if (!trimmed) return;
-    const blob = new Blob([trimmed], { type: 'text/plain' });
-    const uploadFile = new File([blob], filename, { type: 'text/plain' });
-    await uploadDocumentFile(uploadFile);
   };
 
   const isProcessing = uploading || extractionStatus === 'processing';
@@ -220,7 +196,7 @@ export default function PolicyUploadPage() {
           Add a policy document
         </h1>
         <p style={{ fontSize: 14, color: '#888', margin: 0, lineHeight: 1.5 }}>
-          Upload a policy PDF, forward a confirmation email, or enter plan details manually.
+          Upload a PDF and we'll extract the coverage rules automatically.
         </p>
       </div>
 
@@ -274,8 +250,6 @@ export default function PolicyUploadPage() {
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
             <button onClick={() => {
               setFile(null); setDocumentId(null);
-              setForwardEmailText('');
-              setManualPlanText('');
               setExtractionStatus('idle'); setUploading(false); setProgress(0);
             }} style={{
               padding: '10px 20px', background: '#1A2B4A', color: 'white',
@@ -288,70 +262,6 @@ export default function PolicyUploadPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ background: 'white', border: '0.5px solid #e8e8e8', borderRadius: 12, padding: '20px 22px' }}>
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  onClick={() => setPolicyMode('pdf')}
-                  disabled={isProcessing}
-                  style={{
-                    padding: '10px 12px',
-                    borderRadius: 10,
-                    border: policyMode === 'pdf' ? '1.5px solid #2E5FA3' : '1px solid #e5e7eb',
-                    background: policyMode === 'pdf' ? '#eff4fc' : 'transparent',
-                    color: policyMode === 'pdf' ? '#1D4ED8' : '#666',
-                    fontWeight: 700,
-                    fontSize: 13,
-                    cursor: isProcessing ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  Upload PDF
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPolicyMode('email')}
-                  disabled={isProcessing}
-                  style={{
-                    padding: '10px 12px',
-                    borderRadius: 10,
-                    border: policyMode === 'email' ? '1.5px solid #2E5FA3' : '1px solid #e5e7eb',
-                    background: policyMode === 'email' ? '#eff4fc' : 'transparent',
-                    color: policyMode === 'email' ? '#1D4ED8' : '#666',
-                    fontWeight: 700,
-                    fontSize: 13,
-                    cursor: isProcessing ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  Forward email
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPolicyMode('manual')}
-                  disabled={isProcessing}
-                  style={{
-                    padding: '10px 12px',
-                    borderRadius: 10,
-                    border: policyMode === 'manual' ? '1.5px solid #2E5FA3' : '1px solid #e5e7eb',
-                    background: policyMode === 'manual' ? '#eff4fc' : 'transparent',
-                    color: policyMode === 'manual' ? '#1D4ED8' : '#666',
-                    fontWeight: 700,
-                    fontSize: 13,
-                    cursor: isProcessing ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  Enter details
-                </button>
-              </div>
-              <p style={{ fontSize: 12, color: '#888', margin: '8px 0 0', lineHeight: 1.5 }}>
-                You can add a policy without a trip. We will still show coverage details and important deadlines.
-              </p>
-              {fieldErrors.file && (
-                <p style={{ fontSize: 12, color: '#dc2626', margin: '8px 0 0', lineHeight: 1.4 }}>
-                  {fieldErrors.file}
-                </p>
-              )}
-            </div>
-
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#444', marginBottom: 6 }}>
                 Policy label
@@ -426,156 +336,70 @@ export default function PolicyUploadPage() {
           <div style={{ background: 'white', border: '0.5px solid #e8e8e8', borderRadius: 12, padding: '20px 22px' }}>
             {!isProcessing ? (
               <>
-                {policyMode === 'pdf' && (
-                  <>
-                    <div
-                      onClick={() => !file && inputRef.current?.click()}
-                      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                      onDragLeave={() => setDragOver(false)}
-                      onDrop={handleDrop}
-                      style={{
-                        border: `2px dashed ${dragOver ? '#2E5FA3' : fieldErrors.file ? '#fca5a5' : '#ddd'}`,
-                        borderRadius: 12, padding: '36px 20px',
-                        textAlign: 'center', cursor: file ? 'default' : 'pointer',
-                        background: dragOver ? '#f0f4ff' : '#fafafa',
-                        transition: 'all 0.15s ease',
-                        marginBottom: file ? 12 : 0,
-                      }}
-                    >
-                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style={{ margin: '0 auto 10px', display: 'block' }}>
-                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="#888" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
-                        <polyline points="14 2 14 8 20 8" stroke="#888" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
-                        <line x1="16" y1="13" x2="8" y2="13" stroke="#888" strokeWidth="1.5" strokeLinecap="round"/>
-                        <line x1="16" y1="17" x2="8" y2="17" stroke="#888" strokeWidth="1.5" strokeLinecap="round"/>
-                        <polyline points="10 9 9 9 8 9" stroke="#888" strokeWidth="1.5" strokeLinecap="round"/>
+                <div
+                  onClick={() => !file && inputRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                  onDragLeave={() => setDragOver(false)}
+                  onDrop={handleDrop}
+                  style={{
+                    border: `2px dashed ${dragOver ? '#2E5FA3' : fieldErrors.file ? '#fca5a5' : '#ddd'}`,
+                    borderRadius: 12, padding: '36px 20px',
+                    textAlign: 'center', cursor: file ? 'default' : 'pointer',
+                    background: dragOver ? '#f0f4ff' : '#fafafa',
+                    transition: 'all 0.15s ease',
+                    marginBottom: file ? 12 : 0,
+                  }}
+                >
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style={{ margin: '0 auto 10px', display: 'block' }}>
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="#888" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+                    <polyline points="14 2 14 8 20 8" stroke="#888" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+                    <line x1="16" y1="13" x2="8" y2="13" stroke="#888" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="16" y1="17" x2="8" y2="17" stroke="#888" strokeWidth="1.5" strokeLinecap="round"/>
+                    <polyline points="10 9 9 9 8 9" stroke="#888" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <p style={{ fontSize: 14, color: '#555', margin: '0 0 4px', fontWeight: 500 }}>
+                    Drop your PDF here, or <span style={{ color: '#2E5FA3' }}>browse</span>
+                  </p>
+                  <p style={{ fontSize: 12, color: '#bbb', margin: 0 }}>PDF only · max 30 MB</p>
+                </div>
+                <input
+                  ref={inputRef}
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  style={{ display: 'none' }}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) selectFile(f); }}
+                />
+
+                {fieldErrors.file && !file && (
+                  <p style={{ fontSize: 12, color: '#dc2626', margin: '4px 0 0' }}>{fieldErrors.file}</p>
+                )}
+
+                {file && (
+                  <div>
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '10px 12px', background: '#f7f8fa',
+                      border: '1px solid #f0f0f0', borderRadius: 8, marginBottom: 14,
+                    }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                        <rect x="3" y="3" width="18" height="18" rx="2" stroke="#888" strokeWidth="1.5"/>
+                        <path d="M8 8h8M8 12h5" stroke="#888" strokeWidth="1.3" strokeLinecap="round"/>
                       </svg>
-                      <p style={{ fontSize: 14, color: '#555', margin: '0 0 4px', fontWeight: 500 }}>
-                        Drop your PDF here, or <span style={{ color: '#2E5FA3' }}>browse</span>
-                      </p>
-                      <p style={{ fontSize: 12, color: '#bbb', margin: 0 }}>PDF only · max 30 MB</p>
+                      <span style={{ fontSize: 13, color: '#333', flex: 1 }}>{file.name}</span>
+                      <button onClick={() => setFile(null)} style={{
+                        background: 'none', border: 'none', cursor: 'pointer', color: '#ccc', fontSize: 16,
+                      }}>×</button>
                     </div>
-                    <input
-                      ref={inputRef}
-                      type="file"
-                      accept=".pdf,application/pdf,.txt,text/plain"
-                      style={{ display: 'none' }}
-                      onChange={(e) => { const f = e.target.files?.[0]; if (f) selectFile(f); }}
-                    />
-
-                    {file && (
-                      <div>
-                        <div style={{
-                          display: 'flex', alignItems: 'center', gap: 10,
-                          padding: '10px 12px', background: '#f7f8fa',
-                          border: '1px solid #f0f0f0', borderRadius: 8, marginBottom: 14,
-                        }}>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                            <rect x="3" y="3" width="18" height="18" rx="2" stroke="#888" strokeWidth="1.5"/>
-                            <path d="M8 8h8M8 12h5" stroke="#888" strokeWidth="1.3" strokeLinecap="round"/>
-                          </svg>
-                          <span style={{ fontSize: 13, color: '#333', flex: 1 }}>{file.name}</span>
-                          <button onClick={() => setFile(null)} style={{
-                            background: 'none', border: 'none', cursor: 'pointer', color: '#ccc', fontSize: 16,
-                          }}>×</button>
-                        </div>
-                        <button
-                          onClick={runUploadPdf}
-                          style={{
-                            width: '100%', padding: '11px 0',
-                            background: '#1A2B4A', color: 'white',
-                            border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                          }}
-                        >
-                          Upload and review
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {policyMode === 'email' && (
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#444', marginBottom: 8 }}>
-                      Paste forwarded confirmation email
-                    </label>
-                    <textarea
-                      value={forwardEmailText}
-                      onChange={(e) => { setForwardEmailText(e.target.value); setFieldErrors((p) => ({ ...p, file: '' })); }}
-                      placeholder="Paste the email text here (including key policy identifiers)."
-                      rows={7}
-                      style={{
-                        width: '100%',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: 12,
-                        padding: '12px 12px',
-                        fontSize: 14,
-                        outline: 'none',
-                        resize: 'vertical',
-                        lineHeight: 1.55,
-                        boxSizing: 'border-box',
-                      }}
-                      disabled={isProcessing}
-                    />
                     <button
-                      onClick={() => {
-                        if (!validate()) return;
-                        runUploadFromText(forwardEmailText, 'forwarded_email.txt');
-                      }}
+                      onClick={runUpload}
                       style={{
-                        width: '100%', padding: '11px 0', marginTop: 14,
+                        width: '100%', padding: '11px 0',
                         background: '#1A2B4A', color: 'white',
                         border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
                       }}
-                      disabled={isProcessing}
                     >
-                      Create policy from email
+                      Upload and extract
                     </button>
-                    <p style={{ fontSize: 12, color: '#888', margin: '10px 0 0', lineHeight: 1.5 }}>
-                      If you have the policy PDF attached, upload it in “Upload PDF” for best results.
-                    </p>
-                  </div>
-                )}
-
-                {policyMode === 'manual' && (
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#444', marginBottom: 8 }}>
-                      Enter plan details manually
-                    </label>
-                    <textarea
-                      value={manualPlanText}
-                      onChange={(e) => { setManualPlanText(e.target.value); setFieldErrors((p) => ({ ...p, file: '' })); }}
-                      placeholder="Paste what you know about the plan (issuer, coverage types, limits, dates, exclusions)."
-                      rows={7}
-                      style={{
-                        width: '100%',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: 12,
-                        padding: '12px 12px',
-                        fontSize: 14,
-                        outline: 'none',
-                        resize: 'vertical',
-                        lineHeight: 1.55,
-                        boxSizing: 'border-box',
-                      }}
-                      disabled={isProcessing}
-                    />
-                    <button
-                      onClick={() => {
-                        if (!validate()) return;
-                        runUploadFromText(manualPlanText, 'manual_plan_details.txt');
-                      }}
-                      style={{
-                        width: '100%', padding: '11px 0', marginTop: 14,
-                        background: '#1A2B4A', color: 'white',
-                        border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                      }}
-                      disabled={isProcessing}
-                    >
-                      Create policy
-                    </button>
-                    <p style={{ fontSize: 12, color: '#888', margin: '10px 0 0', lineHeight: 1.5 }}>
-                      Tip: include coverage limits and any known exclusions.
-                    </p>
                   </div>
                 )}
               </>

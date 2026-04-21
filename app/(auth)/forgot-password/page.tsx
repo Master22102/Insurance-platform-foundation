@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
           We sent a reset link to <strong style={{ color: '#333' }}>{email}</strong>. Click the link in the email to set a new password.
         </p>
         <p style={{ fontSize: 13, color: '#aaa', lineHeight: 1.5 }}>
-          Didn&apos;t receive it? Check your spam folder, or{' '}
+          Didn't receive it? Check your spam folder, or{' '}
           <button
             onClick={() => setSent(false)}
             style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#2E5FA3', fontSize: 13, fontWeight: 500 }}
@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
         Reset your password
       </h1>
       <p style={{ fontSize: 14, color: '#666', margin: '0 0 28px', lineHeight: 1.5 }}>
-        Enter your email and we&apos;ll send you a link to set a new password.
+        Enter your email and we'll send you a link to set a new password.
       </p>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

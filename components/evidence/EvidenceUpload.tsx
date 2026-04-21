@@ -3,7 +3,6 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
-import VoiceNarrationPanel from '@/components/voice/VoiceNarrationPanel';
 
 const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/heic', 'text/plain'];
 const MAX_MB = 10;
@@ -21,14 +20,12 @@ const CATEGORIES = [
 
 interface EvidenceUploadProps {
   incidentId: string;
-  tripId?: string;
-  accountId?: string;
   onUploaded?: (evidence: { name: string; category: string; id: string }) => void;
 }
 
 type UploadState = 'idle' | 'uploading' | 'done' | 'error';
 
-export default function EvidenceUpload({ incidentId, tripId, accountId, onUploaded }: EvidenceUploadProps) {
+export default function EvidenceUpload({ incidentId, onUploaded }: EvidenceUploadProps) {
   const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -38,9 +35,6 @@ export default function EvidenceUpload({ incidentId, tripId, accountId, onUpload
   const [progress, setProgress] = useState(0);
   const [category, setCategory] = useState('other');
   const [uploadedId, setUploadedId] = useState('');
-  const [description, setDescription] = useState('');
-  const [voiceDescOpen, setVoiceDescOpen] = useState(false);
-  const effectiveAccountId = accountId ?? user?.id ?? '';
 
   const validate = (f: File): string | null => {
     if (!ACCEPTED_TYPES.includes(f.type) && !f.name.endsWith('.heic')) {
@@ -69,37 +63,29 @@ export default function EvidenceUpload({ incidentId, tripId, accountId, onUpload
     if (!file || !user) return;
     setUploadState('uploading');
     setProgress(20);
+
+    const { data: regData, error: regError } = await supabase.rpc('register_evidence', {
+      p_incident_id: incidentId,
+      p_name: file.name,
+      p_type: 'file',
+      p_description: null,
+      p_actor_id: user.id,
+      p_idempotency_key: `evidence-${Date.now()}`,
+    });
+
+    if (regError || !regData?.success) {
+      setUploadState('error');
+      return;
+    }
+
+    setProgress(50);
+
     const path = `${user.id}/${incidentId}/${Date.now()}-${file.name}`;
     const { error: storageError } = await supabase.storage
       .from('evidence')
       .upload(path, file, { contentType: file.type });
 
     if (storageError) {
-      setUploadState('error');
-      return;
-    }
-
-    setProgress(60);
-
-    const idempotencyKey = `evidence-${incidentId}-${path}`;
-    const meta: Record<string, unknown> = { category };
-    if (description.trim()) meta.user_description = description.trim();
-
-    const { data: regData, error: regError } = await supabase.rpc('register_evidence', {
-      p_incident_id: incidentId,
-      p_name: file.name,
-      p_type: 'file',
-      p_description: description.trim() || null,
-      p_file_path: path,
-      p_file_size_bytes: file.size,
-      p_mime_type: file.type || 'application/octet-stream',
-      p_metadata: meta,
-      p_actor_id: user.id,
-      p_idempotency_key: idempotencyKey,
-    });
-
-    if (regError || !regData?.success) {
-      await supabase.storage.from('evidence').remove([path]).catch(() => {});
       setUploadState('error');
       return;
     }
@@ -206,46 +192,6 @@ export default function EvidenceUpload({ incidentId, tripId, accountId, onUpload
             </p>
           )}
 
-          <div style={{ marginBottom: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>Description (optional)</label>
-              {effectiveAccountId ? (
-                <button
-                  type="button"
-                  onClick={() => setVoiceDescOpen(true)}
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: '#9f1239',
-                    background: '#fff1f2',
-                    border: '1px solid #fecaca',
-                    borderRadius: 6,
-                    padding: '4px 10px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Describe with voice
-                </button>
-              ) : null}
-            </div>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              placeholder="What is this file? (receipt, boarding pass, delay notice…)"
-              style={{
-                width: '100%',
-                boxSizing: 'border-box',
-                padding: '8px 10px',
-                fontSize: 13,
-                border: '1px solid #e2e8f0',
-                borderRadius: 8,
-                resize: 'vertical',
-                fontFamily: 'inherit',
-              }}
-            />
-          </div>
-
           {uploadState === 'idle' || uploadState === 'error' ? (
             <button
               onClick={handleUpload}
@@ -259,40 +205,6 @@ export default function EvidenceUpload({ incidentId, tripId, accountId, onUpload
             </button>
           ) : null}
         </div>
-      )}
-
-      {voiceDescOpen && effectiveAccountId && (
-        <>
-          <div
-            role="presentation"
-            style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', zIndex: 90 }}
-            onClick={() => setVoiceDescOpen(false)}
-          />
-          <VoiceNarrationPanel
-            context="evidence_description"
-            accountId={effectiveAccountId}
-            tripId={tripId}
-            incidentId={incidentId}
-            onCancel={() => setVoiceDescOpen(false)}
-            onFieldsConfirmed={(fields) => {
-              const raw = typeof fields.evidence_category === 'string' ? fields.evidence_category : '';
-              const cat = raw === 'expense' ? 'receipt' : raw;
-              const allowed = CATEGORIES.some((c) => c.key === cat);
-              if (allowed) setCategory(cat);
-              const desc = typeof fields.description === 'string' ? fields.description.trim() : '';
-              const amt = fields.amount;
-              let line = desc;
-              if (typeof amt === 'number' && Number.isFinite(amt)) {
-                line = line ? `${line} ($${amt})` : `$${amt}`;
-              }
-              if (typeof fields.date_reference === 'string' && fields.date_reference.trim()) {
-                line = line ? `${line} — ${fields.date_reference.trim()}` : fields.date_reference.trim();
-              }
-              if (line) setDescription(line);
-              setVoiceDescOpen(false);
-            }}
-          />
-        </>
       )}
 
       {uploadState === 'done' && (

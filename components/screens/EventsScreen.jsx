@@ -868,7 +868,7 @@ function LogEventMenu({ onDismiss, onNarrate }) {
             </div>
             <div style={{ textAlign: "left" }}>
               <p style={{ fontSize: 14, fontWeight: 700, color: "white", margin: "0 0 1px" }}>Narrate what happened</p>
-              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", margin: 0 }}>Speak — we&apos;ll log and transcribe it</p>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", margin: 0 }}>Speak — we'll log and transcribe it</p>
             </div>
           </button>
 

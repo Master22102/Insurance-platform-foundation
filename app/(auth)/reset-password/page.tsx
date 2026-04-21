@@ -144,7 +144,7 @@ export default function ResetPasswordPage() {
         }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         <p style={{ marginTop: 28, textAlign: 'center', fontSize: 13, color: '#888' }}>
-          Didn&apos;t get a link?{' '}
+          Didn't get a link?{' '}
           <Link href="/forgot-password" style={{ color: '#2E5FA3', fontWeight: 500, textDecoration: 'none' }}>
             Request one
           </Link>
@@ -207,7 +207,7 @@ export default function ResetPasswordPage() {
             }}
           />
           {confirm && confirm !== password && (
-            <p style={{ fontSize: 12, color: '#dc2626', margin: '5px 0 0' }}>Passwords don&apos;t match</p>
+            <p style={{ fontSize: 12, color: '#dc2626', margin: '5px 0 0' }}>Passwords don't match</p>
           )}
         </div>
 

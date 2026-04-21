@@ -4,7 +4,6 @@ import { useState, useRef } from 'react';
 import { useAuth } from '@/lib/auth/auth-context';
 import QuickScanResult from '@/components/scan/QuickScanResult';
 import Link from 'next/link';
-import { formatUsd, PRICING } from '@/lib/config/pricing';
 
 const STATUS_MESSAGES = [
   'Reading your document…',
@@ -65,16 +64,13 @@ export default function ScanPage() {
       const res = await fetch('/api/quick-scan', { method: 'POST', body: formData });
       clearInterval(cycle);
 
-      if (!res.ok) {
-        throw new Error('We could not scan this file right now.');
-      }
+      if (!res.ok) { throw new Error('Scan failed'); }
       const data = await res.json();
       setProgress(100);
       setResult(data);
-    } catch (err) {
+    } catch {
       clearInterval(cycle);
-      const message = err instanceof Error ? err.message : 'We could not scan this file right now.';
-      setError(`${message} Try again or use a different file.`);
+      setError('Something went wrong with the scan. Try again or use a different file.');
     }
 
     setUploading(false);
@@ -87,7 +83,7 @@ export default function ScanPage() {
           Quick Scan
         </h1>
         <p style={{ fontSize: 14, color: '#888', margin: '0 0 28px', lineHeight: 1.5 }}>
-          You&apos;ve used your free scans.
+          You've used your free scans.
         </p>
         <div style={{
           background: 'white', border: '0.5px solid #e8e8e8',
@@ -104,7 +100,7 @@ export default function ScanPage() {
             background: '#1A2B4A', color: 'white',
             borderRadius: 8, textDecoration: 'none', fontSize: 13, fontWeight: 600,
           }}>
-            Unlock a trip — {formatUsd(PRICING.tripUnlockUsd)}
+            Unlock a trip — $14.99
           </Link>
         </div>
       </div>
@@ -118,7 +114,7 @@ export default function ScanPage() {
           Quick Scan
         </h1>
         <p style={{ fontSize: 14, color: '#888', margin: 0, lineHeight: 1.5 }}>
-          Quick Scan is a fast, surface-level read. Upload a policy or benefit guide to get an immediate teaser before full trip-level analysis.
+          Upload a travel insurance policy, credit card benefit guide, or airline contract. We'll show you what coverage rules we find.
         </p>
       </div>
 

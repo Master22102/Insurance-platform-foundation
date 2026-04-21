@@ -1,41 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
-      return NextResponse.json({ error: 'Server configuration missing' }, { status: 500 });
-    }
-
-    const authSupabase = createServerClient(supabaseUrl, anonKey, {
-      cookies: {
-        get: (name) => request.cookies.get(name)?.value,
-        set: () => {},
-        remove: () => {},
-      },
-    });
-    const { data: auth, error: authError } = await authSupabase.auth.getUser();
-    if (authError || !auth?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const { data: profile } = await authSupabase
-      .from('user_profiles')
-      .select('membership_tier')
-      .eq('user_id', auth.user.id)
-      .maybeSingle();
-    if ((profile as { membership_tier?: string } | null)?.membership_tier !== 'FOUNDER') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
     const supabase = createClient(
-      supabaseUrl,
-      serviceRoleKey,
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
       { auth: { persistSession: false } }
     );
 
@@ -45,7 +17,7 @@ export async function GET(request: NextRequest) {
       .order('jurisdiction', { ascending: true });
 
     if (error) {
-      return NextResponse.json({ error: 'Could not load retention policies right now.' }, { status: 500 });
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({

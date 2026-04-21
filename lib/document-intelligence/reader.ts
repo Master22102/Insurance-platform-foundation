@@ -57,7 +57,10 @@ export async function readDocument(filePath: string): Promise<RawExtraction> {
 
 async function readPDF(filePath: string, fileSize: number): Promise<RawExtraction> {
   try {
-    const pdfParse = (await import('pdf-parse-fork')).default;
+    // Use eval to prevent webpack from resolving this at build time
+    // pdf-parse-fork is CJS v1 and works fine at runtime
+    const dynamicRequire = eval('require');
+    const pdfParse = dynamicRequire('pdf-parse-fork');
     const dataBuffer = fs.readFileSync(filePath);
     const data = await pdfParse(dataBuffer);
 

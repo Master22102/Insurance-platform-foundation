@@ -3,33 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@/lib/auth/auth-context';
 
 export default function MarketingNav() {
-  const { user, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
   const pathname = usePathname();
-
-  const handleOpenApp = () => {
-    setMenuOpen(false);
-    // Full navigation is more reliable on mobile after auth transitions.
-    window.location.assign('/trips');
-  };
-
-  const handleSignOut = async () => {
-    if (signingOut) return;
-    setSigningOut(true);
-    try {
-      await signOut();
-      setMenuOpen(false);
-      window.location.assign('/');
-    } finally {
-      setSigningOut(false);
-    }
-  };
 
   useEffect(() => {
     setMounted(true);
@@ -38,11 +17,6 @@ export default function MarketingNav() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
-  useEffect(() => {
-    // Close drawer whenever route changes.
-    setMenuOpen(false);
-  }, [pathname]);
 
   const isScrolled = mounted && scrolled;
 
@@ -107,61 +81,25 @@ export default function MarketingNav() {
         </nav>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }} className="marketing-desktop-nav">
-          {user ? (
-            <>
-              <button
-                onClick={handleOpenApp}
-                style={{
-                padding: '8px 16px', fontSize: 14, fontWeight: 600,
-                color: isScrolled ? '#1A2B4A' : 'white',
-                borderRadius: 8,
-                border: isScrolled ? '1px solid #e5e7eb' : '1px solid rgba(255,255,255,0.25)',
-                background: 'transparent',
-                cursor: 'pointer',
-              }}
-              >
-                Open app
-              </button>
-              <button
-                onClick={handleSignOut}
-                disabled={signingOut}
-                style={{
-                  padding: '8px 14px',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: isScrolled ? '#6b7280' : 'rgba(255,255,255,0.85)',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: signingOut ? 'not-allowed' : 'pointer',
-                  opacity: signingOut ? 0.6 : 1,
-                }}
-              >
-                {signingOut ? 'Signing out…' : 'Sign out'}
-              </button>
-            </>
-          ) : (
-            <>
-              <Link href="/signin" style={{
-                padding: '8px 16px', fontSize: 14, fontWeight: 500,
-                color: isScrolled ? '#555' : 'rgba(255,255,255,0.8)',
-                textDecoration: 'none',
-                borderRadius: 8,
-                transition: 'color 0.3s ease',
-              }}>
-                Sign in
-              </Link>
-              <Link href="/splash" style={{
-                padding: '8px 18px', fontSize: 14, fontWeight: 600,
-                background: isScrolled ? '#1A2B4A' : 'white',
-                color: isScrolled ? 'white' : '#1A2B4A',
-                textDecoration: 'none',
-                borderRadius: 8,
-                transition: 'background 0.3s ease, color 0.3s ease',
-              }}>
-                Get started free
-              </Link>
-            </>
-          )}
+          <Link href="/signin" style={{
+            padding: '8px 16px', fontSize: 14, fontWeight: 500,
+            color: isScrolled ? '#555' : 'rgba(255,255,255,0.8)',
+            textDecoration: 'none',
+            borderRadius: 8,
+            transition: 'color 0.3s ease',
+          }}>
+            Sign in
+          </Link>
+          <Link href="/signup" style={{
+            padding: '8px 18px', fontSize: 14, fontWeight: 600,
+            background: isScrolled ? '#1A2B4A' : 'white',
+            color: isScrolled ? 'white' : '#1A2B4A',
+            textDecoration: 'none',
+            borderRadius: 8,
+            transition: 'background 0.3s ease, color 0.3s ease',
+          }}>
+            Get started free
+          </Link>
         </div>
 
         <button
@@ -182,75 +120,34 @@ export default function MarketingNav() {
       {menuOpen && (
         <div style={{
           background: 'white', borderTop: '1px solid #f0f0f0',
-          padding: '12px 16px 18px',
+          padding: '12px 24px 20px',
           fontFamily: 'system-ui, -apple-system, sans-serif',
         }} className="marketing-mobile-menu">
-          <div style={{ background: '#f8fafc', border: '1px solid #edf2f7', borderRadius: 14, overflow: 'hidden' }}>
-            {navLinks.map((link) => (
-              <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '13px 14px',
-                fontSize: 15, fontWeight: 600, color: '#1f2937',
-                textDecoration: 'none',
-                borderBottom: '1px solid #eef2f7',
-              }}>
-                {link.label}
-                <span style={{ color: '#9ca3af' }}>›</span>
-              </Link>
-            ))}
-          </div>
-          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {user ? (
-              <>
-                <button
-                  onClick={handleOpenApp}
-                  style={{
-                  display: 'block', width: '100%', padding: '12px 0', textAlign: 'center',
-                  fontSize: 15, fontWeight: 700, color: 'white',
-                  background: '#1A2B4A', borderRadius: 10, border: 'none', cursor: 'pointer',
-                }}
-                >
-                  Open app
-                </button>
-                <button
-                  onClick={handleSignOut}
-                  disabled={signingOut}
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    padding: '12px 0',
-                    textAlign: 'center',
-                    fontSize: 15,
-                    fontWeight: 600,
-                    color: '#6b7280',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: 10,
-                    background: 'white',
-                    cursor: signingOut ? 'not-allowed' : 'pointer',
-                    opacity: signingOut ? 0.6 : 1,
-                  }}
-                >
-                  {signingOut ? 'Signing out…' : 'Sign out'}
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/signin" onClick={() => setMenuOpen(false)} style={{
-                  display: 'block', padding: '12px 0', textAlign: 'center',
-                  fontSize: 15, fontWeight: 600, color: '#555',
-                  textDecoration: 'none', border: '1px solid #e5e7eb', borderRadius: 10,
-                }}>
-                  Sign in
-                </Link>
-                <Link href="/splash" onClick={() => setMenuOpen(false)} style={{
-                  display: 'block', padding: '12px 0', textAlign: 'center',
-                  fontSize: 15, fontWeight: 700, color: 'white',
-                  textDecoration: 'none', background: '#1A2B4A', borderRadius: 10,
-                }}>
-                  Get started free
-                </Link>
-              </>
-            )}
+          {navLinks.map((link) => (
+            <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)} style={{
+              display: 'block', padding: '12px 0',
+              fontSize: 16, fontWeight: 500, color: '#333',
+              textDecoration: 'none',
+              borderBottom: '1px solid #f5f5f5',
+            }}>
+              {link.label}
+            </Link>
+          ))}
+          <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <Link href="/signin" onClick={() => setMenuOpen(false)} style={{
+              display: 'block', padding: '12px 0', textAlign: 'center',
+              fontSize: 15, fontWeight: 600, color: '#555',
+              textDecoration: 'none', border: '1px solid #e5e7eb', borderRadius: 10,
+            }}>
+              Sign in
+            </Link>
+            <Link href="/signup" onClick={() => setMenuOpen(false)} style={{
+              display: 'block', padding: '12px 0', textAlign: 'center',
+              fontSize: 15, fontWeight: 600, color: 'white',
+              textDecoration: 'none', background: '#1A2B4A', borderRadius: 10,
+            }}>
+              Get started free
+            </Link>
           </div>
         </div>
       )}

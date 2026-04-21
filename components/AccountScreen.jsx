@@ -404,7 +404,7 @@ function TrustedAllySheet({ onDismiss }) {
                 {tripToggle === "specific" && (
                   <div style={{ marginTop: 10, background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 12, padding: "10px 13px" }}>
                     <p style={{ fontSize: 12, color: "#92400e", margin: 0, lineHeight: 1.5 }}>
-                      You can toggle which trips this ally applies to from within each trip&apos;s Travelers tab.
+                      You can toggle which trips this ally applies to from within each trip's Travelers tab.
                     </p>
                   </div>
                 )}
@@ -1203,7 +1203,7 @@ function ContactUsSheet({ onDismiss }) {
               </div>
               <p style={{ fontSize: 16, fontWeight: 700, color: "#111", margin: 0, letterSpacing: "-0.2px" }}>Message sent</p>
               <p style={{ fontSize: 13, color: "#888", margin: 0, textAlign: "center", lineHeight: 1.5, maxWidth: 240 }}>
-                We&apos;ll get back to you at {MOCK_USER.email} within 24 hours.
+                We'll get back to you at {MOCK_USER.email} within 24 hours.
               </p>
               <button
                 onClick={onDismiss}
@@ -1220,7 +1220,7 @@ function ContactUsSheet({ onDismiss }) {
           ) : (
             <>
               <p style={{ fontSize: 12, color: "#888", margin: "0 0 18px", lineHeight: 1.5 }}>
-                Send us a message and we&apos;ll respond within 24 hours. For urgent issues, tap the priority flag.
+                Send us a message and we'll respond within 24 hours. For urgent issues, tap the priority flag.
               </p>
 
               <div style={{ marginBottom: 14 }}>
@@ -1682,7 +1682,6 @@ export default function AccountScreen({ onBack }) {
                 }}
               />
               {photoSrc ? (
-                // eslint-disable-next-line @next/next/no-img-element -- data URL / crop preview; dynamic src
                 <img
                   src={photoSrc}
                   alt="Profile"

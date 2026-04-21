@@ -72,14 +72,6 @@ python3 scripts/validation/bridge-validation.py
 supabase db push && npm run dev
 ```
 
-## CI & browser hardening
-
-- **Runbook:** `docs/RUNBOOK.md` — deploy/migrate pointers, rollback notes, abuse/rate-limit summary.
-- **Health:** `GET /api/health` — JSON liveness (`ok`, `service`; optional short `commit` when deploy env sets `VERCEL_GIT_COMMIT_SHA` / `GITHUB_SHA` / `HEALTH_GIT_SHA`). No DB.
-- **PR CI:** `.github/workflows/ci.yml` — `npm run typecheck`, `npm run lint`, `npm run verify:csp-config`, `npm run build` (build uses placeholder `NEXT_PUBLIC_SUPABASE_*`). Playwright: see `docs/CI_E2E_SAMPLE.md`.
-- **Optional verify:** `docs/VERIFY_OPTIONAL.md` — local **`verify:ingest-corpus-idempotency`** (skips if env missing); GitHub **Verify optional (DB)** workflow (fail-fast if secrets missing).
-- **CSP:** Default is **Report-Only** (`next.config.js`). For blocking CSP after you triage violations, set build-time **`CSP_MODE=enforce`**. Details: `docs/SECURITY_BROWSER_HARDENING.md`.
-
 ## Key Numbers
 
 | Metric | Value |

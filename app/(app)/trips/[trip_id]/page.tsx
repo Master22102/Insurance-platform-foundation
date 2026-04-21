@@ -1,36 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
-import { formatUsd, PRICING } from '@/lib/config/pricing';
 import DeepScanPanel from '@/components/DeepScanPanel';
-import CoverageMapStatusBanner from '@/components/CoverageMapStatusBanner';
-import CoverageMatrixPanel from '@/components/coverage/CoverageMatrixPanel';
-import NewTripPage from '../new/page';
-import RouteValidationBanner from '@/components/trips/RouteValidationBanner';
-import { validateRouteSegments, type RouteIssue } from '@/lib/route-validation';
-import VoiceNarrationPanel from '@/components/voice/VoiceNarrationPanel';
-
-function mapVoiceSegmentType(t: unknown): string {
-  if (typeof t !== 'string') return 'flight';
-  const x = t.toLowerCase();
-  if (x === 'air' || x === 'flight') return 'flight';
-  if (x === 'rail' || x === 'train') return 'train';
-  if (x === 'sea' || x === 'ferry' || x === 'cruise') return 'ferry';
-  if (x === 'road' || x === 'car') return 'car';
-  if (x === 'hotel') return 'hotel';
-  return 'flight';
-}
-
-function parseLooseDate(s: unknown): string {
-  if (typeof s !== 'string' || !s.trim()) return '';
-  const d = new Date(s);
-  if (!Number.isNaN(d.getTime())) return d.toISOString().slice(0, 10);
-  return '';
-}
 
 const COUNTRY_NAME_MAP: Record<string, string> = {
   US: 'United States', GB: 'United Kingdom', CA: 'Canada', AU: 'Australia',
@@ -79,14 +54,14 @@ function UnlockPaymentModal({ tripId, onSuccess, onClose }: { tripId: string; on
     const { data, error: rpcErr } = await supabase.rpc('unlock_trip', {
       p_trip_id: tripId,
       p_actor_id: user!.id,
-      p_credits_to_add: PRICING.deepScanCreditsIncludedOnUnlock,
+      p_credits_to_add: 2,
       p_payment_ref: paymentRef,
     });
 
     setProcessing(false);
 
     if (rpcErr || !data?.success) {
-      setError('We could not confirm payment right now, so unlock was not activated. Please try again.');
+      setError(rpcErr?.message || data?.error || 'Payment failed. Please try again.');
       return;
     }
 
@@ -114,7 +89,7 @@ function UnlockPaymentModal({ tripId, onSuccess, onClose }: { tripId: string; on
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
             <p style={{ fontSize: 18, fontWeight: 700, color: '#1A2B4A', margin: '0 0 2px' }}>Unlock this trip</p>
-            <p style={{ fontSize: 13, color: '#888', margin: 0 }}>One-time payment — {formatUsd(PRICING.tripUnlockUsd)}</p>
+            <p style={{ fontSize: 13, color: '#888', margin: 0 }}>One-time payment — $14.99</p>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#aaa' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -134,10 +109,8 @@ function UnlockPaymentModal({ tripId, onSuccess, onClose }: { tripId: string; on
                 <path d="M9 12l2 2 4-4" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <p style={{ fontSize: 16, fontWeight: 600, color: '#1A2B4A', margin: '0 0 4px' }}>Trip access activated</p>
-            <p style={{ fontSize: 13, color: '#888', margin: '0 0 20px' }}>
-              We recorded your unlock. {PRICING.deepScanCreditsIncludedOnUnlock} deep scan credits are available for this trip.
-            </p>
+            <p style={{ fontSize: 16, fontWeight: 600, color: '#1A2B4A', margin: '0 0 4px' }}>Trip unlocked!</p>
+            <p style={{ fontSize: 13, color: '#888', margin: '0 0 20px' }}>2 deep scan credits have been added.</p>
             <button onClick={() => { onSuccess(); onClose(); }} style={{
               width: '100%', padding: '12px 0',
               background: '#1A2B4A', color: 'white',
@@ -240,10 +213,10 @@ function UnlockPaymentModal({ tripId, onSuccess, onClose }: { tripId: string; on
                 cursor: processing ? 'not-allowed' : 'pointer',
               }}
             >
-              {processing ? 'Processing…' : `Confirm unlock — ${formatUsd(PRICING.tripUnlockUsd)}`}
+              {processing ? 'Processing…' : 'Pay $14.99'}
             </button>
             <p style={{ fontSize: 11, color: '#bbb', textAlign: 'center', margin: '10px 0 0', lineHeight: 1.4 }}>
-              Checkout is in beta. If confirmation fails, unlock is not activated. Card data is not stored on our servers.
+              Payment processing is in beta. Card data is not stored on our servers. By continuing, you agree to our terms.
             </p>
           </>
         )}
@@ -610,25 +583,7 @@ function getVisaAdvisories(
   return advisories;
 }
 
-function OverviewTab({
-  trip,
-  incidents,
-  onEditClick,
-  onUnlock,
-  profileNationality,
-  routeIssues = [],
-  tripIdForRoute,
-  showRouteBanner,
-}: {
-  trip: any;
-  incidents: any[];
-  onEditClick: () => void;
-  onUnlock: () => void;
-  profileNationality?: string | null;
-  routeIssues?: RouteIssue[];
-  tripIdForRoute?: string;
-  showRouteBanner?: boolean;
-}) {
+function OverviewTab({ trip, incidents, onEditClick, onUnlock, profileNationality }: { trip: any; incidents: any[]; onEditClick: () => void; onUnlock: () => void; profileNationality?: string | null }) {
   const duration = daysBetween(trip.departure_date, trip.return_date);
   const until = daysUntil(trip.departure_date);
 
@@ -637,95 +592,12 @@ function OverviewTab({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {showRouteBanner && tripIdForRoute && routeIssues ? (
-        <RouteValidationBanner issues={routeIssues} tripId={tripIdForRoute} />
-      ) : null}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {until !== null && <StatChip label="Days until departure" value={until} />}
         {duration !== null && <StatChip label="Trip duration" value={`${duration} days`} />}
         <StatChip label="Incidents" value={incidents.length} />
         <StatChip label="Coverage" value={trip.paid_unlock ? 'Active' : 'Basic'} />
       </div>
-
-      <div
-        style={{
-          background: '#f8fafc',
-          border: '1px solid #e2e8f0',
-          borderRadius: 10,
-          padding: '12px 14px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12,
-          flexWrap: 'wrap',
-        }}
-      >
-        <div>
-          <p style={{ margin: '0 0 4px', fontSize: 12, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Coverage-sensitive readiness pins
-          </p>
-          <p style={{ margin: 0, fontSize: 12, color: '#64748b', lineHeight: 1.5 }}>
-            Before you lock anything in, review passport, visa, vaccine, and document readiness.
-          </p>
-        </div>
-        <Link
-          href={`/trips/${trip.trip_id}/readiness-pins`}
-          style={{
-            fontSize: 12,
-            fontWeight: 700,
-            color: '#1e3a8a',
-            background: '#eff6ff',
-            border: '1px solid #bfdbfe',
-            borderRadius: 8,
-            padding: '7px 10px',
-            textDecoration: 'none',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          Open checklist
-        </Link>
-      </div>
-
-      {trip.is_group_trip && (
-        <div
-          style={{
-            background: '#fff7ed',
-            border: '1px solid #fed7aa',
-            borderRadius: 10,
-            padding: '12px 14px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
-            flexWrap: 'wrap',
-          }}
-        >
-          <div>
-            <p style={{ margin: '0 0 4px', fontSize: 12, fontWeight: 700, color: '#9a3412', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Group authority controls
-            </p>
-            <p style={{ margin: 0, fontSize: 12, color: '#9a3412', lineHeight: 1.5 }}>
-              Manage participant verification and residence readiness before Deep Scan.
-            </p>
-          </div>
-          <Link
-            href={`/trips/${trip.trip_id}/group`}
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              color: '#9a3412',
-              background: 'white',
-              border: '1px solid #fdba74',
-              borderRadius: 8,
-              padding: '7px 10px',
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Open group controls
-          </Link>
-        </div>
-      )}
 
       {visaAdvisories.map((advisory, i) => (
         <div key={i} style={{
@@ -853,7 +725,7 @@ function OverviewTab({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 18 }}>
             {[
               'Deep coverage scan across all your policies',
-              'Claim routing — structured filing checklist per policy',
+              'Claim routing engine — know exactly what to file',
               'Ready-to-file evidence packet builder',
               'Priority incident documentation assistance',
             ].map((item) => (
@@ -874,7 +746,7 @@ function OverviewTab({
             border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600,
             cursor: 'pointer', fontFamily: 'system-ui, -apple-system, sans-serif',
           }}>
-            Unlock this trip — {formatUsd(PRICING.tripUnlockUsd)}
+            Unlock this trip — $14.99
           </button>
         </div>
       )}
@@ -930,7 +802,6 @@ function RouteTab({ trip }: { trip: any }) {
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [segmentVoiceOpen, setSegmentVoiceOpen] = useState(false);
   const [form, setForm] = useState({ type: 'flight', from: '', to: '', date: '', endDate: '', reference: '', notes: '' });
 
   // Load segments from Supabase
@@ -955,23 +826,6 @@ function RouteTab({ trip }: { trip: any }) {
         setLoadingSegs(false);
       });
   }, [trip.trip_id]);
-
-  const routeSegIssues = useMemo(() => {
-    if (segments.length === 0) return [] as RouteIssue[];
-    const inputs = segments.map((s, idx) => ({
-      segment_id: s.id,
-      segment_type: s.type,
-      origin: s.from || null,
-      destination: s.to || null,
-      depart_at: s.date ? new Date(`${s.date}T12:00:00.000Z`).toISOString() : null,
-      arrive_at: s.endDate ? new Date(`${s.endDate}T12:00:00.000Z`).toISOString() : null,
-      sort_order: idx,
-    }));
-    return validateRouteSegments(inputs, {
-      tripDepartureDate: trip.departure_date,
-      tripReturnDate: trip.return_date,
-    }).issues;
-  }, [segments, trip]);
 
   const handleAdd = async () => {
     if (!user || (!form.from.trim() && !form.to.trim() && !form.date)) return;
@@ -1109,9 +963,6 @@ function RouteTab({ trip }: { trip: any }) {
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {!loadingSegs && segments.length > 0 ? (
-        <RouteValidationBanner issues={routeSegIssues} tripId={trip.trip_id} />
-      ) : null}
       {loadingSegs ? (
         <div style={{ padding: '32px 0', textAlign: 'center' }}>
           <div style={{ width: 24, height: 24, border: '2px solid #e5e5e5', borderTopColor: '#1A2B4A', borderRadius: '50%', margin: '0 auto', animation: 'spin 0.8s linear infinite' }} />
@@ -1122,29 +973,14 @@ function RouteTab({ trip }: { trip: any }) {
           {segments.length} segment{segments.length !== 1 ? 's' : ''}
         </p>
         {!adding && (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button onClick={() => { setAdding(true); setEditingId(null); setForm({ type: 'flight', from: '', to: '', date: '', endDate: '', reference: '', notes: '' }); }} style={{
-              fontSize: 12, fontWeight: 600, color: '#2E5FA3',
-              background: '#eff4fc', border: '1px solid #bfdbfe',
-              borderRadius: 8, padding: '5px 12px', cursor: 'pointer',
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-            }}>
-              + Add manually
-            </button>
-            <button
-              type="button"
-              onClick={() => user && setSegmentVoiceOpen(true)}
-              disabled={!user}
-              style={{
-                fontSize: 12, fontWeight: 600, color: '#9f1239',
-                background: '#fff1f2', border: '1px solid #fecaca',
-                borderRadius: 8, padding: '5px 12px', cursor: user ? 'pointer' : 'not-allowed',
-                fontFamily: 'system-ui, -apple-system, sans-serif',
-              }}
-            >
-              Narrate a leg
-            </button>
-          </div>
+          <button onClick={() => { setAdding(true); setEditingId(null); setForm({ type: 'flight', from: '', to: '', date: '', endDate: '', reference: '', notes: '' }); }} style={{
+            fontSize: 12, fontWeight: 600, color: '#2E5FA3',
+            background: '#eff4fc', border: '1px solid #bfdbfe',
+            borderRadius: 8, padding: '5px 12px', cursor: 'pointer',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+          }}>
+            + Add segment
+          </button>
         )}
       </div>
 
@@ -1162,28 +998,13 @@ function RouteTab({ trip }: { trip: any }) {
           <p style={{ fontSize: 13, color: '#999', margin: '0 0 18px', lineHeight: 1.6 }}>
             Add flights, hotel stays, train legs, and car rentals to build your trip itinerary.
           </p>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={() => setAdding(true)} style={{
-              padding: '9px 22px', background: '#1A2B4A', color: 'white',
-              border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-            }}>
-              Add first segment
-            </button>
-            <button
-              type="button"
-              onClick={() => user && setSegmentVoiceOpen(true)}
-              disabled={!user}
-              style={{
-                padding: '9px 22px', background: '#fff1f2', color: '#9f1239',
-                border: '1px solid #fecaca', borderRadius: 8, fontSize: 13, fontWeight: 600,
-                cursor: user ? 'pointer' : 'not-allowed',
-                fontFamily: 'system-ui, -apple-system, sans-serif',
-              }}
-            >
-              Narrate a leg
-            </button>
-          </div>
+          <button onClick={() => setAdding(true)} style={{
+            padding: '9px 22px', background: '#1A2B4A', color: 'white',
+            border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+          }}>
+            Add first segment
+          </button>
         </div>
       )}
 
@@ -1241,43 +1062,6 @@ function RouteTab({ trip }: { trip: any }) {
       )}
     </>
     )}
-
-      {segmentVoiceOpen && user && (
-        <>
-          <div
-            role="presentation"
-            style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', zIndex: 75 }}
-            onClick={() => setSegmentVoiceOpen(false)}
-          />
-          <VoiceNarrationPanel
-            context="route_segment"
-            accountId={user.id}
-            tripId={trip.trip_id}
-            onCancel={() => setSegmentVoiceOpen(false)}
-            onFieldsConfirmed={(fields) => {
-              const ref =
-                typeof fields.flight_number === 'string' && fields.flight_number.trim()
-                  ? fields.flight_number.trim()
-                  : '';
-              const carrierNote = typeof fields.carrier === 'string' && fields.carrier.trim() ? fields.carrier.trim() : '';
-              const baseNotes = typeof fields.notes === 'string' ? fields.notes : '';
-              const notes = [carrierNote && `Carrier: ${carrierNote}`, baseNotes].filter(Boolean).join('\n');
-              setForm({
-                type: mapVoiceSegmentType(fields.segment_type),
-                from: typeof fields.origin === 'string' ? fields.origin : '',
-                to: typeof fields.destination === 'string' ? fields.destination : '',
-                date: parseLooseDate(fields.depart_date),
-                endDate: parseLooseDate(fields.arrive_date),
-                reference: ref,
-                notes,
-              });
-              setAdding(true);
-              setEditingId(null);
-              setSegmentVoiceOpen(false);
-            }}
-          />
-        </>
-      )}
     </div>
   );
 }
@@ -1303,7 +1087,6 @@ function CoverageTab({ trip, onUnlock }: { trip: any; onUnlock: () => void }) {
   const [clausesByPolicy, setClausesByPolicy] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
   const [expandedPolicy, setExpandedPolicy] = useState<string | null>(null);
-  const [matrixGapHint, setMatrixGapHint] = useState(0);
 
   useEffect(() => {
     if (!trip.paid_unlock) { setLoading(false); return; }
@@ -1361,10 +1144,10 @@ function CoverageTab({ trip, onUnlock }: { trip: any; onUnlock: () => void }) {
             Coverage analysis requires an unlocked trip
           </p>
           <p style={{ fontSize: 13, color: '#888', margin: '0 0 24px', lineHeight: 1.6, maxWidth: 340, marginLeft: 'auto', marginRight: 'auto' }}>
-            Unlock this trip to run a deep scan across your policies and see exactly what&apos;s covered.
+            Unlock this trip to run a deep scan across your policies and see exactly what's covered.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20, textAlign: 'left', maxWidth: 300, margin: '0 auto 20px' }}>
-            {['Per-policy structural breakdown', 'Clause-level detail and limits', 'Gap and ambiguity visibility'].map((item) => (
+            {['Per-policy coverage breakdown', 'Clause-level detail and limits', 'Gap analysis and recommendations'].map((item) => (
               <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
                   <path d="M9 12l2 2 4-4" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1379,7 +1162,7 @@ function CoverageTab({ trip, onUnlock }: { trip: any; onUnlock: () => void }) {
             border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600,
             cursor: 'pointer', fontFamily: 'system-ui, -apple-system, sans-serif',
           }}>
-            Unlock trip — {formatUsd(PRICING.tripUnlockUsd)}
+            Unlock trip — $14.99
           </button>
         </div>
       </div>
@@ -1419,8 +1202,7 @@ function CoverageTab({ trip, onUnlock }: { trip: any; onUnlock: () => void }) {
           <p style={{ fontSize: 13, color: '#888', margin: '0 0 20px', lineHeight: 1.6 }}>
             Upload your travel insurance, credit card benefit guide, or airline contract to see your coverage breakdown here.
           </p>
-          <CoverageMapStatusBanner tripId={trip.trip_id} context="trip_coverage" />
-          <Link href={`/policies/upload?trip_id=${trip.trip_id}`} style={{
+          <Link href={`/policies/upload?trip=${trip.trip_id}`} style={{
             display: 'inline-block', padding: '10px 24px',
             background: '#1A2B4A', color: 'white',
             borderRadius: 8, fontSize: 14, fontWeight: 600,
@@ -1435,17 +1217,11 @@ function CoverageTab({ trip, onUnlock }: { trip: any; onUnlock: () => void }) {
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <CoverageMapStatusBanner tripId={trip.trip_id} context="trip_coverage" matrixGapCount={matrixGapHint} />
-      <CoverageMatrixPanel
-        tripId={trip.trip_id}
-        policyCount={policies.length}
-        onIntelligenceMeta={(m) => setMatrixGapHint(m.gapWarningCritical)}
-      />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
         <p style={{ fontSize: 12, fontWeight: 600, color: '#999', margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           {policies.length} {policies.length === 1 ? 'policy' : 'policies'}
         </p>
-        <Link href={`/policies/upload?trip_id=${trip.trip_id}`} style={{
+        <Link href={`/policies/upload?trip=${trip.trip_id}`} style={{
           fontSize: 12, fontWeight: 600, color: '#2E5FA3',
           background: '#eff4fc', border: '1px solid #bfdbfe',
           borderRadius: 8, padding: '5px 12px', textDecoration: 'none',
@@ -1520,7 +1296,7 @@ function CoverageTab({ trip, onUnlock }: { trip: any; onUnlock: () => void }) {
                     <p style={{ fontSize: 13, color: '#aaa', margin: '0 0 10px', lineHeight: 1.5 }}>
                       No clauses have been extracted from this policy yet. This can happen if the document was not machine-readable or the extraction is still in progress.
                     </p>
-                    <Link href={`/policies/upload?trip_id=${trip.trip_id}`} style={{
+                    <Link href={`/policies/upload?trip=${trip.trip_id}`} style={{
                       fontSize: 12, fontWeight: 600, color: '#2E5FA3', textDecoration: 'none',
                     }}>
                       Re-upload this policy
@@ -1686,11 +1462,9 @@ function TripDetailPageInner() {
   const params = useParams();
   const searchParams = useSearchParams();
   const tripId = params?.trip_id as string;
-  const isReservedNewTripPath = tripId === 'new';
 
   const [trip, setTrip] = useState<any>(null);
   const [incidents, setIncidents] = useState<any[]>([]);
-  const [routeSegments, setRouteSegments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams?.get('tab');
@@ -1702,66 +1476,29 @@ function TripDetailPageInner() {
 
   useEffect(() => {
     if (!user || !tripId) return;
-    if (tripId === 'new') return;
 
     Promise.all([
-      // RLS (`trips_select`) already scopes rows to the authenticated user; do not duplicate
-      // `created_by` here — it can race session hydration on some browsers and empty the row.
-      supabase.from('trips').select('*').eq('trip_id', tripId).maybeSingle(),
+      supabase
+        .from('trips')
+        .select('*')
+        .eq('trip_id', tripId)
+        .eq('created_by', user.id)
+        .maybeSingle(),
       supabase
         .from('incidents')
         .select('id, title, canonical_status, disruption_type, created_at')
         .eq('trip_id', tripId)
         .order('created_at', { ascending: false }),
-      supabase
-        .from('route_segments')
-        .select('*')
-        .eq('trip_id', tripId)
-        .order('sort_order', { ascending: true }),
-    ]).then(([tripRes, incRes, segRes]) => {
+    ]).then(([tripRes, incRes]) => {
       if (!tripRes.data) { router.replace('/trips'); return; }
       setTrip(tripRes.data);
       setIncidents(incRes.data || []);
-      setRouteSegments(segRes.data || []);
       setLoading(false);
     }).catch((err) => {
       console.error('[trip-detail] fetch failed:', err);
       setLoading(false);
     });
-  }, [user, tripId, router]);
-
-  // Draft Home is the canonical flow while a trip is still in DRAFT state.
-  // This prevents users from bypassing readiness via the main trip tabs.
-  useEffect(() => {
-    if (tripId === 'new') return;
-    if (loading) return;
-    if (!tripId) return;
-    if (!trip) return;
-    if (trip.maturity_state === 'DRAFT') {
-      router.replace(`/trips/${tripId}/draft`);
-    }
-  }, [loading, tripId, trip, router]);
-
-  const routeValidation = useMemo(() => {
-    if (!trip || routeSegments.length === 0) return { issues: [] as RouteIssue[] };
-    const inputs = routeSegments.map((s: any) => ({
-      segment_id: s.segment_id,
-      segment_type: s.segment_type,
-      origin: s.origin,
-      destination: s.destination,
-      depart_at: s.depart_at,
-      arrive_at: s.arrive_at,
-      sort_order: s.sort_order,
-    }));
-    return validateRouteSegments(inputs, {
-      tripDepartureDate: trip.departure_date,
-      tripReturnDate: trip.return_date,
-    });
-  }, [trip, routeSegments]);
-
-  if (isReservedNewTripPath) {
-    return <NewTripPage />;
-  }
+  }, [user, tripId]);
 
   if (loading) {
     return (
@@ -1834,51 +1571,6 @@ function TripDetailPageInner() {
         </div>
       </div>
 
-      {!archiveResult && (
-        <div style={{
-          background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12,
-          padding: '14px 16px', marginBottom: 20, fontFamily: 'system-ui, -apple-system, sans-serif',
-        }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: '#334155', margin: '0 0 8px', letterSpacing: '0.02em' }}>
-            Trip workspace · Section 5
-          </p>
-          <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 10px', lineHeight: 1.5 }}>
-            Paying with a card that includes travel benefits? Upload the benefit guide with your policies—we use it for <strong>structural routing</strong> and documentation, not payout predictions.
-          </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {([
-              ['Insurance options (staged)', 'insurance-options'],
-              ['After you buy (staged)', 'post-purchase-policy'],
-              ['Align trip + policies (staged)', 'policy-alignment'],
-              ['Trip-end reminder (staged)', 'trip-end-reminder'],
-              ['Continue trip (staged)', 'trip-extension'],
-            ] as const).map(([label, slug]) => (
-              <Link
-                key={slug}
-                href={`/trips/${tripId}/section-5-staged/${slug}`}
-                style={{
-                  fontSize: 11, fontWeight: 600, color: '#1e40af',
-                  background: 'white', border: '1px solid #bfdbfe', borderRadius: 8,
-                  padding: '6px 10px', textDecoration: 'none',
-                }}
-              >
-                {label}
-              </Link>
-            ))}
-            <Link
-              href={`/trips/${tripId}/readiness-pins`}
-              style={{
-                fontSize: 11, fontWeight: 600, color: '#0f766e',
-                background: 'white', border: '1px solid #99f6e4', borderRadius: 8,
-                padding: '6px 10px', textDecoration: 'none',
-              }}
-            >
-              Readiness pins
-            </Link>
-          </div>
-        </div>
-      )}
-
       {archiveResult && (
         <div style={{
           background: '#fff7ed', border: '1px solid #fed7aa',
@@ -1886,7 +1578,7 @@ function TripDetailPageInner() {
           fontFamily: 'system-ui, -apple-system, sans-serif',
         }}>
           <p style={{ fontSize: 14, fontWeight: 600, color: '#92400e', margin: '0 0 6px' }}>
-            Trip complete — archived
+            Trip archived
           </p>
           <p style={{ fontSize: 13, color: '#92400e', margin: '0 0 4px', lineHeight: 1.6 }}>
             Your data will be retained until{' '}
@@ -1941,18 +1633,7 @@ function TripDetailPageInner() {
         ))}
       </div>
 
-      {activeTab === 'Overview' && (
-        <OverviewTab
-          trip={trip}
-          incidents={incidents}
-          onEditClick={() => setEditing(true)}
-          onUnlock={() => setShowPayModal(true)}
-          profileNationality={profile?.primary_nationality}
-          routeIssues={routeValidation.issues}
-          tripIdForRoute={trip.trip_id}
-          showRouteBanner={routeSegments.length > 0}
-        />
-      )}
+      {activeTab === 'Overview' && <OverviewTab trip={trip} incidents={incidents} onEditClick={() => setEditing(true)} onUnlock={() => setShowPayModal(true)} profileNationality={profile?.primary_nationality} />}
       {activeTab === 'Route' && <RouteTab trip={trip} />}
       {activeTab === 'Coverage' && <CoverageTab trip={trip} onUnlock={() => setShowPayModal(true)} />}
       {activeTab === 'Incidents' && <IncidentsTab trip={trip} incidents={incidents} />}
@@ -1961,7 +1642,7 @@ function TripDetailPageInner() {
       {showPayModal && (
         <UnlockPaymentModal
           tripId={trip.trip_id}
-          onSuccess={() => setTrip({ ...trip, paid_unlock: true, deep_scan_credits_remaining: PRICING.deepScanCreditsIncludedOnUnlock })}
+          onSuccess={() => setTrip({ ...trip, paid_unlock: true, deep_scan_credits_remaining: 2 })}
           onClose={() => setShowPayModal(false)}
         />
       )}

@@ -433,17 +433,12 @@ function NarrateSheet({ context, onDismiss }) {
   const chunksRef = useRef([]);
   const timerRef = useRef(null);
 
-  /* Cleanup reads latest recorder/timer at unmount; refs are the source of truth for MediaRecorder. */
   useEffect(() => {
     return () => {
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: clear interval id stored in ref at unmount
-      const timer = timerRef.current;
-      if (timer) clearInterval(timer);
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: stop active recorder held in ref at unmount
-      const rec = mediaRef.current;
-      if (rec && rec.state !== "inactive") {
-        rec.stop();
-        rec.stream && rec.stream.getTracks().forEach((t) => t.stop());
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (mediaRef.current && mediaRef.current.state !== "inactive") {
+        mediaRef.current.stop();
+        mediaRef.current.stream && mediaRef.current.stream.getTracks().forEach((t) => t.stop());
       }
     };
   }, []);
@@ -1195,10 +1190,6 @@ function SegmentRow({ segment, onEdit, allTravelers, onReportDisruption }) {
 // ---------------------------------------------------------------------------
 function TravelerLegend({ travelers }) {
   if (!travelers || travelers.length <= 1) return null;
-  return <TravelerLegendInner travelers={travelers} />;
-}
-
-function TravelerLegendInner({ travelers }) {
   const [expanded, setExpanded] = useState(false);
   const isLargeGroup = travelers.length > 5;
   const displayed = isLargeGroup && !expanded ? travelers.slice(0, 4) : travelers;
@@ -1468,7 +1459,7 @@ export default function RoutesScreen({ onReportIncident }) {
                 {disruptionSegment.origin} → {disruptionSegment.dest} · {disruptionSegment.flightNum || disruptionSegment.carrier}
               </p>
               <p style={{ fontSize: 12, color: "#374151", margin: "0 0 16px", lineHeight: 1.6 }}>
-                This will create a new incident pre-filled with this segment&apos;s flight details. You can add evidence and start a claim from the Incidents tab.
+                This will create a new incident pre-filled with this segment's flight details. You can add evidence and start a claim from the Incidents tab.
               </p>
               <div style={{ display: "flex", gap: 8 }}>
                 <button

@@ -17,16 +17,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
-import { userRateLimitedJsonResponse } from '@/lib/rate-limit/simple-memory';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const syncFromQuery = request.nextUrl.searchParams.get('sync') === 'true';
-    const { document_id, sync: syncFromBody } = body;
-    const sync = Boolean(syncFromQuery || syncFromBody);
+    const { document_id, sync } = body;
 
     if (!document_id) {
       return NextResponse.json(
@@ -35,41 +31,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get Supabase client with service role for worker operations
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+    if (!supabaseUrl || !supabaseKey) {
       return NextResponse.json(
         { ok: false, error: 'Server configuration missing' },
         { status: 500 },
       );
     }
 
-    let response = NextResponse.json({ ok: true });
-    const authSupabase = createServerClient(supabaseUrl, anonKey, {
-      cookies: {
-        get: (name) => request.cookies.get(name)?.value,
-        set: (name, value, options) => {
-          response.cookies.set({ name, value, ...options });
-        },
-        remove: (name, options) => {
-          response.cookies.set({ name, value: '', ...options, maxAge: 0 });
-        },
-      },
-    });
-    const { data: auth, error: authError } = await authSupabase.auth.getUser();
-    if (authError || !auth?.user) {
-      return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
-    }
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const rl = userRateLimitedJsonResponse(auth.user.id, 'extraction-process', 20, 60 * 60 * 1000);
-    if (rl) return rl;
-
-    // Service role writes, but ownership is still enforced against caller.
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
-
-    // Verify document exists and belongs to caller
+    // Verify document exists
     const { data: doc, error: docError } = await supabase
       .from('policy_documents')
       .select('document_id, policy_id, account_id, trip_id, source_type, document_status, raw_artifact_path')
@@ -82,9 +57,6 @@ export async function POST(request: NextRequest) {
         { status: 404 },
       );
     }
-    if (doc.account_id !== auth.user.id) {
-      return NextResponse.json({ ok: false, error: 'Forbidden' }, { status: 403 });
-    }
 
     // Don't re-process completed documents
     if (doc.document_status === 'complete') {
@@ -96,32 +68,50 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const policyLabelFromPath = doc.raw_artifact_path?.split('/').pop() || 'policy-document';
-    const { data: enqueueResult, error: enqueueError } = await supabase.rpc(
-      'enqueue_policy_parse_job_atomic',
-      {
-        p_document_id: doc.document_id,
-        p_account_id: auth.user.id,
-        p_storage_path: doc.raw_artifact_path,
-        p_policy_label: policyLabelFromPath,
-        p_trip_id: doc.trip_id || null,
-        p_source_type: doc.source_type || null,
-      },
-    );
-    if (enqueueError || !enqueueResult?.ok) {
+    // Insert job into queue
+    const { data: job, error: jobError } = await supabase
+      .from('job_queue')
+      .insert({
+        job_name: `extract-${document_id}`,
+        job_type: 'policy_parse',
+        payload: {
+          document_id: doc.document_id,
+          policy_id: doc.policy_id,
+          account_id: doc.account_id,
+          trip_id: doc.trip_id,
+          storage_path: doc.raw_artifact_path,
+          original_filename: doc.raw_artifact_path?.split('/').pop() || 'document.pdf',
+        },
+        status: 'pending',
+        max_retries: 3,
+      })
+      .select()
+      .single();
+
+    if (jobError) {
       return NextResponse.json(
-        { ok: false, error: 'Your document is saved, but processing could not start right now.' },
+        { ok: false, error: `Job creation failed: ${jobError.message}` },
         { status: 500 },
       );
     }
 
-    const jobId = enqueueResult?.job_id;
+    // Emit queued event
+    await supabase.rpc('emit_event', {
+      p_event_type: 'policy_parse_queued',
+      p_feature_id: 'F-6.5.1',
+      p_scope_type: 'policy_document',
+      p_scope_id: document_id,
+      p_actor_id: doc.account_id,
+      p_actor_type: 'system',
+      p_reason_code: 'API_TRIGGERED',
+      p_metadata: { job_id: job.id },
+    });
 
     // If sync mode requested (testing), process immediately
     if (sync) {
       const { processUploadedDocument } = await import('../../../../scripts/extraction-worker');
       const result = await processUploadedDocument(supabase, {
-        job_id: jobId,
+        job_id: job.id,
         document_id: doc.document_id,
         policy_id: doc.policy_id,
         account_id: doc.account_id,
@@ -138,13 +128,13 @@ export async function POST(request: NextRequest) {
           metadata: { result },
           updated_at: new Date().toISOString(),
         })
-        .eq('id', jobId);
+        .eq('id', job.id);
 
       return NextResponse.json({
         ok: result.ok,
         status: result.status,
         document_id,
-        job_id: jobId,
+        job_id: job.id,
         clauses_accepted: result.clauses_accepted,
         clauses_review: result.clauses_review,
         version_id: result.version_id,
@@ -157,13 +147,13 @@ export async function POST(request: NextRequest) {
       ok: true,
       status: 'QUEUED',
       document_id,
-      job_id: jobId,
+      job_id: job.id,
       message: 'Extraction job queued. Document will be processed shortly.',
     });
 
-  } catch (_err: any) {
+  } catch (err: any) {
     return NextResponse.json(
-      { ok: false, error: 'We could not start processing right now. Please try again.' },
+      { ok: false, error: err.message },
       { status: 500 },
     );
   }

@@ -18,8 +18,6 @@ export function MFAEnrollment() {
   const [verificationCode, setVerificationCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [disableCode, setDisableCode] = useState('');
-  const [disableMode, setDisableMode] = useState(false);
 
   const handleEnrollTOTP = async () => {
     if (!user) return;
@@ -96,25 +94,8 @@ export function MFAEnrollment() {
       const totpFactor = factors.data?.totp?.[0];
       if (!totpFactor) return;
 
-      if (disableCode.trim().length !== 6) {
-        setError('Enter the 6-digit code from your authenticator to disable 2FA.');
-        return;
-      }
-
-      const challengeResult = await supabase.auth.mfa.challenge({
-        factorId: totpFactor.id,
-      });
-      if (challengeResult.error) throw challengeResult.error;
-
-      const verifyRes = await supabase.auth.mfa.verify({
-        factorId: totpFactor.id,
-        challengeId: challengeResult.data.id,
-        code: disableCode.trim(),
-      });
-      if (verifyRes.error) throw verifyRes.error;
-
       const { error } = await supabase.auth.mfa.unenroll({
-        factorId: totpFactor.id,
+        factorId: totpFactor.id
       });
 
       if (error) throw error;
@@ -122,15 +103,13 @@ export function MFAEnrollment() {
       await supabase.rpc('record_mfa_enrollment', {
         p_user_id: user.id,
         p_mfa_method: 'totp',
-        p_action: 'unenroll',
+        p_action: 'unenroll'
       });
 
       await refreshProfile();
       setSuccess(false);
       setQrCode(null);
       setSecret(null);
-      setDisableMode(false);
-      setDisableCode('');
     } catch (err: any) {
       setError(err.message || 'Failed to unenroll MFA');
     }
@@ -148,33 +127,10 @@ export function MFAEnrollment() {
           </CardTitle>
           <CardDescription>Your account is now protected with two-factor authentication</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {!disableMode ? (
-            <Button variant="outline" onClick={() => { setDisableMode(true); setError(null); }}>
-              Disable MFA
-            </Button>
-          ) : (
-            <div className="space-y-2">
-              <Label htmlFor="disable-mfa-code-success">Current authenticator code</Label>
-              <Input
-                id="disable-mfa-code-success"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={6}
-                value={disableCode}
-                onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="000000"
-              />
-              <div className="flex gap-2">
-                <Button variant="destructive" onClick={() => void handleUnenroll()}>
-                  Confirm disable
-                </Button>
-                <Button variant="outline" onClick={() => { setDisableMode(false); setDisableCode(''); setError(null); }}>
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
+        <CardContent>
+          <Button variant="outline" onClick={handleUnenroll}>
+            Disable MFA
+          </Button>
         </CardContent>
       </Card>
     );
@@ -189,36 +145,13 @@ export function MFAEnrollment() {
             MFA Active
           </CardTitle>
           <CardDescription>
-            Active methods: {(profile.mfa_methods || []).join(', ') || 'totp'}
+            Active methods: {profile.mfa_methods.join(', ')}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {!disableMode ? (
-            <Button variant="outline" onClick={() => { setDisableMode(true); setError(null); }}>
-              Disable MFA
-            </Button>
-          ) : (
-            <div className="space-y-2">
-              <Label htmlFor="disable-mfa-code-active">Current authenticator code</Label>
-              <Input
-                id="disable-mfa-code-active"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={6}
-                value={disableCode}
-                onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="000000"
-              />
-              <div className="flex gap-2">
-                <Button variant="destructive" onClick={() => void handleUnenroll()}>
-                  Confirm disable
-                </Button>
-                <Button variant="outline" onClick={() => { setDisableMode(false); setDisableCode(''); setError(null); }}>
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
+        <CardContent>
+          <Button variant="outline" onClick={handleUnenroll}>
+            Disable MFA
+          </Button>
         </CardContent>
       </Card>
     );
@@ -245,7 +178,7 @@ export function MFAEnrollment() {
 
         {!qrCode ? (
           <Button onClick={handleEnrollTOTP} disabled={enrolling}>
-            {enrolling ? 'Setting up...' : 'Set up authenticator app'}
+            {enrolling ? 'Setting up...' : 'Enable MFA'}
           </Button>
         ) : (
           <div className="space-y-4">
@@ -256,7 +189,6 @@ export function MFAEnrollment() {
               </p>
               {qrCode && (
                 <div className="bg-white p-4 rounded-lg border inline-block">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- data URL from MFA setup */}
                   <img src={qrCode} alt="MFA QR Code" className="w-48 h-48" />
                 </div>
               )}

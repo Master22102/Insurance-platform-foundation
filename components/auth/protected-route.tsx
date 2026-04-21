@@ -8,23 +8,16 @@ import { CircleAlert as AlertCircle } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredTier?: 'FREE' | 'STANDARD' | 'PREMIUM' | 'CORPORATE' | 'FOUNDER';
+  requiredTier?: 'FREE' | 'STANDARD' | 'PREMIUM' | 'CORPORATE';
   fallback?: React.ReactNode;
 }
 
-type CanonicalTier = 'FREE' | 'CORPORATE' | 'FOUNDER';
-
-const tierHierarchy: Record<CanonicalTier, number> = {
+const tierHierarchy = {
   FREE: 0,
-  CORPORATE: 1,
-  FOUNDER: 2,
+  STANDARD: 1,
+  PREMIUM: 2,
+  CORPORATE: 3
 };
-
-function normalizeTier(tier: string | null | undefined): CanonicalTier {
-  if (tier === 'FOUNDER') return 'FOUNDER';
-  if (tier === 'CORPORATE') return 'CORPORATE';
-  return 'FREE';
-}
 
 export function ProtectedRoute({ children, requiredTier, fallback }: ProtectedRouteProps) {
   const { user, profile, loading } = useAuth();
@@ -52,10 +45,8 @@ export function ProtectedRoute({ children, requiredTier, fallback }: ProtectedRo
   }
 
   if (requiredTier && profile) {
-    const userTier = normalizeTier(profile.membership_tier);
-    const required = normalizeTier(requiredTier);
-    const userTierLevel = tierHierarchy[userTier];
-    const requiredTierLevel = tierHierarchy[required];
+    const userTierLevel = tierHierarchy[profile.membership_tier];
+    const requiredTierLevel = tierHierarchy[requiredTier];
 
     if (userTierLevel < requiredTierLevel) {
       if (fallback) {
@@ -68,7 +59,7 @@ export function ProtectedRoute({ children, requiredTier, fallback }: ProtectedRo
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Upgrade Required</AlertTitle>
             <AlertDescription>
-              This feature requires a {required} membership or higher. You currently have {userTier} tier.
+              This feature requires a {requiredTier} membership or higher. You currently have {profile.membership_tier} tier.
             </AlertDescription>
           </Alert>
         </div>

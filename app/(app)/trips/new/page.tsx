@@ -5,21 +5,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
-import { useSpeechCapture } from '@/lib/speech/useSpeechCapture';
-import { CoverageCatalogPanel } from '@/components/trips/CoverageCatalogPanel';
 
 type TripType = 'solo' | 'group';
 type BuildMethod = 'narrate' | 'manual';
-type Phase = 'type' | 'method' | 'details' | 'coverage' | 'travelers' | 'creating' | 'done';
-type SupportedItineraryExt = 'txt' | 'ics' | 'pdf' | 'docx';
-
-const MAX_ITINERARY_UPLOAD_BYTES = 10 * 1024 * 1024;
-const PARSE_TRANSITION_LINES = [
-  'Taking a careful look...',
-  "Dotting the i's and crossing the t's...",
-  'Lining everything up...',
-  'Making sure the details match...',
-];
+type Phase = 'type' | 'method' | 'details' | 'travelers' | 'creating' | 'done';
 
 const TRAVEL_MODES = [
   { key: 'air', label: 'Air' },
@@ -152,7 +141,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
 }
 
 export default function NewTripPage() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
 
   const [phase, setPhase] = useState<Phase>('type');
@@ -161,38 +150,6 @@ export default function NewTripPage() {
 
   const [narrateText, setNarrateText] = useState('');
   const [narrateParsed, setNarrateParsed] = useState(false);
-  const [narrateVoiceState, setNarrateVoiceState] = useState<'idle' | 'recording' | 'recorded'>('idle');
-  const [narrateVoiceError, setNarrateVoiceError] = useState('');
-  const [itineraryUploadError, setItineraryUploadError] = useState('');
-  const [itineraryUploadInfo, setItineraryUploadInfo] = useState('');
-  const [itineraryArtifact, setItineraryArtifact] = useState<{
-    fileName: string;
-    extension: SupportedItineraryExt;
-    sizeBytes: number;
-  } | null>(null);
-  const [isParsingNarration, setIsParsingNarration] = useState(false);
-  const [parseTransitionLine, setParseTransitionLine] = useState(PARSE_TRANSITION_LINES[0]);
-  const [isNormalizingUpload, setIsNormalizingUpload] = useState(false);
-  const [normalizedRouteSegments, setNormalizedRouteSegments] = useState<Array<{ origin: string; destination: string }>>([]);
-
-  const { start: startNarration, stop: stopNarration, reset: resetNarration } = useSpeechCapture({
-    maxDurationMs: 5 * 60 * 1000,
-    onTranscript: (text, isFinal) => {
-      const t = text.trim();
-      if (!t) return;
-      setNarrateText(t);
-      if (isFinal) {
-        setNarrateVoiceState('recorded');
-      } else {
-        setNarrateVoiceState('recording');
-      }
-      setNarrateVoiceError('');
-    },
-    onError: (message) => {
-      setNarrateVoiceError(message);
-      setNarrateVoiceState('idle');
-    },
-  });
 
   const [name, setName] = useState('');
   const [destination, setDestination] = useState('');
@@ -205,99 +162,6 @@ export default function NewTripPage() {
   const [error, setError] = useState('');
   const [createdTripId, setCreatedTripId] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-  /** F-6.5.17 — catalog rows to materialize as policies after trip creation */
-  const [catalogSelectionIds, setCatalogSelectionIds] = useState<string[]>([]);
-
-  const suggestedPlaces = (
-    (profile?.preferences as Record<string, unknown> | undefined)?.signal_profile as { places?: string[] } | undefined
-  )?.places?.filter(Boolean);
-
-  function getExtension(name: string): string {
-    const split = name.toLowerCase().split('.');
-    return split.length > 1 ? split[split.length - 1] : '';
-  }
-
-  function isSupportedItineraryExtension(ext: string): ext is SupportedItineraryExt {
-    return ['txt', 'ics', 'pdf', 'docx'].includes(ext);
-  }
-
-  function startParsingTransitionAndContinue() {
-    if (!narrateText.trim()) return;
-    const line = PARSE_TRANSITION_LINES[Math.floor(Math.random() * PARSE_TRANSITION_LINES.length)];
-    setParseTransitionLine(line);
-    setIsParsingNarration(true);
-    window.setTimeout(() => {
-      handleParseNarration();
-      setIsParsingNarration(false);
-    }, 700);
-  }
-
-  async function handleItineraryUpload(file: File | null) {
-    if (!file) return;
-    setItineraryUploadError('');
-    setItineraryUploadInfo('');
-
-    if (file.size > MAX_ITINERARY_UPLOAD_BYTES) {
-      setItineraryUploadError('That file is too large to upload. Try a smaller file or enter manually.');
-      return;
-    }
-
-    const ext = getExtension(file.name);
-    if (!isSupportedItineraryExtension(ext)) {
-      setItineraryUploadError("Unfortunately, we can't use that file type yet. Try again or enter manually.");
-      return;
-    }
-
-    setIsNormalizingUpload(true);
-    try {
-      const form = new FormData();
-      form.append('file', file);
-      const res = await fetch('/api/itinerary/normalize', {
-        method: 'POST',
-        body: form,
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        setItineraryUploadError(json?.error || 'We could not process that file. Try again or enter manually.');
-        return;
-      }
-
-      const extracted = typeof json?.extracted_text === 'string' ? json.extracted_text : '';
-      if (!extracted.trim()) {
-        setItineraryUploadError('We could not read details from that file. Try another file or enter manually.');
-        return;
-      }
-
-      const proposed = json?.proposed || {};
-      setNarrateText(extracted);
-      setNarrateVoiceState('recorded');
-      setName((proposed.trip_name && String(proposed.trip_name).trim()) || name);
-      setDestination((proposed.destination_summary && String(proposed.destination_summary).trim()) || destination);
-      setDepartureDate((proposed.departure_date && String(proposed.departure_date).trim()) || departureDate);
-      setReturnDate((proposed.return_date && String(proposed.return_date).trim()) || returnDate);
-      setTravelMode((proposed.travel_mode_primary && String(proposed.travel_mode_primary).trim()) || travelMode);
-      const routeSegments = Array.isArray(proposed.route_segments)
-        ? proposed.route_segments
-            .map((seg: any) => ({
-              origin: String(seg?.origin || '').trim(),
-              destination: String(seg?.destination || '').trim(),
-            }))
-            .filter((seg: { origin: string; destination: string }) => seg.origin || seg.destination)
-        : [];
-      setNormalizedRouteSegments(routeSegments);
-
-      setItineraryArtifact({
-        fileName: file.name,
-        extension: ext,
-        sizeBytes: file.size,
-      });
-      setItineraryUploadInfo(`Parsed ${file.name}. Review extracted details, then continue.`);
-    } catch {
-      setItineraryUploadError('Upload processing failed. Try again or enter manually.');
-    } finally {
-      setIsNormalizingUpload(false);
-    }
-  }
 
   function handleParseNarration() {
     if (!narrateText.trim()) return;
@@ -314,29 +178,6 @@ export default function NewTripPage() {
   function handleReNarrate() {
     setNarrateParsed(false);
     setPhase('method');
-    setNarrateVoiceState('idle');
-    setNarrateVoiceError('');
-  }
-
-  function toggleNarrateMic() {
-    if (narrateVoiceState === 'recording') {
-      stopNarration();
-      setNarrateVoiceState('idle');
-      return;
-    }
-
-    if (narrateVoiceState === 'recorded') {
-      resetNarration();
-      setNarrateText('');
-      setNarrateVoiceError('');
-      setNarrateVoiceState('idle');
-      return;
-    }
-
-    resetNarration();
-    setNarrateVoiceError('');
-    setNarrateVoiceState('recording');
-    startNarration();
   }
 
   async function handleCreate() {
@@ -367,105 +208,16 @@ export default function NewTripPage() {
     if (rpcError || !data?.success) {
       setError(data?.error || rpcError?.message || 'Something went wrong. Please try again.');
       setIsCreating(false);
-      setPhase('coverage');
+      setPhase('details');
       return;
     }
 
     setCreatedTripId(data.trip_id);
-
-    if (catalogSelectionIds.length > 0) {
-      const { error: catalogErr } = await supabase.rpc('apply_coverage_catalog_selections', {
-        p_trip_id: data.trip_id,
-        p_catalog_ids: catalogSelectionIds,
-      });
-      if (catalogErr) {
-        console.warn('[apply_coverage_catalog_selections] non-blocking failure', catalogErr);
-      }
-    }
-
-    // Step 4A normalization signal: persist itinerary hash/version event from current structured fields.
-    // This is non-blocking for trip creation success.
-    const itineraryFields = {
-      trip_name: name.trim(),
-      destination_summary: destination.trim() || null,
-      departure_date: departureDate || null,
-      return_date: returnDate || null,
-      travel_mode_primary: travelMode || null,
-      draft_narration: narrateText.trim() || null,
-      artifact_name: itineraryArtifact?.fileName || null,
-      artifact_extension: itineraryArtifact?.extension || null,
-    };
-    const { data: hashData, error: hashErr } = await supabase.rpc('update_itinerary_hash', {
-      p_trip_id: data.trip_id,
-      p_actor_id: user!.id,
-      p_itinerary_fields: itineraryFields,
-    });
-    if (hashErr || !hashData?.success) {
-      console.warn('[update_itinerary_hash] non-blocking failure', hashErr || hashData);
-    }
-
-    // Step 5 automation: trigger a Quick Scan request when itinerary is structured enough.
-    // Uses free/teaser lane (trip_id null) so this does not require trip unlock.
-    if (destination.trim() && (departureDate || returnDate)) {
-      const itinerarySnapshot = {
-        destination: destination.trim(),
-        departure_date: departureDate || null,
-        return_date: returnDate || null,
-        travel_mode: travelMode || null,
-        itinerary_hash: hashData?.new_hash || hashData?.hash || null,
-        route_segments: normalizedRouteSegments
-          .filter((s) => s.origin.trim() || s.destination.trim())
-          .map((s, idx) => ({
-            index: idx,
-            origin: s.origin.trim() || null,
-            destination: s.destination.trim() || null,
-          })),
-      };
-      const { error: quickScanErr } = await supabase.rpc('initiate_quick_scan', {
-        p_user_id: user!.id,
-        p_itinerary_snapshot: itinerarySnapshot,
-        p_trip_id: null,
-      });
-      if (quickScanErr) {
-        console.warn('[initiate_quick_scan] non-blocking failure', quickScanErr);
-      }
-    }
-
-    // Persist extracted route legs (if any) so Draft Home route view has concrete segments.
-    if (normalizedRouteSegments.length > 0) {
-      for (let i = 0; i < normalizedRouteSegments.length; i++) {
-        const seg = normalizedRouteSegments[i];
-        if (!seg.origin.trim() || !seg.destination.trim()) continue;
-        const { error: segErr } = await supabase.rpc('upsert_route_segment', {
-          p_trip_id: data.trip_id,
-          p_segment_id: null,
-          p_origin_text: seg.origin.trim(),
-          p_destination_text: seg.destination.trim(),
-          p_mode: travelMode,
-          p_departure_at: null,
-          p_arrival_at: null,
-          p_position_index: i,
-          p_actor_id: user!.id,
-        });
-        if (segErr) {
-          console.warn('[upsert_route_segment] non-blocking failure', segErr);
-        }
-      }
-    }
-
     setIsCreating(false);
     setPhase('done');
   }
 
-  const stepMap: Record<Phase, number> = {
-    type: 1,
-    method: 2,
-    details: 3,
-    coverage: 3,
-    travelers: 3,
-    creating: 3,
-    done: 3,
-  };
+  const stepMap: Record<Phase, number> = { type: 1, method: 2, details: 3, travelers: 3, creating: 3, done: 3 };
   const currentStep = stepMap[phase];
 
   return (
@@ -558,64 +310,7 @@ export default function NewTripPage() {
 
           {buildMethod === 'narrate' && (
             <div style={{ marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
-                <label style={labelStyle}>Describe your trip</label>
-                <button
-                  type="button"
-                  onClick={toggleNarrateMic}
-                  aria-label="Microphone"
-                  title={narrateVoiceState === 'recording' ? 'Stop microphone capture' : 'Tap to start microphone capture'}
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 999,
-                    border: narrateVoiceState === 'recording' ? '1px solid #fecaca' : '1px solid #dbeafe',
-                    background: narrateVoiceState === 'recording' ? '#fee2e2' : narrateVoiceState === 'recorded' ? '#dcfce7' : '#eff6ff',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 14a3 3 0 003-3V5a3 3 0 10-6 0v6a3 3 0 003 3z" stroke={narrateVoiceState === 'recording' ? '#b91c1c' : '#1e40af'} strokeWidth="1.8" strokeLinecap="round" />
-                    <path d="M19 11a7 7 0 01-14 0" stroke={narrateVoiceState === 'recording' ? '#b91c1c' : '#1e40af'} strokeWidth="1.8" strokeLinecap="round" />
-                    <path d="M12 18v3" stroke={narrateVoiceState === 'recording' ? '#b91c1c' : '#1e40af'} strokeWidth="1.8" strokeLinecap="round" />
-                    <path d="M8 21h8" stroke={narrateVoiceState === 'recording' ? '#b91c1c' : '#1e40af'} strokeWidth="1.8" strokeLinecap="round" />
-                  </svg>
-                </button>
-              </div>
-              <div style={{ marginBottom: 10 }}>
-                <label style={{ display: 'block', fontSize: 12, color: '#888', fontWeight: 600, marginBottom: 6 }}>
-                  Upload file (PDF, ICS, DOCX, TXT)
-                </label>
-                <input
-                  type="file"
-                  accept=".pdf,.ics,.docx,.txt,text/plain,application/pdf,text/calendar,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                  onChange={(e) => {
-                    void handleItineraryUpload(e.target.files?.[0] || null);
-                  }}
-                  style={{ width: '100%' }}
-                />
-                <p style={{ fontSize: 12, color: '#64748b', margin: '6px 0 0', lineHeight: 1.5 }}>
-                  We support PDFs, ICS calendar files, Word docs, and AI-generated itinerary text.
-                </p>
-                {itineraryUploadInfo && (
-                  <p style={{ fontSize: 12, color: '#166534', margin: '6px 0 0', lineHeight: 1.5 }}>
-                    {itineraryUploadInfo}
-                  </p>
-                )}
-                {isNormalizingUpload && (
-                  <p style={{ fontSize: 12, color: '#1e40af', margin: '6px 0 0', lineHeight: 1.5 }}>
-                    Taking a careful look...
-                  </p>
-                )}
-                {itineraryUploadError && (
-                  <p style={{ fontSize: 12, color: '#b45309', margin: '6px 0 0', lineHeight: 1.5 }}>
-                    {itineraryUploadError}
-                  </p>
-                )}
-              </div>
+              <label style={labelStyle}>Describe your trip</label>
               <textarea
                 value={narrateText}
                 onChange={(e) => setNarrateText(e.target.value)}
@@ -623,20 +318,8 @@ export default function NewTripPage() {
                 rows={5}
                 style={{ ...inputStyle, resize: 'vertical', lineHeight: '1.6' }}
               />
-              <p style={{ fontSize: 12, color: narrateVoiceState === 'recording' ? '#1e40af' : '#aaa', margin: '8px 0 0', lineHeight: 1.5 }}>
-                {narrateVoiceState === 'recording'
-                  ? 'Listening now - tap the mic again to stop.'
-                  : narrateVoiceState === 'recorded'
-                    ? 'Voice captured. Tap mic to re-record.'
-                    : 'Tap the microphone and speak (or type instead).'}
-              </p>
-              {narrateVoiceError && (
-                <p style={{ fontSize: 12, color: '#b45309', margin: '6px 0 0', lineHeight: 1.5 }}>
-                  {narrateVoiceError}
-                </p>
-              )}
               <p style={{ fontSize: 12, color: '#aaa', margin: '6px 0 0', lineHeight: 1.5 }}>
-                Include destinations, dates, and how you&apos;re getting there. We&apos;ll extract what we can.
+                Include destinations, dates, and how you're getting there. We'll extract what we can.
               </p>
             </div>
           )}
@@ -644,22 +327,20 @@ export default function NewTripPage() {
           <button
             onClick={() => {
               if (buildMethod === 'narrate' && narrateText.trim()) {
-                startParsingTransitionAndContinue();
+                handleParseNarration();
               } else {
                 setPhase('details');
               }
             }}
-            disabled={isParsingNarration || (buildMethod === 'narrate' && !narrateText.trim())}
+            disabled={buildMethod === 'narrate' && !narrateText.trim()}
             style={{
               width: '100%', padding: '11px 0',
-              background: isParsingNarration || (buildMethod === 'narrate' && !narrateText.trim()) ? '#93afd4' : '#1A2B4A',
+              background: buildMethod === 'narrate' && !narrateText.trim() ? '#93afd4' : '#1A2B4A',
               color: 'white', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600,
-              cursor: isParsingNarration || (buildMethod === 'narrate' && !narrateText.trim()) ? 'not-allowed' : 'pointer',
+              cursor: buildMethod === 'narrate' && !narrateText.trim() ? 'not-allowed' : 'pointer',
             }}
           >
-            {buildMethod === 'narrate'
-              ? (isParsingNarration ? parseTransitionLine : 'Parse itinerary')
-              : 'Continue'}
+            {buildMethod === 'narrate' ? 'Parse itinerary' : 'Continue'}
           </button>
         </div>
       )}
@@ -687,88 +368,7 @@ export default function NewTripPage() {
           <div style={{ background: 'white', border: '0.5px solid #e8e8e8', borderRadius: 12, padding: '28px 24px' }}>
             <BackButton onClick={() => { setPhase('method'); setNarrateParsed(false); }} />
 
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: '#1A2B4A', margin: '0 0 6px', letterSpacing: '-0.3px' }}>
-              Review your trip
-            </h2>
-            <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 18px', lineHeight: 1.55 }}>
-              Confirm route legs and details match what you intend before creating the trip. Nothing is finalized until you create the trip.
-            </p>
-
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-              {normalizedRouteSegments.length > 0 && (
-                <div
-                  style={{
-                    border: '1px solid #dbeafe',
-                    background: '#f8fbff',
-                    borderRadius: 10,
-                    padding: '12px 12px 10px',
-                  }}
-                >
-                  <p style={{ margin: '0 0 4px', fontSize: 12, fontWeight: 700, color: '#1e3a8a', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    Route legs
-                  </p>
-                  <p style={{ margin: '0 0 10px', fontSize: 12, color: '#475569', lineHeight: 1.5 }}>
-                    We detected these legs. Edit or add more before continuing.
-                  </p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {normalizedRouteSegments.map((seg, idx) => (
-                      <div key={`seg-${idx}`} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr auto', gap: 8, alignItems: 'center' }}>
-                        <input
-                          type="text"
-                          value={seg.origin}
-                          onChange={(e) => {
-                            const next = [...normalizedRouteSegments];
-                            next[idx] = { ...next[idx], origin: e.target.value };
-                            setNormalizedRouteSegments(next);
-                          }}
-                          placeholder="Origin"
-                          style={inputStyle}
-                        />
-                        <span style={{ fontSize: 12, color: '#64748b' }}>-&gt;</span>
-                        <input
-                          type="text"
-                          value={seg.destination}
-                          onChange={(e) => {
-                            const next = [...normalizedRouteSegments];
-                            next[idx] = { ...next[idx], destination: e.target.value };
-                            setNormalizedRouteSegments(next);
-                          }}
-                          placeholder="Destination"
-                          style={inputStyle}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setNormalizedRouteSegments(normalizedRouteSegments.filter((_, i) => i !== idx));
-                          }}
-                          style={{ border: 'none', background: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 16 }}
-                          aria-label={`Remove leg ${idx + 1}`}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setNormalizedRouteSegments([...normalizedRouteSegments, { origin: '', destination: '' }])}
-                    style={{
-                      marginTop: 8,
-                      border: '1px dashed #bfdbfe',
-                      background: 'white',
-                      color: '#1e40af',
-                      borderRadius: 8,
-                      padding: '6px 10px',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    + Add leg
-                  </button>
-                </div>
-              )}
-
               <div>
                 <label style={labelStyle}>Trip name *</label>
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Weekend in Lisbon" style={inputStyle} />
@@ -776,32 +376,6 @@ export default function NewTripPage() {
 
               <div>
                 <label style={labelStyle}>Destination</label>
-                {suggestedPlaces && suggestedPlaces.length > 0 && (
-                  <div style={{ marginBottom: 10 }}>
-                    <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 6px' }}>Based on your interests</p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {suggestedPlaces.map((p) => (
-                        <button
-                          key={p}
-                          type="button"
-                          onClick={() => setDestination(p)}
-                          style={{
-                            padding: '5px 11px',
-                            fontSize: 12,
-                            fontWeight: 600,
-                            borderRadius: 999,
-                            border: '1px solid #bfdbfe',
-                            background: '#eff6ff',
-                            color: '#1d4ed8',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          {p}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
                 <input type="text" value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="Lisbon, Portugal" style={inputStyle} />
               </div>
 
@@ -849,9 +423,13 @@ export default function NewTripPage() {
 
               <button
                 onClick={() => {
-                  if (!name.trim()) { setError('Trip name is required.'); return; }
-                  setError('');
-                  setPhase('coverage');
+                  if (tripType === 'group') {
+                    if (!name.trim()) { setError('Trip name is required.'); return; }
+                    setError('');
+                    setPhase('travelers');
+                  } else {
+                    handleCreate();
+                  }
                 }}
                 disabled={phase === 'creating' || !name.trim()}
                 style={{
@@ -861,7 +439,7 @@ export default function NewTripPage() {
                   cursor: phase === 'creating' || !name.trim() ? 'not-allowed' : 'pointer',
                 }}
               >
-                {phase === 'creating' ? 'Creating trip…' : 'Continue to coverage'}
+                {phase === 'creating' ? 'Creating trip…' : tripType === 'group' ? 'Add travelers' : 'Start planning'}
               </button>
             </div>
           </div>
@@ -872,31 +450,13 @@ export default function NewTripPage() {
         </div>
       )}
 
-      {phase === 'coverage' && (
-        <div>
-          <BackButton onClick={() => setPhase('details')} />
-          <CoverageCatalogPanel
-            selectedIds={catalogSelectionIds}
-            onChangeSelected={setCatalogSelectionIds}
-            onSkip={() => {
-              if (tripType === 'group') setPhase('travelers');
-              else void handleCreate();
-            }}
-            onContinue={() => {
-              if (tripType === 'group') setPhase('travelers');
-              else void handleCreate();
-            }}
-          />
-        </div>
-      )}
-
       {phase === 'travelers' && (
         <div>
           <div style={{ background: '#eff4fc', border: '1px solid #dbeafe', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#1e40af', lineHeight: 1.5 }}>
             Adding nationalities helps identify any visa requirements for your group.
           </div>
           <div style={{ background: 'white', border: '0.5px solid #e8e8e8', borderRadius: 12, padding: '28px 24px' }}>
-            <BackButton onClick={() => setPhase('coverage')} />
+            <BackButton onClick={() => setPhase('details')} />
             <p style={{ fontSize: 13, fontWeight: 600, color: '#444', margin: '0 0 4px' }}>Add traveler nationalities</p>
             <p style={{ fontSize: 12, color: '#aaa', margin: '0 0 18px', lineHeight: 1.5 }}>Optional — helps with visa and documentation checks.</p>
 
@@ -993,7 +553,7 @@ export default function NewTripPage() {
             What would you like to do next?
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Link href={`/policies/upload?trip_id=${createdTripId}`} style={{
+            <Link href={`/policies/upload?trip=${createdTripId}`} style={{
               display: 'block', padding: '13px 0',
               background: '#1A2B4A', color: 'white',
               borderRadius: 10, textDecoration: 'none',
@@ -1001,14 +561,14 @@ export default function NewTripPage() {
             }}>
               Add a policy
             </Link>
-            <Link href={`/trips/${createdTripId}/draft`} style={{
+            <Link href={`/trips/${createdTripId}`} style={{
               display: 'block', padding: '13px 0',
               background: 'white', color: '#1A2B4A',
               border: '1px solid #e5e7eb',
               borderRadius: 10, textDecoration: 'none',
               fontSize: 14, fontWeight: 600,
             }}>
-              Continue planning
+              View trip
             </Link>
           </div>
         </div>

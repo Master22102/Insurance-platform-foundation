@@ -34,6 +34,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-scripts/extraction/pipeline.py
-scripts/e2e/save-storage-state.mjs
-scripts/extraction/pipeline.py

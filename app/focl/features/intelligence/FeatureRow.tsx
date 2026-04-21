@@ -14,11 +14,6 @@ interface Props {
   onSetRollout: (featureId: string, pct: number) => Promise<void>;
 }
 
-type ActivationPrereq = {
-  label: string;
-  done: boolean;
-};
-
 export function FeatureRow({ row, onToggle, onSetRollout }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [toggling, setToggling] = useState(false);
@@ -26,47 +21,16 @@ export function FeatureRow({ row, onToggle, onSetRollout }: Props) {
     row.activation?.rollout_percentage ?? 100,
   );
   const [savingRollout, setSavingRollout] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
   const rolloutChanged = useRef(false);
 
   const { registry: reg, activation: act, health, subCapabilities, derivedStatus, pendingIssueCount } = row;
   const isEnabled = act ? act.enabled : reg.default_enabled;
   const currentPct = act?.rollout_percentage ?? 100;
-  const isInactive = derivedStatus !== 'LIVE';
-  const prerequisites: ActivationPrereq[] = [
-    { label: 'Cockpit activation is enabled for this region', done: isEnabled },
-    { label: 'Rollout percentage is fully expanded (100%)', done: currentPct >= 100 },
-    {
-      label: 'Required connector is active/integrated',
-      done: reg.connector_status === 'not_required' || reg.connector_status === 'active',
-    },
-    {
-      label: 'Rollout health is stable',
-      done: !health || health.health_status === 'HEALTHY',
-    },
-    {
-      label: 'Pending capability extensions are resolved',
-      done: !reg.has_pending_extension,
-    },
-  ];
-  const outstanding = prerequisites.filter((p) => !p.done);
-  const reasonCode = String(act?.reason_code || '').toLowerCase();
-  const blockedReason =
-    reasonCode.includes('protective')
-      ? 'Activation is blocked while the platform is in protective mode.'
-      : reasonCode.includes('forbidden')
-        ? 'This action requires founder-level access.'
-        : isInactive
-          ? 'Activation prerequisites are not fully satisfied yet.'
-          : null;
 
   async function handleToggle(val: boolean) {
     setToggling(true);
-    setActionError(null);
     try {
       await onToggle(reg.feature_id, val);
-    } catch (err: any) {
-      setActionError(err?.message || 'We could not apply this change.');
     } finally {
       setToggling(false);
     }
@@ -74,12 +38,9 @@ export function FeatureRow({ row, onToggle, onSetRollout }: Props) {
 
   async function handleSaveRollout() {
     setSavingRollout(true);
-    setActionError(null);
     try {
       await onSetRollout(reg.feature_id, rolloutValue);
       rolloutChanged.current = false;
-    } catch (err: any) {
-      setActionError(err?.message || 'We could not apply this rollout change.');
     } finally {
       setSavingRollout(false);
     }
@@ -158,50 +119,6 @@ export function FeatureRow({ row, onToggle, onSetRollout }: Props) {
         <div className="border-t border-neutral-100 bg-neutral-50 px-5 py-5 space-y-5">
           {/* Description */}
           <p className="text-sm text-neutral-600 leading-relaxed max-w-3xl">{reg.description}</p>
-
-          {isInactive && (
-            <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-amber-800 mb-1">
-                Founder activation descriptor
-              </p>
-              <p className="text-sm text-amber-900 mb-2">
-                This feature is currently <strong>{derivedStatus.toLowerCase()}</strong>. Review rollout controls and rules before activation.
-              </p>
-              {blockedReason && (
-                <p className="text-xs text-amber-900 mb-2">
-                  <strong>Why blocked now:</strong> {blockedReason}
-                </p>
-              )}
-              <p className="text-xs font-medium text-amber-800 mb-1">What is needed to activate</p>
-              <div className="space-y-1.5">
-                {prerequisites.map((item) => (
-                  <div key={item.label} className="flex items-start gap-2 text-xs text-amber-900">
-                    <span className="mt-0.5">{item.done ? '✓' : '□'}</span>
-                    <span>{item.label}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-amber-800 mt-2">
-                Next recommended action: {outstanding[0]?.label ?? 'Document activation intent and owner.'}
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <a
-                  href={`/focl/features/intelligence?feature=${encodeURIComponent(reg.feature_id)}#rollout`}
-                  className="inline-flex items-center gap-1.5 text-xs text-amber-900 hover:underline"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  Open rollout control
-                </a>
-                <a
-                  href={`/focl/features/intelligence?feature=${encodeURIComponent(reg.feature_id)}#rules`}
-                  className="inline-flex items-center gap-1.5 text-xs text-amber-900 hover:underline"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  Open rules
-                </a>
-              </div>
-            </div>
-          )}
 
           {/* Connector info */}
           {reg.connector_status !== 'not_required' && (
@@ -293,16 +210,11 @@ export function FeatureRow({ row, onToggle, onSetRollout }: Props) {
               </div>
             )}
           </div>
-          {actionError && (
-            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-              {actionError}
-            </div>
-          )}
 
           {/* Rollout health screen link */}
           <div className="pt-1 border-t border-neutral-100">
             <a
-              href={`/focl/features/intelligence?feature=${encodeURIComponent(reg.feature_id)}#health`}
+              href={`/focl/features/${encodeURIComponent(reg.feature_id)}/rollout-health`}
               className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-800 transition-colors"
             >
               <ExternalLink className="w-3 h-3" />

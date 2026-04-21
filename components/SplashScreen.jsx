@@ -6,7 +6,7 @@ export default function SplashScreen({ onComplete }) {
   useEffect(() => {
     const t = setTimeout(onComplete, 2200);
     return () => clearTimeout(t);
-  }, [onComplete]);
+  }, []);
 
   return (
     <div style={{

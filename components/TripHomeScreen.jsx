@@ -331,7 +331,6 @@ function BookingItem({ booking }) {
               background: "#f0f0f0",
               position: "relative",
             }}>
-              {/* eslint-disable-next-line @next/next/no-img-element -- booking hero URL may be external */}
               <img
                 src={booking.heroImage}
                 alt={booking.heroLabel || booking.title}
@@ -720,7 +719,7 @@ function NarrationSheet({ onDismiss }) {
                 </div>
                 <div>
                   <p style={{ fontSize: 14, fontWeight: 600, color: "#111", margin: "0 0 2px" }}>Voice narration</p>
-                  <p style={{ fontSize: 12, color: "#888", margin: 0 }}>Dictate — we&apos;ll transcribe it</p>
+                  <p style={{ fontSize: 12, color: "#888", margin: 0 }}>Dictate — we'll transcribe it</p>
                 </div>
                 <svg width="5" height="9" viewBox="0 0 5 9" fill="none" style={{ marginLeft: "auto", flexShrink: 0 }}>
                   <path d="M1 1l3 3.5L1 8" stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

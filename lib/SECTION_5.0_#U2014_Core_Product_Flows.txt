@@ -1,4 +1,4 @@
-﻿SECTION 5.0 — Core Product Flows (Canonical, mobile-first)
+SECTION 5.0 — Core Product Flows (Canonical, mobile-first)
 5.0.0 Constitutional Purpose
 The platform is a structured decision-support system for travel before, during, and after trips.
 Hard rules:
