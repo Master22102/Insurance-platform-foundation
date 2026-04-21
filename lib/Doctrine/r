@@ -1,0 +1,395 @@
+3.4.0 Constitutional Purpose
+The Causality Coordination Object (CCO) governs how the system interprets the cause of a disruption.
+It exists to:
+●Maintain legal defensibility
+
+●Preserve interpretive transparency
+
+●Support versioned routing recommendations
+
+●Enable dual-branch evaluation
+
+●Prevent narrative-only override
+
+●Ensure deterministic replay
+
+Every Incident must have exactly one CausalityObject (CCO root).
+ Every evaluation references a specific immutable CausalityVersion.
+
+3.4.1 Object Structure
+CausalityObject (root identity)
+●cco_object_id (UUID)
+
+●incident_id (UUID)
+
+●created_at
+
+●locked (boolean default false)
+
+This object never changes identity.
+
+CausalityVersion (immutable)
+Each version contains:
+●cco_version_id (UUID)
+
+●cco_object_id
+
+●branch_type:
+
+○SYSTEM_PRIMARY
+
+○USER_ASSERTION
+
+●cause_label_public:
+
+○Weather
+
+○Airline Operations
+
+○Maintenance / Mechanical
+
+○Airport Operations
+
+○Government Restriction
+
+○Unknown / Pending
+
+●cause_class_internal:
+
+○INTERNAL
+
+○EXTERNAL
+
+○MIXED
+
+○UNKNOWN
+
+●confidence_tier:
+
+○LOW
+
+○MEDIUM
+
+○HIGH
+
+●evidence_support_set (array of evidence_ids)
+
+●supersedes_version_id (nullable)
+
+●is_active (boolean)
+
+Only one CausalityVersion may be active at a time.
+All prior versions remain historically valid.
+
+3.4.2 Versioning Doctrine
+Causality evolves.
+Triggers for new CausalityVersion:
+●New evidence materially affects interpretation.
+
+●User assertion supported by evidence.
+
+●Dual-branch initiated.
+
+●Jurisdiction update materially affects classification.
+
+No destructive overwrite permitted.
+The active_cco_version_id on Incident must always point to the current version.
+
+3.4.3 Evidence Threshold Rule
+User cannot override system classification without evidence.
+Override Flow:
+1.User disputes classification.
+
+2.System soft-blocks:
+ “Supporting evidence required to proceed with alternate interpretation.”
+
+3.Upon evidence submission:
+
+○New USER_ASSERTION branch created.
+
+○Both SYSTEM_PRIMARY and USER_ASSERTION branches active.
+
+
+3.4.4 Dual Branch Doctrine
+Dual branch occurs when:
+●User assertion supported by evidence conflicts with system classification.
+
+During dual branch:
+●Both versions remain active candidates.
+
+●Routing evaluation may compute results for both.
+
+●Confidence tiers displayed.
+
+Collapse Rule:
+When evidence confidence threshold is HIGH:
+●The weaker branch is superseded.
+
+●Only one branch remains active.
+
+●Historical branch remains preserved.
+
+●No special collapse event required; supersedence chain preserves integrity.
+
+
+3.4.5 Routing Integration Contract
+Every RoutingRecommendation version must reference:
+●incident_id
+
+●cco_version_id
+
+Routing must use only the active CCO version at evaluation time.
+If CCO changes:
+●New RoutingRecommendation version must be generated.
+
+
+3.4.6 Trip Context Interaction
+One Incident = One Primary Disruption Domain.
+Multiple Incidents on same Trip may:
+●Reference each other via linked_incident_ids
+
+●Influence sequencing recommendations
+
+CausalityObjects remain independent.
+
+3.4.7 Customer-Facing Language Rule
+The term “External” must never appear customer-facing.
+Public labels must use friendly taxonomy:
+●Weather
+
+●Airline Operations
+
+●Maintenance / Mechanical
+
+●Airport Operations
+
+●Government Restriction
+
+●Unknown / Pending
+
+Internal classification remains available for routing logic.
+
+3.4.8 Locking Doctrine
+CCO locks when:
+●All claims tied to the Incident are resolved
+
+●No open dispute remains
+
+Exception Handling:
+If new material evidence appears post-resolution:
+●New CausalityVersion may be created
+
+●CCO may be reopened
+
+Reopen must be event-logged.
+
+3.4.9 Deterministic Replay Contract
+To reconstruct causality state:
+Required:
+●incident_created
+
+●all evidence_upload_completed
+
+●causality_version_created (all)
+
+●routing_recommendation_created (all versions)
+
+●claim events
+
+Replay must follow supersedes chain to determine active state at any historical timestamp.
+
+3.4.10 Launch-Tomorrow Checklist
+Must exist:
+●CausalityObject table
+
+●CausalityVersion table
+
+●Incident.active_cco_version_id
+
+●RoutingRecommendation.cco_version_id
+
+●Override soft-block logic
+
+●Evidence confidence threshold policy
+
+Strongly Recommended:
+●Confidence scoring heuristic documented
+
+●Jurisdiction impact mapping formalized
+
+3.4.11 — Cross-Feature Integration Contracts
+The Causality Coordination Object (CCO) is not an isolated interpretive structure.
+ It is a foundational arbitration layer that feeds and constrains multiple system components.
+This section formally declares upstream requirements and downstream consumers.
+
+A. Upstream Dependencies (What 3.4 Requires)
+1️⃣ Section 3.1 — Incident OS
+CCO lifecycle is governed by Incident lifecycle rules:
+●Review entry requires evidence (3.1.4).
+
+●Late evidence triggers CCO re-evaluation.
+
+●Dual-branch collapse must occur during Review evaluation.
+
+●Locking and reopening rules originate in Incident state transitions.
+
+CCO may not mutate outside Incident-controlled evaluation triggers.
+
+2️⃣ Section 3.2 — Core Data Objects
+CCO requires:
+●Immutable Evidence objects.
+
+●Incident.primary_disruption_domain.
+
+●Incident.jurisdiction fields.
+
+●Incident.active_cco_version_id pointer.
+
+●Event ledger integrity.
+
+CCO must never exist without an Incident.
+ Incident must never exist without a CCO object.
+
+3️⃣ Section 9.4 — Interpretive Traceability (ITR)
+Every CausalityVersion creation must generate:
+●Interpretive Trace Record.
+
+●Evidence set snapshot.
+
+●Confidence tier justification.
+
+●Supersedence reference (if applicable).
+
+Replay must be possible without heuristic reconstruction.
+
+4️⃣ Jurisdiction Mapping Layer
+CCO evaluation requires:
+●incident_jurisdiction_id
+
+●jurisdiction_ambiguous flag
+
+●policy governing jurisdiction data
+
+Jurisdiction ambiguity may trigger dual-branch causality evaluation.
+
+B. Downstream Consumers (What 3.4 Feeds)
+1️⃣ Section 3.1 — Incident OS Behavior
+CCO status affects:
+●Whether Review can proceed.
+
+●Whether dual-branch is active.
+
+●Whether collapse may occur.
+
+●Whether Incident can lock.
+
+●Whether Action stage can generate routing.
+
+Incident state transitions must respect active_cco_version_id.
+
+2️⃣ Section 3.3 — Coverage Graph Model (Critical)
+Coverage Graph evaluation must read:
+●CCO.cause_label_public
+
+●CCO.cause_class_internal
+
+●CCO.confidence_tier
+
+●CCO.jurisdiction state
+
+Coverage prioritization must incorporate causality.
+Example:
+●Weather → airline compensation not primary.
+
+●Airline Operations → airline remediation first.
+
+●Government restriction → jurisdiction override.
+
+Coverage Graph must not compute eligibility without referencing active CCO version.
+
+3️⃣ RoutingRecommendation Engine
+Each RoutingRecommendation version must:
+●Bind to cco_version_id.
+
+●Snapshot cause_label_public.
+
+●Snapshot confidence_tier.
+
+If CCO changes:
+●New RoutingRecommendation version required.
+
+●Previous versions remain historically valid.
+
+RoutingRecommendation must never reference a mutable causality state.
+
+4️⃣ Claims Sequencing Engine
+Claim order and advisories depend on CCO.
+Examples:
+●Airline fault → Airline claim suggested first.
+
+●Weather → Insurance or credit card suggested first.
+
+●Mixed cause → advisory branch logic required.
+
+Claims must reference the CCO version active at creation time.
+
+5️⃣ Section 8.4 — Audit & Event Ledger
+CCO version creation and supersedence must emit:
+●causality_version_created
+
+●causality_version_superseded
+
+Collapse is represented through version supersedence, not a distinct collapse event.
+Audit reconstruction must determine active branch solely via supersedence chain.
+
+6️⃣ Section 15 — Stress Testing & Scenario Hardening
+Stress simulations must validate:
+●Conflicting evidence injection.
+
+●Malicious narrative without evidence.
+
+●Rapid successive causality changes.
+
+●Dual-branch activation and collapse.
+
+●Jurisdiction toggling.
+
+●High-confidence override scenarios.
+
+Stress tests must verify:
+●Only one active CCO version at a time.
+
+●Superseded versions preserved.
+
+●Routing recomputation integrity.
+
+
+7️⃣ Surge Mode Integration
+In PROTECTIVE or ELEVATED modes:
+●CCO re-evaluation may be queued.
+
+●Dual-branch evaluation may defer heavy computations.
+
+●Active CCO version must remain stable until evaluation completes.
+
+No partial CCO state may be visible.
+
+C. Global Invariants
+The following invariants are system-wide:
+1.Exactly one CausalityObject per Incident.
+
+2.At least one CausalityVersion per CCO.
+
+3.Only one active CausalityVersion at any time.
+
+4.No destructive deletion of historical versions.
+
+5.Routing must reference immutable CCO version.
+
+6.Customer-facing labels must not expose internal classification terms.
+
+7.Evidence required for user assertion branch creation.
+
+8.Collapse occurs only when confidence threshold is HIGH.
+
+Violation of any invariant constitutes governance failure.
