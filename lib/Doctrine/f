@@ -1,0 +1,293 @@
+
+WAYFARER PLATFORM — PRODUCT BIBLE
+SECTION 3.6
+PASSENGER RIGHTS & DISRUPTION RESOLUTION ENGINE
+Statutory Rights Encoding · Consequence Matrix · Disruption Resolution State Machine
+Version 1.0  ·  Binding Doctrine  ·  March 2026
+
+Attribute	Value
+Governs	F-6.5.2 (Coverage Graph), F-6.5.4 (Airline Disruption Intelligence), F-6.5.5 (Claim Routing), F-6.5.8 (Active Disruption Options Engine), F-6.5.14 (Claim Packet Generator)
+Upstream of	Section 3.3 (Coverage Graph Model — statutory node type extension), FAM-16 clause family registration
+Downstream of	Section 3.4 (Causality Model — cause_class_internal drives statutory applicability)
+Status	Binding doctrine. Implementation required before any statutory rights display ships.
+
+3.6.0 — Constitutional Purpose
+This section encodes the external legal frameworks that define what travelers are owed by law — independent of any insurance policy, credit card benefit, or airline contract they personally hold. These are the statutory floors: rights that exist whether or not the traveler knows about them, whether or not they are mentioned in any document the platform has ingested, and whether or not any provider acknowledges them.
+
+The platform's core promise is to help travelers understand their full recovery picture. That promise is incomplete if the platform can only read the traveler's own documents. A traveler whose policy is weak or absent still has statutory rights. A traveler whose carrier is denying an EU obligation still has statutory rights. The platform must be able to surface those rights deterministically — not as AI-generated opinion, but as encoded rule tables derived from binding law.
+
+Section 3.6 defines three things: (1) the statutory rights rule tables, (2) how those rights connect to the Coverage Graph as a special node type, and (3) the Disruption Resolution State Machine — the formalized sequence of states a traveler moves through from the moment a disruption is suspected to the moment a claim outcome is recorded.
+
+BINDING INVARIANT
+Statutory rights are encoded as deterministic lookup tables. They are never AI-generated, never approximated, and never omitted because a traveler's documents don't mention them. If a disruption occurs in a statutory jurisdiction, the applicable rights are surfaced regardless of what the traveler's policy says.
+
+3.6.1 — What This Section Is Not
+This section does not provide legal advice. It does not guarantee any outcome. It does not tell a traveler they will receive compensation. It encodes what the law says travelers are entitled to ask for — not what any specific airline, insurer, or adjudicator will actually pay.
+
+⛔ PROHIBITED LANGUAGE — Never surface to travelers
+•"You are entitled to €400 in compensation" — asserting certainty about what will be paid
+•"The airline must pay you" — directive language about carrier behavior
+•"You will receive this amount" — outcome prediction
+•"File immediately — you have rights" — pressure language
+•"The law requires the airline to compensate you" — legal advice framing
+
+✓ APPROVED LANGUAGE — Use these patterns
+•"EU passenger rights regulations may apply to this disruption. Under EU261, delays of this type and distance are typically associated with compensation of €[amount]. Whether it applies to your specific situation depends on factors including the cause of the delay."
+•"Based on the route and delay duration, EU passenger rights regulations appear relevant. Here's what those rights typically cover — and what you'd need to document."
+•"Your disruption happened at a US airport. DOT rules set minimum compensation for denied boarding on domestic flights. Here's what those rules say."
+
+3.6.2 — Statutory Frameworks Encoded
+The following frameworks are encoded as deterministic rule tables in this section. Each framework covers a specific jurisdiction and disruption type. The platform evaluates applicability based on route, origin/destination airports, carrier registration, and disruption type — all of which are available from the incident and itinerary data.
+
+Framework	Jurisdiction	Disruption Types Covered	Key Triggers	FAM Code
+EU Regulation 261/2004 (EU261)	EU/EEA departures + EU/EEA-carrier arrivals	Delay, cancellation, denied boarding, downgrading	Flight departing EU/EEA airport, OR flight arriving EU/EEA on EU/EEA-registered carrier	FAM-16
+US DOT Rules (14 CFR Part 250 + 2024 Refund Rule)	US domestic + US-departing international	Denied boarding, flight cancellation, significant change	Flight departing US airport (all carriers), or US carrier any route	FAM-16
+Montreal Convention 1999 (Articles 19 & 22)	International routes between signatory states (190+ countries)	Delay, baggage loss/damage/delay, cargo	Any international route between Montreal Convention signatories	FAM-16
+UK Regulation (EC) 261/2004 retained law	UK departures + UK carrier arrivals	Delay, cancellation, denied boarding	Flight departing UK airport, OR UK carrier arriving UK post-Brexit	FAM-16
+
+SCOPE NOTE
+The platform encodes these four frameworks at MVP. Additional frameworks (Canadian APPR, Australian Consumer Law aviation provisions, ASEAN Open Skies protections) are noted as Phase 2 additions. The table structure is designed to be extensible — adding a new jurisdiction is an INSERT, not an architecture change.
+
+3.6.3 — EU Regulation 261/2004 Rule Table
+EU261 applies when: (a) the flight departs from an EU/EEA airport (regardless of carrier), OR (b) the flight arrives at an EU/EEA airport on an EU/EEA-registered carrier. This is the platform's EU261 jurisdiction check — evaluated from the disrupted route segment's origin and destination airports plus the operating carrier's registration country.
+
+3.6.3.A — Compensation Tiers (Article 7)
+Flight Distance	Delay Threshold	Compensation Amount	Notes
+Up to 1,500 km	3 hours or more at final destination	€250 per passenger	Covers most intra-EU short-haul routes
+1,500–3,500 km (intra-EU 3,500+ km)	3 hours or more at final destination	€400 per passenger	Covers medium-haul intra-EU and some intercontinental
+Over 3,500 km (non-intra-EU)	3–4 hours at final destination	€300 per passenger (50% reduction applies)	4+ hours = full €600
+Over 3,500 km (non-intra-EU)	4 hours or more at final destination	€600 per passenger	Long-haul intercontinental routes
+
+DISTANCE CALCULATION RULE
+Distance is measured as the great-circle distance between the first departure airport of the booking and the final destination. For connecting flights where a missed connection caused the delay, the full journey distance applies, not just the disrupted leg.
+
+3.6.3.B — Extraordinary Circumstances (Article 5(3)) — The Compensation Exception
+Carriers are not required to pay Article 7 compensation if the cancellation or delay was caused by extraordinary circumstances that could not have been avoided even if all reasonable measures had been taken. This is the most commonly disputed aspect of EU261.
+
+Circumstance	Extraordinary?	Platform Framing
+Severe weather (genuine — not mild)	Generally YES	"The airline may claim extraordinary circumstances. Weather-related claims are frequently disputed. Document the official weather conditions."
+Air Traffic Control restrictions	Generally YES	"ATC restrictions are typically considered extraordinary. The airline may use this to reduce compensation obligation."
+Strike by external staff (airport, ATC)	Generally YES	"External strikes outside the airline's control are typically extraordinary. Airline staff strikes are not."
+Airline staff strike	Generally NO	"Airline staff strikes are generally not considered extraordinary. Compensation rights may still apply."
+Technical/mechanical fault	Generally NO	"Technical faults are generally part of normal airline operations and not extraordinary. Compensation rights typically apply."
+Hidden manufacturing defect (rare)	Possibly YES	"This is a contested area. Document the airline's stated reason and the specific fault."
+COVID/pandemic government restriction	Context-dependent	"Government restrictions may qualify as extraordinary in some circumstances. Document any government orders."
+
+3.6.3.C — Right to Care (Article 9)
+Regardless of extraordinary circumstances — even when compensation is not owed — airlines have a duty of care obligation. These rights apply whenever a delay is expected to be 2 hours or more:
+
+Delay Duration	Right to Care Entitlements
+2 hours or more (short-haul, up to 1,500 km)	Meals and refreshments proportional to waiting time. Two telephone calls, emails, or faxes.
+3 hours or more (medium-haul, 1,500–3,500 km)	Same as above.
+4 hours or more (long-haul, over 3,500 km)	Same as above.
+Overnight delay (any duration)	Hotel accommodation. Transport between airport and hotel. All of the above.
+
+DUTY OF CARE IS NOT EXTRAORDINARY
+Right to care under Article 9 applies even when the airline successfully claims extraordinary circumstances and does not owe compensation under Article 7. These are independent obligations. The platform surfaces both separately.
+
+3.6.3.D — Right to Reimbursement or Rerouting (Article 8)
+Right	Trigger	What It Means
+Full refund	Cancellation or delay of 5+ hours and traveler chooses not to travel	Reimbursement of ticket cost within 7 days. Return flight to first departure point if already mid-journey.
+Rerouting at earliest opportunity	Cancellation or delay and traveler wants to travel	Alternative transport to final destination under comparable conditions, at earliest opportunity.
+Rerouting at later date	Cancellation or delay and traveler wants to travel but not immediately	Alternative transport at a later date of the traveler's choosing, subject to availability.
+
+3.6.3.E — Denied Boarding (Article 4)
+Involuntary denied boarding due to overbooking triggers immediate compensation at the Article 7 tiers. The airline must first seek volunteers before denying boarding to unwilling passengers. If a passenger is involuntarily denied boarding, compensation is due at departure — not after arrival.
+
+3.6.3.F — Enforcement Paths
+Country	Enforcement Body	Notes
+United Kingdom	Civil Aviation Authority (CAA) and Alternative Dispute Resolution (ADR) schemes (e.g., Aviation ADR, CEDR)	Post-Brexit UK retained the regulation. Separate from EU enforcement.
+Germany	Luftfahrt-Bundesamt (LBA)	Active enforcement. Known for prompt processing.
+France	Direction Générale de l'Aviation Civile (DGAC)	
+Spain	Agencia Estatal de Seguridad Aérea (AESA)	
+Netherlands	Inspectie Leefomgeving en Transport (ILT)	
+Ireland	Commission for Aviation Regulation (CAR)	
+All EU/EEA	National Enforcement Bodies (NEBs) per Article 16	Each member state designates a NEB. Traveler files with NEB in country of departure or arrival.
+
+3.6.4 — US DOT Rules
+US DOT rules apply to flights that depart from a US airport — for all carriers, domestic and international. They do not apply to inbound international flights on foreign carriers. Two distinct rule sets apply: the denied boarding compensation matrix and the 2024 refund rule for cancellations and significant changes.
+
+3.6.4.A — Denied Boarding Compensation (14 CFR Part 250)
+When a passenger is involuntarily denied boarding due to oversales on a domestic or international flight departing the US, the carrier must offer compensation. The amount depends on the delay to the passenger's final destination.
+
+Delay to Final Destination	Domestic Flight Compensation	International Flight Compensation	Maximum
+1–2 hours (domestic) / 1–4 hours (international)	200% of one-way fare, minimum $775	200% of one-way fare, minimum $775	$775 minimum
+Over 2 hours (domestic) / over 4 hours (international)	400% of one-way fare, minimum $1,550	400% of one-way fare, minimum $1,550	$1,550 minimum
+No delay (carrier arranges comparable flight)	No compensation required	No compensation required	—
+
+Compensation must be paid in cash or check. The airline may offer vouchers but the passenger has the right to demand cash. This right must be offered and disclosed at the gate.
+
+3.6.4.B — 2024 DOT Refund Rule (Effective October 2024)
+Under the 2024 DOT rule, airlines must provide automatic cash refunds (without requiring passengers to request them) for:
+•Cancelled flights — regardless of reason
+•Significant changes to domestic flights: departure or arrival time change of 3 or more hours; departure or arrival airport change; increase in number of connections; downgrade to lower class of service; connecting airports in different cities; connections requiring significantly longer travel
+•Significant changes to international flights: departure or arrival time change of 6 or more hours
+•Significant baggage delays: checked baggage not delivered within 12 hours of domestic flight arrival or 15-30 hours of international flight arrival
+
+REFUND MUST BE CASH
+Under the 2024 DOT rule, refunds must be in the original form of payment (cash, credit card, etc.). Airlines cannot substitute vouchers or travel credits unless the passenger affirmatively chooses them. The platform surfaces this distinction — accepting a voucher instead of a cash refund is a choice with consequences for downstream coverage claims.
+
+3.6.4.C — Enforcement Path (US)
+Travelers file complaints with the DOT Aviation Consumer Protection Division. The DOT enforces these rules against carriers operating in the US. Airlines are required to post their customer service plans and comply with them. Third-party enforcement through small claims court is also available for individual claims.
+
+3.6.5 — Montreal Convention 1999 (Articles 19 & 22)
+The Montreal Convention applies to international air transportation between countries that have ratified it — currently 190+ countries including all EU member states, the US, UK, Canada, and most major aviation markets. It establishes liability limits for delay, baggage loss, baggage damage, and baggage delay.
+
+3.6.5.A — Delay Liability (Article 19)
+Under Article 19, the carrier is liable for damage caused by delay in the carriage of passengers, baggage, or cargo. The carrier can avoid liability by proving it took all reasonable measures, or that it was impossible to take such measures. Liability is not automatic — the passenger must demonstrate they suffered actual damage from the delay.
+
+3.6.5.B — Liability Limits (Article 22) — SDR Values
+Montreal Convention limits are expressed in Special Drawing Rights (SDRs) — an international monetary unit whose value fluctuates. The platform uses current SDR-to-currency conversion rates where displayed. Limits are per passenger.
+
+Category	SDR Limit	Approximate USD (2024)	Notes
+Passenger delay	4,694 SDR	~$6,200	Maximum recoverable for proven delay damages. Not automatic — must prove loss.
+Checked baggage loss/damage/delay	1,288 SDR	~$1,700	Per passenger. Carrier can prove baggage was defective to reduce liability.
+Carry-on baggage	1,288 SDR	~$1,700	Only if carrier at fault.
+Higher declared value	Unlimited (passenger declares value)	N/A	Passenger can declare higher value at check-in for additional fee. Carrier liable up to declared value.
+
+SDR CONVERSION NOTE
+SDR values are updated annually. The platform displays approximate local currency values with the notation: "Based on current SDR conversion rates — verify with your carrier or legal advisor for the precise current value." The platform never asserts a fixed cash value for Montreal Convention limits.
+
+3.6.5.C — Relationship to EU261
+EU261 and the Montreal Convention can both apply to the same disruption. They cover different things: EU261 provides fixed compensation for the disruption itself (standardised, no proof of loss required for Article 7 compensation). The Montreal Convention provides liability for proven consequential damage from delay. They are complementary — filing under both is possible and in many cases appropriate. The platform surfaces both where applicable and explains they are independent claims to independent recipients.
+
+3.6.6 — UK Regulation EC 261/2004 (Retained Law)
+Post-Brexit, the UK retained EU Regulation 261/2004 as domestic law. The substantive rights are identical to EU261 for flights departing UK airports or arriving at UK airports on UK-registered carriers. Key difference: enforcement is through UK bodies (CAA, ADR schemes) rather than EU NEBs. Compensation amounts remain in pounds sterling at parity with the Euro amounts (£250/£400/£600).
+
+For a flight disrupted at Heathrow: UK retained law applies for the departure. For the same traveler's onward EU flight disrupted at a French airport: EU261 applies. Both may apply to the same journey and the platform surfaces them as separate but related claims.
+
+3.6.7 — Statutory Coverage Node in the Coverage Graph
+Section 3.3 defines the Coverage Graph as a set of CoverageNodes — each representing one coverage source. Prior to this section, the only valid source types were: travel_insurance, credit_card_benefit, airline_obligation, home_renters, warranty. This section adds a new source type: statutory_right.
+
+NEW SOURCE TYPE
+A CoverageNode with source_type = 'statutory_right' represents a right the traveler holds by law — not by contract, not by policy, and not by benefit guide. It cannot be waived by policy language, cannot be excluded by a carrier's terms, and cannot be superseded by any contractual node. It is a floor, not a ceiling.
+
+3.6.7.A — Statutory Node Properties
+Property	Statutory Node Value	Contractual Node Value	Notes
+source_type	statutory_right	travel_insurance | credit_card_benefit | airline_obligation	New value added by this section
+primacy_type	statutory	primary | secondary | tertiary | unknown	Statutory nodes are always evaluated before contractual nodes
+can_be_waived	false (hard rule)	true (policy-dependent)	Statutory rights cannot be contractually waived
+requires_policy_document	false	true	Statutory nodes are generated from rule tables, not uploaded documents
+jurisdiction_code	ISO 3166-1 code (e.g., EU261, US-DOT)	From governing_jurisdiction on PolicyVersion	Indicates which statutory framework applies
+framework_version	e.g., EU261-2004, US-DOT-2024	N/A	Version of the statutory framework encoded
+confidence_label	HIGH_STRUCTURAL_ALIGNMENT if jurisdiction confirmed; CONDITIONAL if uncertain	Per Section 9.2	Jurisdiction confirmation is the key determinant
+
+3.6.7.B — How Statutory Nodes Are Generated
+Statutory nodes are not extracted from documents. They are generated by the Coverage Graph engine when:
+•The disrupted route segment's origin or destination airport is in a statutory jurisdiction (EU/EEA, UK, US)
+•The disruption type matches a type covered by that jurisdiction's framework (delay, cancellation, denied boarding)
+•The cause classification from the CCO is not definitively extraordinary circumstances (if UNKNOWN: dual-branch — statutory node generated with conditional confidence)
+
+The trigger is the route + disruption type combination. No document upload required. No policy attachment required. A traveler with no policies attached and no credit card benefits linked still gets statutory nodes if their disruption qualifies.
+
+3.6.7.C — Statutory Node Display Rules
+Scenario	Display Behavior
+Jurisdiction confirmed, cause not extraordinary	Show statutory node with HIGH confidence. Display applicable rights. Display enforcement path.
+Jurisdiction confirmed, cause claimed extraordinary by carrier	Show statutory node with CONDITIONAL confidence. Note: "The airline may claim an exemption. Document the cause carefully."
+Jurisdiction confirmed, cause UNKNOWN (CCO dual-branch)	Show statutory node on both branches. Note: "Whether these rights apply may depend on the confirmed cause of the disruption."
+Route crosses multiple jurisdictions (e.g., JFK → LHR → CDG)	Show statutory nodes for each applicable jurisdiction on the disrupted leg. Explain they are independent.
+Jurisdiction not covered by any encoded framework	No statutory node generated. Display: "No statutory passenger rights framework has been encoded for this route. Check with local consumer protection authorities."
+
+3.6.8 — Acceptance / Voucher / Refund Consequence Matrix
+This is the engine behind the advisory logic in Section 3.3.19.A (Voucher Acceptance Doctrine). That section defines the language and posture. This section defines the consequence logic: what each acceptance type does to each coverage path.
+
+ADVISORY ONLY — NO BLOCKING
+The platform uses this matrix to inform the traveler of consequences before they act. It never blocks an acceptance. The traveler always has the right to accept any offer from any carrier at any time. The platform's role is to make consequences visible — not to prevent choices.
+
+Acceptance Type	Statutory Rights (EU261/DOT)	Credit Card Benefit	Travel Insurance	Guidance Trigger
+Full cash refund accepted	Statutory claim path closes (carrier has refunded). Right to care/duty of care docs still valuable for consequential damage claims.	Trip interruption: carrier refund reduces reimbursable loss. Claim still possible for out-of-pocket expenses above refund.	Trip cancellation: carrier refund reduces insurable loss. Policy may still cover non-refundable costs.	"You received a refund. Your coverage may still apply to additional expenses beyond what the airline refunded."
+Voucher accepted (future flight credit)	Statutory cash refund right may be waived by acceptance. Compensation right (EU261 Article 7) is separate and not extinguished by voucher acceptance.	Depends on card benefit terms. Many cards treat voucher acceptance as partial resolution. Document voucher value.	Depends on policy language. 'Accepted voucher' is an acceptance event — may affect loss calculation.	"Before accepting a voucher, know that your right to a cash refund and your EU261 compensation right are two separate things. A voucher covers one but may not cover the other."
+Rebooking accepted (same carrier)	Right to compensation (EU261 Article 7) survives if delay at final destination still meets threshold on rebooked flight.	Claim path changes: if traveler makes it to destination, delay claim calculates from original departure to actual arrival.	Trip interruption: covered if new arrival creates a covered delay. Out-of-pocket expenses during wait remain claimable.	"Your rebooking is recorded. If you arrive at your final destination more than [X] hours late, EU261 compensation may still apply based on actual arrival time."
+Rebooking declined, own transport arranged	Refund right activated. EU261 Article 8 right to full reimbursement applies. Compensation right also survives.	Trip interruption path opens. Alternative transport receipts are primary evidence. File for out-of-pocket expenses.	Trip interruption coverage engaged. Document all expenses. Policy limit applies to reimbursement.	"You arranged your own transport. Document every receipt. Your coverage options are strongest now — file before deadlines."
+Denied boarding compensation accepted (involuntary)	DOT compensation accepted. Statutory path satisfied for the boarding denial itself. Consequential claims (Montreal Convention) remain available.	CC benefit claim may still apply for delay-related expenses incurred while waiting.	Policy may still cover documented losses not covered by DOT compensation.	"DOT compensation addresses the denied boarding itself. Additional expenses and losses may still be claimable separately."
+Goodwill gesture / miles / points accepted	No statutory rights waived by accepting goodwill. These are typically not cash compensation.	CC benefit unaffected — goodwill gestures are not compensation in the insurance sense.	Travel insurance unaffected — miles and points are not insurable compensation.	"Goodwill miles or points don't affect your other coverage rights. Document separately from any formal claim."
+
+3.6.9 — Disruption Resolution State Machine
+This is the formalized sequence of states a traveler moves through from the moment a disruption is suspected to the moment an outcome is recorded. It sits between the Incident OS (Section 3.1) and the Trip Maturity States (Section 3.5). It is the traveler-facing resolution journey — distinct from the platform's administrative state machines.
+
+RELATIONSHIP TO INCIDENT OS
+Section 3.1 (Incident OS) defines the operational lifecycle of the Incident object. This state machine defines the traveler's resolution journey — the experiential path, not the data object states. They run in parallel and inform each other but are not the same machine.
+
+3.6.9.A — State Definitions
+State	Plain English Meaning	Entry Condition	Exit Condition(s)	Emitted Event
+DISRUPTION_SUSPECTED	Something is wrong but it's not confirmed. The traveler thinks their flight might be delayed or cancelled but has no official notice yet.	Traveler opens incident or narrates concern. No official disruption notification yet.	Official disruption confirmed (airline notice, gate screen, email) → DISRUPTION_CONFIRMED	disruption_suspected
+DISRUPTION_CONFIRMED	The disruption is real and documented. The traveler has evidence the disruption occurred.	Official airline notice captured, or delay threshold elapsed and documented, or boarding denial recorded.	Carrier contacted → CARRIER_ENGAGEMENT_ACTIVE	disruption_confirmed
+CARRIER_ENGAGEMENT_ACTIVE	The traveler is actively dealing with the carrier. They are at the gate, on the phone, or waiting for a response.	Traveler reports contacting carrier or is in the wait period after a disruption.	Offer received → OFFER_RECEIVED. No offer after reasonable time → OFFER_PENDING_ESCALATION	carrier_engagement_active
+OFFER_RECEIVED	The carrier has made a specific offer: rebooking, refund, voucher, compensation, or nothing.	Traveler reports what the carrier offered. Acceptance Checkpoint (F-6.5.5) activates.	Offer evaluated and decision made → OFFER_EVALUATED	offer_received
+OFFER_EVALUATED	The traveler has reviewed the offer against their coverage context (statutory rights, CC benefits, insurance). The Consequence Matrix has been surfaced.	Platform has surfaced consequence matrix for the specific offer type. Traveler has reviewed.	Offer accepted → OFFER_ACCEPTED. Offer declined → OWN_RESOLUTION_ACTIVE	offer_evaluated
+OFFER_ACCEPTED	The traveler has accepted the carrier's offer. The acceptance type has been recorded. The Coverage Graph snapshot has been updated.	Traveler confirms acceptance. Acceptance type recorded on incident.	All expenses documented → EVIDENCE_COMPLETE. Ongoing expenses → DOCUMENTATION_ACTIVE	offer_accepted
+OWN_RESOLUTION_ACTIVE	The traveler declined the carrier's offer and is arranging their own resolution (own transport, own accommodation, etc.). F-6.5.8 options engine is active.	Traveler confirms they are not accepting carrier offer. arrangement_intent = arranging_own.	All expenses documented → EVIDENCE_COMPLETE. Ongoing → DOCUMENTATION_ACTIVE	own_resolution_active
+DOCUMENTATION_ACTIVE	Expenses are ongoing. The traveler is still accumulating receipts and evidence. The parallel evidence capture checklist is active.	Any state where expenses are not yet complete.	Evidence complete → EVIDENCE_COMPLETE	documentation_active
+EVIDENCE_COMPLETE	All known documentation has been captured. Filing deadlines are visible. The traveler is ready to route claims.	All blocking evidence checklist items resolved. Traveler confirms or system detects completeness.	Claim routing confirmed → ROUTING_DETERMINED	evidence_complete
+ROUTING_DETERMINED	F-6.5.5 has generated the full claim sequence. All paths — statutory, contractual, credit card — are visible with filing deadlines.	Claim routing engine has run. Full sequence with deadlines surfaced.	First claim filed → CLAIM_ACTIVE. Waiting → RIGHTS_WINDOW_ACTIVE	routing_determined
+RIGHTS_WINDOW_ACTIVE	The traveler knows their options but is in a holding period — waiting for airline to respond, waiting for a deadline, or deliberately not acting yet.	Routing determined but no claim filed. Filing window is open.	Claim filed → CLAIM_ACTIVE. Filing window closed → WINDOW_EXPIRED	rights_window_active
+CLAIM_ACTIVE	At least one claim has been filed. The traveler is waiting for outcomes. Additional claims may still be queued.	At least one Claim object is in submitted_by_traveler status.	All claims resolved → RESOLUTION_COMPLETE. Some claims unresolved → ongoing CLAIM_ACTIVE	claim_active
+RESOLUTION_COMPLETE	All claims have an outcome — approved, denied, partial, or abandoned. The traveler has recorded what happened.	All Claim objects have outcome_recorded or abandoned status.	→ Trip maturity transitions to POST_TRIP_RESOLVED	resolution_complete
+
+3.6.9.B — Filing Deadline Tracking
+Filing deadlines are surfaced at ROUTING_DETERMINED and remain visible through RIGHTS_WINDOW_ACTIVE and CLAIM_ACTIVE. The platform tracks them per claim path and surfaces urgency indicators:
+
+Days Until Deadline	Display Behavior
+More than 30 days	Deadline shown as informational. No urgency indicator.
+15–30 days	Deadline shown with mild indicator: "File within [X] days to preserve this option."
+7–14 days	Deadline shown with clear indicator: "[X] days remaining. This window closes [date]."
+Under 7 days	Deadline shown with high urgency: "[X] days left. File as soon as possible."
+Deadline passed	Show as closed: "This filing window has passed. This coverage path is no longer available." — never show as an error or failure, just as information.
+
+3.6.9.C — Parallel Track Rule
+Evidence capture runs in parallel with every state. It does not wait for the traveler to decide which state they are in. From the moment DISRUPTION_CONFIRMED is reached, the evidence capture checklist is active and surfaced alongside whatever the traveler is currently doing. This is the 'never waste a moment' doctrine from the narrative Q&A session.
+
+3.6.10 — FAM-16 Clause Family Registration
+The extraction pipeline already extracts six EU261 clause types (eu_delay_compensation_threshold, eu_denied_boarding_compensation, eu_care_obligation, eu_rerouting_obligation, eu_refund_deadline, eu_cancellation_compensation) and maps them to FAM-16 in both the extraction worker and the extraction bridge. This section formally defines FAM-16 as a registered clause family, completing the circuit to the Coverage Graph.
+
+Attribute	Value
+Family Code	FAM-16
+Family Name	Statutory Passenger Rights
+Description	Statutory rights encoded under EU Regulation 261/2004, US DOT Rules, Montreal Convention 1999, and UK retained aviation consumer law. These clauses represent legal obligations, not contractual terms.
+Clause Types	eu_delay_compensation_threshold, eu_denied_boarding_compensation, eu_care_obligation, eu_rerouting_obligation, eu_refund_deadline, eu_cancellation_compensation
+Node Type	statutory_right (new — defined in Section 3.6.7)
+Primacy	Always evaluated before contractual nodes. Cannot be waived by policy language.
+Confidence Tier	HIGH_STRUCTURAL_ALIGNMENT when jurisdiction confirmed. CONDITIONAL when cause is UNKNOWN or extraordinary circumstances claimed.
+
+Required SQL — Migration M-23 or standalone migration
+INSERT INTO clause_family_taxonomy (family_code, clause_type, family_name, description) VALUES
+  ('eu_delay_compensation_threshold', 'FAM-16', 'Statutory Passenger Rights', 'EU261 compensation threshold'),
+  ('eu_denied_boarding_compensation',  'FAM-16', 'Statutory Passenger Rights', 'EU261 denied boarding compensation'),
+  ('eu_care_obligation',               'FAM-16', 'Statutory Passenger Rights', 'EU261 duty of care obligations'),
+  ('eu_rerouting_obligation',           'FAM-16', 'Statutory Passenger Rights', 'EU261 rerouting and alternative transport rights'),
+  ('eu_refund_deadline',                'FAM-16', 'Statutory Passenger Rights', 'EU261 7-day refund deadline'),
+  ('eu_cancellation_compensation',      'FAM-16', 'Statutory Passenger Rights', 'EU261 cancellation compensation')
+ON CONFLICT (clause_type) DO UPDATE SET family_code = 'FAM-16';
+
+Also add statutory_right to the coverage_nodes source_type constraint in the coverage_nodes table:
+ALTER TABLE coverage_nodes DROP CONSTRAINT IF EXISTS coverage_nodes_source_type_check;
+ALTER TABLE coverage_nodes ADD CONSTRAINT coverage_nodes_source_type_check
+  CHECK (source_type IN ('travel_insurance','credit_card_benefit','airline_obligation','home_renters','warranty','statutory_right','other'));
+
+3.6.11 — Behavioral Invariants
+ID	Rule
+I-01	Statutory rights are surfaced based on route and disruption type — never based on what documents the traveler has uploaded. No document is required to generate a statutory node.
+I-02	A statutory CoverageNode with source_type = 'statutory_right' is always evaluated before any contractual node. It cannot be suppressed by policy language or benefit guide terms.
+I-03	The platform never asserts that a traveler will receive statutory compensation. It surfaces what the law says travelers are entitled to ask for and what they need to document.
+I-04	Extraordinary circumstances is always surfaced as a caveat on EU261 compensation claims. It is never omitted. The traveler must understand compensation can be contested.
+I-05	The Consequence Matrix is surfaced at OFFER_RECEIVED state — before the traveler accepts or declines. It is never surfaced for the first time after acceptance.
+I-06	Duty of care (EU261 Article 9) is surfaced independently of compensation (Article 7). They are presented as separate obligations, not bundled.
+I-07	Filing deadlines are surfaced at ROUTING_DETERMINED and remain visible until the deadline passes or the claim is filed. They are never hidden.
+I-08	The DOT 2024 cash refund right is surfaced for all cancellations and significant changes on US-departing flights. The distinction between cash refund and voucher is always made explicit.
+I-09	Evidence capture is parallel — it runs from DISRUPTION_CONFIRMED regardless of which resolution state the traveler is in. It does not wait for routing to be determined.
+I-10	All disruption resolution state transitions emit events to the event ledger. The complete resolution journey is always replayable from the ledger.
+
+3.6.12 — Cross-References and Downstream Impact
+Section / Feature	What Changes with Section 3.6
+Section 3.2 (CoverageNode — Object 7)	source_type enum must add 'statutory_right'. New fields: jurisdiction_code, framework_version, can_be_waived.
+Section 3.3 (Coverage Graph Model)	Statutory nodes are a new node type in the graph. Overlap resolution must handle statutory vs contractual nodes — statutory never treated as secondary.
+Section 3.4 (Causality Model)	cause_class_internal = EXTERNAL + extraordinary_circumstances_claimed becomes a flag that conditionalises statutory node confidence to CONDITIONAL.
+F-6.5.2 (Coverage Graph feature)	Coverage Graph engine must generate statutory nodes based on route + disruption type. FAM-16 clauses extracted from documents feed into statutory node construction.
+F-6.5.5 (Claim Routing)	Statutory paths are now first-class routing options. EU261 enforcement path, DOT complaint path, Montreal Convention claim path are surfaced alongside insurance and CC benefit paths.
+F-6.5.8 (Active Disruption Options Engine)	Options guidance references statutory rights for reimbursement of own-arranged transport (EU261 Article 8 right to reimbursement). Statutory floor informs coverage-aware guidance.
+F-6.5.14 (Claim Packet Generator)	Statutory claim path requires a separate packet — addressed to enforcement body (NEB, DOT), not insurer. F-6.5.14 must support statutory packet type.
+FAM-16	Formally registered by this section. Extraction worker and bridge already reference FAM-16. SQL migration completes the circuit.
+Clause taxonomy migration	INSERT FAM-16 into clause_family_taxonomy. ALTER coverage_nodes source_type constraint to include statutory_right.
+
+Section 3.6 — Passenger Rights & Disruption Resolution Engine  |  Version 1.0  |  March 2026
+Binding Doctrine  ·  Governs: F-6.5.2, F-6.5.4, F-6.5.5, F-6.5.8, F-6.5.14  ·  FAM-16 registered  ·  Statutory node type defined
