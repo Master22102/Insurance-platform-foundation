@@ -1,0 +1,153 @@
+WAYFARER PLATFORM
+PRODUCT BIBLE
+Feature ID: F-6.7.5 — Preference Memory (Persistent Structured Profile Memory)
+Version 2.0  ·  April 2026  ·  Binding Doctrine
+1. Why This Feature Exists
+Every time a traveler uses the platform, they reveal something about how they like to travel. “I hate hostels.” “I prefer trains in Europe.” “Don’t give me early departures.” “I love astronomy.” Today, those signals live in voice transcripts and onboarding chips — but they’re not structured, not persistent, and not separated by scope.
+Preference Memory captures those signals and organizes them into three layers: what the traveler means right now (session), what applies to this trip (trip), and what should be remembered forever (profile). It’s the system that makes the platform feel like it knows you.
+The onboarding signal profile (SignalProfile in lib/onboarding/signal-profile.ts) is the seed. Preference Memory is the evolution. Every subsequent interaction can refine it.
+
+Binds to: user_profiles.preferences (profile layer storage), voice_artifacts (raw input), trips.metadata (trip layer), F-6.5.8 incident preference_context (session layer, post-incident promotion), F-6.5.13 Deep Scan Itinerary Optimizer (inferred scan mode from accumulated preferences), F-6.7.4 Budget Intelligence (budget preferences are a subset of preference memory).
+2. The Traveler’s Story
+Story 1: The hostels conversation
+Sarah is building a Europe trip. The platform suggests a hostel in Barcelona. She says: “I don’t like hostels.” The voice parse detects a preference signal. The platform asks: “Got it — no hostels for this trip, or should I remember that for all future trips?” Sarah says: “All trips.” The preference “no hostels” is stored in her profile-layer preferences. She never sees a hostel suggestion again.
+Story 2: The incident preference promotion
+During a flight cancellation incident, Marcus tells the platform: “I don’t want United. Get me on anyone else.” The F-6.5.8 Options Engine captures this as an incident-scoped preference: excluded_carriers = [‘United’]. After the incident resolves, the platform asks: “You said you don’t want United during this incident. Remember that for future trips?” Marcus says yes. The preference is promoted from incident scope to profile scope.
+Story 3: The trip-specific override
+Marcus normally prefers mid-range hotels (profile preference). For his anniversary trip, he says: “For this trip, budget hotels are fine — we’re spending on experiences instead.” The platform stores this in the trip layer. His profile preference remains “mid-range.” After the trip, the trip-layer override expires. His next trip defaults back to mid-range.
+Story 4: The inferred preference
+Over 5 trips, Sarah always rejects early-morning departure suggestions and picks afternoon flights. The platform notices the pattern and asks: “You’ve chosen afternoon flights on your last 5 trips. Should I remember that you prefer avoiding early departures?” Sarah confirms. The platform stores “avoid early departures” in her profile.
+Story 5: Deep Scan mode inference
+Marcus has accumulated preferences: loves astronomy, prefers off-the-beaten-path, enjoys hiking, avoids tourist traps. His profile looks like an Adventure & Off-Path traveler. When he initiates a Deep Scan, the platform pre-selects “Adventure & Off-Path” mode and says: “Running your scan in Adventure mode based on your travel style. Change?” He can accept or switch.
+3. Three Memory Layers
+3.1 Session Layer
+What the traveler means right now. Stored transiently during a single interaction. Not persisted beyond the session unless explicitly promoted.
+Storage: React state or sessionStorage. Not written to the database.
+Example: “I want a direct flight this time.” — applies to the current search/suggestion, forgotten when the session ends.
+Promotion path: system may ask “Remember this for future trips?” → if yes, moves to profile layer.
+3.2 Trip Layer
+What applies to this specific trip. Stored in trips.metadata.preference_overrides as a JSONB object.
+Example: “For this Japan trip, I’m okay with budget hotels.” — overrides profile preference for this trip only. Does not carry to future trips.
+Lifecycle: created during trip planning. Expires when trip is archived. Does not affect other trips.
+3.3 Profile Layer
+What should be remembered long-term. Stored in user_profiles.preferences.preference_memory as a structured array of preference objects.
+Example: “I hate hostels.” “I prefer trains in Europe.” “I love astronomy.” — carries across all future trips.
+Schema: each preference is an object: { id: uuid, category: string, statement: string, source: string, confirmed_at: timestamp, source_context: string }
+Categories: accommodation, transport, food, activities, carriers, timing, destinations, general
+Sources: voice_capture, behavior_inferred, incident_promotion, manual_entry
+4. How Preferences Are Captured
+4.1 Voice Capture
+Any voice interaction containing a preference signal triggers extraction. The voice parse system (app/api/voice/parse/route.ts) already handles 7 context types. Preference signals can appear in any of them.
+Detection patterns: “I don’t like X”, “I prefer X”, “I always want X”, “Never give me X”, “I hate X”, “I love X.”
+When detected, the system asks which layer: “Should I remember this for all trips, just this trip, or just right now?”
+Implementation note: voice-based preference extraction is a FUTURE enhancement. The first prompt builds the preference storage, review UI, and manual entry only. Voice integration requires updating the parse prompts for each context type.
+4.2 Behavior Inference
+The platform tracks repeated choices: always rejecting hostels, always picking afternoon flights, always choosing food experiences over nightlife. After a threshold (3–5 consistent choices), the system surfaces an inferred preference for confirmation.
+“You’ve chosen afternoon flights on your last 5 trips. Should I remember that you prefer avoiding early departures?”
+The traveler can: Confirm (→ profile layer), Dismiss (→ never ask again for this inference), or “Not always” (→ keep observing).
+Implementation note: behavior inference is a FUTURE enhancement. The first prompt builds manual entry and review.
+4.3 Incident Promotion
+F-6.5.8 already captures incident-scoped preferences in incidents.preference_context JSONB (excluded_carriers, preferred_mode, routing_preference, budget_signal, etc.). After an incident resolves, Preference Memory offers to promote confirmed preferences to the profile layer.
+The post-incident debrief screen should include: “During this incident, you said: {preference}. Want to remember this for future trips?” with Yes/No buttons.
+Implementation note: this requires a modification to the incident resolution flow. Include in the first prompt as a post-resolution hook.
+4.4 Manual Entry
+The traveler can directly add, edit, and delete preferences from a dedicated preferences review page.
+5. Confirmation Rules
+CRITICAL: No preference is promoted to the profile layer without explicit user confirmation. The system may suggest, but it never silently writes.
+• Voice: “Remember this?” → user says yes → stored
+• Behavior: “We noticed you always do X. Remember?” → user confirms → stored
+• Incident: “You said X during the incident. Keep?” → user confirms → stored
+• Manual: user types it directly → immediately stored (they initiated it)
+Exception: the onboarding signal profile (SignalProfile) writes are confirmed during the onboarding flow itself. Those are the seed data and follow existing onboarding confirmation patterns.
+6. Screens and Interactions
+6.1 Preference Review Page (/account/preferences/travel-memory)
+Surface ID: S-PREFMEMORY-001. Entry: Account page → “Travel preferences” row.
+
+Header
+• Back arrow → /account
+• Title: “Travel preferences”
+• Subtitle: “What the platform remembers about how you travel.”
+Preferences List
+Grouped by category. Each category is a collapsible section:
+• 🏨 Accommodation: “No hostels” “Prefer quiet hotels”
+• ✈ Transport: “Prefer trains in Europe” “Avoid early departures”
+• 🍽 Food: “Vegetarian” “Love street food”
+• 🏃 Activities: “Love astronomy” “No extreme sports”
+• ✂ Carriers: “Avoid United”
+• ⏰ Timing: “Prefer afternoon flights”
+• 📍 Destinations: “Love off-the-beaten-path”
+• 🔧 General: anything that doesn’t fit above
+
+Each preference shows:
+• Statement text (e.g., “No hostels”)
+• Source badge: “You said this” (voice) | “We noticed” (behavior) | “From an incident” (promotion) | “You added this” (manual)
+• Date confirmed
+• Swipe left (mobile) or hover (desktop): Edit | Delete
+Add Preference
+• “+ Add preference” button at the bottom of each category section
+• Opens inline input: text field + category dropdown (pre-selected to current section) + “Save” button
+• Or: floating “+ Add” button at bottom of page opens a modal with category selector + text input
+Empty State
+• “No preferences saved yet.”
+• “As you use the platform, we’ll notice patterns and ask if you want to remember them. You can also add preferences directly.”
+• Button: “Add your first preference”
+6.2 Account Page Integration
+In app/(app)/account/page.tsx, add a “Travel preferences” row in the preferences section. Shows: “{count} preferences saved” or “Not set up yet.” Links to /account/preferences/travel-memory.
+6.3 Post-Incident Promotion Hook
+After an incident resolution (when the traveler completes the claim routing flow), if the incident has a non-empty preference_context:
+• Show a card: “During this incident, you mentioned these preferences:”
+• List each preference with a checkbox: “Avoid United ✔” “Prefer direct flights ✔”
+• Button: “Remember for future trips” → POST each checked preference to profile layer
+• Button: “Skip — these were just for this incident” → dismiss
+This appears on the incident resolution success screen, after the claim packet is generated.
+7. Deep Scan Mode Inference
+F-6.5.13 defines 6 scan modes: Cost Efficiency, Experience Density, Safety & Low-Friction, Adventure & Off-Path, Cultural Immersion, Rest & Recovery.
+When the traveler initiates a Deep Scan, Preference Memory checks accumulated preferences for mode signals:
+• “love astronomy” + “off-the-beaten-path” + “hiking” → suggests Adventure & Off-Path
+• “budget hotels fine” + “cheap flights” → suggests Cost Efficiency
+• “no extreme sports” + “prefer quiet hotels” + “avoid crowds” → suggests Rest & Recovery
+The mapping is keyword-based against the preference statements, not LLM inference.
+The scan pre-selects the inferred mode and shows: “Running your scan in {mode} based on your travel style. Change?” The traveler can accept or switch via dropdown.
+Implementation note: mode inference is a FUTURE enhancement. The first prompt builds storage, review UI, manual entry, and post-incident promotion. Mode inference requires the Itinerary Optimizer to be built first (it’s currently specced in F-6.5.13 but not implemented).
+8. Data Model
+8.1 Profile Layer Schema (user_profiles.preferences.preference_memory)
+Array of preference objects:
+{ id: string (uuid), category: string, statement: string, source: 'voice_capture' | 'behavior_inferred' | 'incident_promotion' | 'manual_entry', source_context: string (e.g., 'incident_123' or 'onboarding_round_2'), confirmed_at: string (ISO timestamp), active: boolean (false = soft-deleted) }
+8.2 Trip Layer Schema (trips.metadata.preference_overrides)
+Partial object with any preference categories: { accommodation: string[], transport: string[], food: string[], activities: string[], carriers_excluded: string[], timing: string[] }
+8.3 Security Classification
+T2 (Sensitive). Preference data is personal. RLS: account-scoped via user_profiles existing policies. No preference data in logs, events, or error messages. Carrier preferences (excluded_carriers) are especially sensitive — do not expose in any analytics or aggregate views.
+9. API Routes
+Route	Method	Purpose
+/api/account/preferences/memory	GET	Returns preference_memory array from user_profiles.preferences. Returns { preferences: PreferenceItem[] }.
+/api/account/preferences/memory	POST	Add a new preference. Body: { category, statement, source }. Generates ID + confirmed_at. Emits preference_promoted_to_profile. Returns { preference }.
+/api/account/preferences/memory/[id]	PATCH	Edit preference statement or category. Emits preference_updated (future event). Returns { preference }.
+/api/account/preferences/memory/[id]	DELETE	Soft-delete: sets active = false. Emits preference_removed_by_user. Returns { success }.
+10. FOCL Registration
+Feature ID: F-6.7.5. Phase: 2. Default enabled: false. Soft dependencies: voice parse (future voice capture), F-6.5.8 (incident preferences for promotion), F-6.5.13 (Deep Scan mode inference — future).
+When F-6.7.5 is inactive: Account page does not show “Travel preferences” row. Post-incident promotion hook does not appear. Deep Scan mode inference does not fire.
+11. Governance Events
+preference_promoted_to_profile — { preference_id, category, source, account_id }
+preference_captured_from_voice — { preference_id, context_type, account_id } (future)
+preference_inferred_from_behavior — { preference_id, pattern_description, confirmation_count, account_id } (future)
+preference_confirmed_by_user — { preference_id, confirmation_type (voice/behavior/incident), account_id }
+preference_removed_by_user — { preference_id, account_id }
+12. Stress Behavior
+Under PROTECTIVE: preference data remains readable and editable. Post-incident promotion continues to work (it’s user-initiated, not automated). No external API dependency. No degradation expected.
+13. Test Obligations
+E2E (tests/e2e/preference-memory.spec.ts):
+• Navigate to /account/preferences/travel-memory → empty state renders correctly
+• Add preference manually (“No hostels” in Accommodation) → appears in list with “You added this” badge
+• Edit preference text → change persists on reload
+• Delete preference → removed from list (soft-delete)
+• Add 5 preferences across 3 categories → grouped display correct
+Contract: preference data is account-scoped — user B cannot read user A’s preferences.
+Post-incident promotion test (requires incident resolution flow): resolve incident with preference_context → promotion card appears → confirm → preference in profile layer.
+14. §9a Dependency Declaration
+• Trip workspace: NO (preferences surface on account, not trip workspace in v1)
+• Readiness: NO
+• Right Now / context: NO (future: preferences could inform context nudges, but not in v1)
+• FOCL / activation: YES — feature_registry entry. Risk: if feature is off, account page hides the row, incident promotion hook does not appear.
+
+
+Wayfarer Platform · Product Bible · F-6.7.5 Preference Memory · v2.0 · April 2026
