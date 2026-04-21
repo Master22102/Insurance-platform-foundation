@@ -1,0 +1,130 @@
+WAYFARER PLATFORM
+PRODUCT BIBLE
+Feature ID: F-6.7.4 — Budget Intelligence (Category-Level Spend Model)
+Version 2.0  ·  April 2026  ·  Binding Doctrine
+1. Why This Feature Exists
+Most travel tools ask: “What’s your budget?” and offer three buckets: budget, mid-range, luxury. That’s not how real people think about money when traveling.
+Real travelers think: “I’ll pay $180 a night max for a hotel, but I’ll splurge on two special nights. I want to eat well but I’m not doing Michelin every night. I’d rather take a train than fly if it’s under 5 hours. And for this specific trip, I’m willing to stretch a bit because it’s my anniversary.”
+Budget Intelligence stores those exact preferences — not buckets. It stores numeric thresholds, conditional rules, and per-trip overrides. Then the platform uses them everywhere: Trip Spark uses them to estimate trip costs. The context engine uses them to warn when a destination exceeds the traveler’s comfort. The Stay Range Engine (when built) uses them to filter accommodations. Deep Scan uses them to inform financial commentary.
+This is where Wayfarer beats Layla. Layla accepts “budget and style” as general inputs. Wayfarer stores “$185/night max, tax included, with 2 splurge nights at $240, prefer trains in Europe, daily food target $60.” That precision makes every downstream recommendation sharper.
+
+Binds to: user_profiles.preferences JSONB (storage), Section 7.4 (voice capture), F-6.7.3 (Trip Spark estimates), context engine evaluate.ts (budget-aware nudges), per-trip unlock model (conversion moment), Stay Range Engine F-6.7.6 (when built).
+2. The Traveler’s Story
+Story 1: Setting preferences
+Marcus opens Account → Budget Preferences. He sees labeled input fields with clear helper text. He sets: max $180/night for hotels (tax included), splurge ceiling $250 (for 2 nights per trip), daily food target $65, daily activity budget $40, max one-way flight $600, prefers trains in Europe, travels as a couple, mostly international.
+He taps Save. The platform stores this in user_profiles.preferences.budget_intelligence. From now on, every relevant surface has access to these numbers.
+Story 2: Voice capture
+During trip planning, Marcus says: “I don’t want to spend more than $200 a night on this trip.” The voice parse detects a budget signal. The platform asks: “Should I remember $200/night for future trips, or just this one?” Marcus says “Just this trip.” The value is stored in trips.metadata.budget_override.lodging_per_night_cap = 200.
+Story 3: Context engine nudge
+Marcus is building a Tokyo trip. His profile budget has lodging_per_night_cap = $180. The context engine knows Tokyo hotel averages exceed $200/night in cherry blossom season. During the pre_trip state, the RightNowPanel shows: “Your lodging target may be tight for Tokyo in April. Consider Osaka as a base for day trips, or adjust your budget for this trip.”
+Story 4: Trip Spark integration
+When Trip Spark offers to build a trip from saved Chile items, it includes: “Based on your preferences, a 7-day Chile trip is estimated at $1,600–$2,100. Atacama lodging fits your budget. Santiago is slightly over in peak season.”
+3. Data Model
+3.1 Storage Location
+Budget Intelligence does NOT create a new table. It stores data in user_profiles.preferences (existing JSONB field) under the key budget_intelligence. Per-trip overrides go in trips.metadata.budget_override (existing JSONB field). No new migration needed for the base schema — JSONB is extensible.
+3.2 Budget Intelligence Schema
+Field	Type	Description
+lodging_per_night_cap	number | null	Hard maximum per night, tax included. NULL = no cap set. This is the number the traveler never wants to exceed on a regular night.
+lodging_splurge_ceiling	number | null	Maximum for a special-occasion night. NULL = same as cap. “I’ll go to $250 for an anniversary dinner hotel.”
+lodging_splurge_frequency	number | null	How many splurge nights per trip. Integer 1–5. “2 special nights max.”
+food_daily_comfort	number | null	Target daily food spend across all meals. “$65 a day for food.”
+activity_daily_comfort	number | null	Target daily activity/experience spend. “$40 a day for things to do.”
+flight_pain_threshold	number | null	Maximum acceptable one-way flight cost. “I won’t pay more than $600 for a flight.”
+train_vs_flight_bias	string | null	prefer_train | prefer_flight | cost_driven | time_driven | no_preference. “I’d rather take a train in Europe.”
+total_daily_target	number | null	Overall daily spend target across all categories. “I want to stay around $250/day total.”
+travel_mode	string | null	solo | couple | family | group. Affects multipliers for estimates.
+domestic_vs_international	string | null	domestic | international | both. Traveler may have different comfort levels.
+currency	string	ISO 4217 currency code for display. Default ‘USD’.
+last_updated	string (ISO timestamp)	When budget preferences were last modified.
+3.3 Per-Trip Override
+Any field from the budget schema can be overridden at the trip level. Stored in trips.metadata.budget_override as a partial BudgetIntelligence object. Trip-level values take precedence over profile-level values when present.
+Example: profile has lodging_per_night_cap = 180, but trips.metadata.budget_override.lodging_per_night_cap = 200 for the anniversary trip. The system uses 200 for that trip.
+3.4 Security Classification
+T2 (Sensitive). Financial preference data is personal. Budget numbers reveal spending capacity and lifestyle. Field-level encryption on lodging_per_night_cap and flight_pain_threshold (the most revealing values). RLS: user_profiles is already account-scoped. No budget data in logs, events, or error messages.
+4. Screens and Interactions
+4.1 Budget Preferences Page (/account/preferences/budget)
+Surface ID: S-BUDGET-001. Entry: Account page → “Budget preferences” row.
+
+Header
+• Back arrow → /account
+• Title: “Budget preferences”
+• Subtitle: “Set your travel spending comfort levels. All fields are optional.”
+Lodging Section
+• Label: “Maximum per night (tax included)”
+• Input: number with currency prefix ($ / € / £ based on selected currency)
+• Helper text: “We’ll flag accommodations above this amount.”
+• Below: “Special occasion ceiling” — number input with currency prefix
+• Helper: “Your max for a splurge night — anniversary, special location, etc.”
+• Below: “Splurge nights per trip” — stepper (1–5) with +/− buttons
+Food Section
+• Label: “Daily food budget”
+• Input: number with currency prefix
+• Helper: “All meals and drinks for one day.”
+Activities Section
+• Label: “Daily activity budget”
+• Input: number with currency prefix
+• Helper: “Experiences, tours, attractions per day.”
+Transport Section
+• Label: “Maximum for a one-way flight”
+• Input: number with currency prefix
+• Below: “When both train and flight are available:”
+• Radio buttons: ○ Prefer train  ○ Prefer flight  ○ Whichever is cheaper  ○ Whichever is faster  ○ No preference
+Overall Section
+• Label: “Total daily spending target”
+• Input: number with currency prefix
+• Helper: “A rough daily budget across all categories.”
+Travel Style Section
+• Label: “How do you usually travel?”
+• Radio buttons: ○ Solo  ○ Couple  ○ Family  ○ Group
+• Below: “Mostly domestic or international?”
+• Radio buttons: ○ Domestic  ○ International  ○ Both
+Currency Section
+• Label: “Your home currency”
+• Dropdown: USD, EUR, GBP, JPY, AUD, CAD, CHF, SGD (expandable later)
+Buttons
+• “Save preferences” (primary, full-width) → PATCH /api/account/budget → toast “Budget preferences saved.”
+• All fields are nullable. The page loads with current values (if any) or empty fields.
+• No required fields. The traveler can set 1 field or all 13.
+4.2 Account Page Integration
+In app/(app)/account/page.tsx, add a “Budget preferences” row in the preferences section. Shows: “Not set” if no budget data exists, or a summary line like “$180/night · $65/day food · couple” if populated. Links to /account/preferences/budget.
+4.3 Per-Trip Override (trip workspace)
+On the trip overview page, in a future enhancement, add a “Budget for this trip” card that shows profile defaults with an “Override for this trip” option. This is NOT built in the first prompt. Document as planned but deferred.
+5. Context Engine Integration
+Add a new branch to lib/context-engine/evaluate.ts:
+When maturity_state = DRAFT or PRE_TRIP_STRUCTURED, and user_profiles.preferences.budget_intelligence exists, and the trip has destination(s) with known regional cost data:
+• If lodging_per_night_cap is set and regional average exceeds it: surface nudge in the pre_trip context state: “Your lodging target may be tight for {destination} during {season}. Consider nearby alternatives or adjusting your budget for this trip.”
+• If total_daily_target is set and destination is a known high-cost area: surface nudge: “{Destination} tends to run above your daily target. The platform will help you find options that fit.”
+This is a new branch in the existing evaluate() function, NOT a new context state. It fires within the existing pre_trip state. If no budget data exists (most users initially), the branch is a no-op — zero output, no error.
+If budget data is malformed (corrupted JSONB), fail silently with a console.warn and skip the budget branch. Never crash the context engine because of bad budget data.
+6. Voice Capture Enhancement (PLANNED — document, do not build yet)
+In a future pass, the voice parse route should detect budget statements across all context types (not just signal_capture). Patterns to detect: “I don’t want to spend more than $X”, “My budget is $X a day”, “I’d rather not go over $X for flights.”
+When detected, the system should ask: “Should I remember this for future trips, or just this one?” and route to profile or trip-level storage accordingly.
+This is documented here for completeness. The first prompt implements the preferences page and context engine integration only.
+7. API Routes
+Route	Method	Purpose
+/api/account/budget	GET	Returns budget_intelligence from user_profiles.preferences. Returns { budget: BudgetIntelligence | null }.
+/api/account/budget	PATCH	Updates budget_intelligence. Merges into preferences JSONB. Emits budget_preferences_updated. Returns { budget }.
+8. FOCL Registration
+Feature ID: F-6.7.4. Phase: 2. Default enabled: false. No hard dependencies. Soft dependency: voice parse (for future voice capture).
+When F-6.7.4 is inactive: Account page does not show “Budget preferences” row. Context engine budget branch does not fire. Trip Spark does not show budget estimates.
+9. Governance Events
+budget_preferences_updated — { account_id, fields_changed (array of field names that changed) }
+budget_override_set — { trip_id, account_id, fields_overridden }
+budget_signal_captured — { account_id, source_context (voice context type), signal_text, layer (profile/trip) } — future, when voice capture is built
+10. Stress Behavior
+Under PROTECTIVE: budget preferences remain readable and editable. Budget-aware context nudges continue to fire (they’re client-side evaluation, no external API dependency). Budget is purely profile data — no degradation expected.
+11. Test Obligations
+E2E (tests/e2e/budget-intelligence.spec.ts):
+• Navigate to /account/preferences/budget → page loads with empty fields
+• Set lodging cap = 200, food = 65, save → toast confirms → reload → values persist
+• Clear all fields, save → budget is null → context engine budget branch is no-op
+• Set budget, create trip with high-cost destination → verify context nudge appears (requires mock regional cost data or a known expensive destination)
+Contract: budget data is account-scoped — user B cannot read user A’s budget via API.
+12. §9a Dependency Declaration
+• Trip workspace: NO (budget surfaces on account, not trip workspace directly in v1)
+• Readiness: NO
+• Right Now / context: YES — new branch in evaluate.ts for budget-aware pre_trip nudge. Risk: if budget JSONB is null or malformed, branch must be no-op. Never crash context engine.
+• FOCL / activation: YES — feature_registry entry.
+
+
+Wayfarer Platform · Product Bible · F-6.7.4 Budget Intelligence · v2.0 · April 2026
