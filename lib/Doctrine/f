@@ -1,0 +1,341 @@
+INSURANCE COMPARISON PLATFORM — PRODUCT BIBLE
+SECTION 3.3
+COVERAGE GRAPH MODEL
+Amendment v1.1 — Narrative Clarification Resolutions
+March 2026  |  Supersedes open Q1–Q4 in Section 3.3 v1.0  |  Binding Doctrine  |  Pre-Implementation Sprint Required
+Document Purpose
+This amendment records the Founder's authoritative responses to the four narrative clarification questions posed at the end of Section 3.3 v1.0. Each resolution becomes binding doctrine that governs the Coverage Graph Model's behavior, display logic, evidence rules, and approved language. Resolutions are presented as formal doctrine additions to Section 3.3 — not as summaries of conversation.
+Status of each question: Q1 ✅ RESOLVED  |  Q2 ✅ RESOLVED  |  Q3 ✅ RESOLVED  |  Q4 ✅ RESOLVED  |  Q5: Answered implicitly (see 3.3.19.E)
+
+3.3.19 — Amendment Index (v1.1)
+§	Title	Source Question	Doctrine Impact
+3.3.19.A	Voucher Acceptance Doctrine	Q1 — The Voucher Moment	Defines advisory-only posture, voucher type awareness, snapshot trigger on acceptance, supersedure rules.
+3.3.19.B	Baggage Delay — Pre-Claim Incident Protocol	Q2 — Delay + Baggage Cascade	Establishes fact-first model, time-step ladder, internal clock + geo tag as evidence, isolated graph rule, cascading exception.
+3.3.19.C	Evidence Threshold for CCO Dispute	Q3 — Weather vs. Maintenance	Defines what constitutes valid dispute evidence, introduces Official Airline Record as primary source, prohibits false-hope generation.
+3.3.19.D	Gap and Ambiguity Display Doctrine	Q4 — The Gap Moment	Abolishes AMBIGUOUS/GAP_IDENTIFIED customer-facing terms, defines rebook-first protocol, establishes reassurance-forward language.
+3.3.19.E	Solo Source Advisory Rule	Q5 — Implicit Resolution	Defines when and how the platform may suggest additional coverage sources without crossing into sales or pressure.
+
+
+3.3.19.A — Voucher Acceptance Doctrine
+Source Question: Q1 — A traveler's flight was cancelled due to a mechanical issue. They have Chase Sapphire travel benefits and a standalone travel insurance policy. At what point does the Coverage Graph surface a warning? What happens if a voucher is accepted?
+Core Rule: Advisory Only — No Blocking Language
+The Coverage Graph MUST NEVER surface language that tells a traveler not to accept a voucher in imperative or blocking terms. The platform is a decision support tool, not an authority over traveler choices. The traveler has the right to accept any offer from an airline at any time.
+
+⛔  PROHIBITED — Never Surface These To Travelers
+•"Do not accept this voucher" — prohibited in any form
+•"Accepting this voucher will void your claim" — prohibited (predictive outcome language)
+•"Stop — this action cannot be undone" — prohibited (alarmist, not calm)
+•"You will lose your credit card benefit if you accept" — prohibited (asserting certainty about insurer behavior)
+
+Voucher Type Awareness: Physical and Digital
+Vouchers are not always digital. A gate agent may offer a physical voucher, verbal credit, or future-flight certificate at the counter. The platform cannot intercept a physical acceptance. Design and messaging must account for both cases:
+
+Voucher Type	Platform Capability	Response Model
+Digital (in-app or airline app)	Platform may detect or be informed of a pending acceptance event if triggered through a connected flow.	Show a calm, informational prompt BEFORE acceptance: "Before you accept — here's what this may mean for your other options. [See details]". Traveler may dismiss and accept anyway.
+Physical (gate agent, counter)	Platform cannot intercept. Traveler may have already accepted before opening the app.	When traveler reports acceptance (or the system detects a voucher-related event), accept the fact non-judgmentally. Immediately generate a new snapshot reflecting the adjusted option set.
+
+Pre-Acceptance Advisory Language (Digital Context Only)
+✓  Approved language when a digital voucher acceptance appears imminent
+"Before you accept — accepting a voucher from the airline may affect your options with your card benefits or insurance policy. We can't predict exactly how, but it's worth a moment to review your situation first. [Show me what this could mean] [Continue anyway]"
+
+Rules for this prompt:
+•One-time display only per incident. Does not repeat if dismissed.
+•Does not block. "Continue anyway" must always be present and functional.
+•Does not make a prediction about claim denial.
+•Does not use urgency language ("Quick!" / "Before it's too late!").
+•Does not appear for physical vouchers — the platform has no visibility into those.
+
+Post-Acceptance: New Snapshot Required
+When a voucher acceptance is recorded — by any means, physical or digital, reported or detected — the platform's response is fixed:
+
+#	Action	Rule
+1	Record the voucher acceptance event	Emit voucher_acceptance_recorded event. Store: voucher_type (digital|physical|unknown), acceptance_at, declared_value if known. This is the authoritative timestamp.
+2	Generate a new CoverageGraphSnapshot	Invoke build_coverage_graph_snapshot() with the updated incident context. The accepted voucher modifies edge weights on any coverage node that has an excludes edge tied to airline_compensation_accepted.
+3	New RoutingRecommendation version	generate_routing_recommendation() is called automatically. New version references the new snapshot_id.
+4	Supersede previous recommendation	Previous RoutingRecommendation: superseded=true, superseded_at=now(). generation_trigger="voucher_acceptance". Emit routing_recommendation_superseded.
+5	Never mutate previous snapshot	The prior snapshot is immutable. The prior routing recommendation remains in history. No row is updated; only new rows are inserted.
+6	Notify traveler calmly	Inform that their options have been updated. Approved language below.
+
+✓  Approved post-acceptance language
+"We've updated your options based on the voucher you accepted. Some paths that were available before may no longer apply, but here's what we've found for you now."
+
+New Behavioral Invariants — Voucher
+Invariant	Rule
+I-26	The platform must never render blocking or imperative language instructing a traveler not to accept a voucher.
+I-27	Voucher acceptance — physical or digital — always triggers a new CoverageGraphSnapshot and a new RoutingRecommendation version.
+I-28	Previous snapshots and routing recommendations are never mutated post-voucher. Supersedure is the only mechanism.
+I-29	The digital pre-acceptance advisory prompt may appear at most once per incident. It is dismissible without consequence.
+
+
+3.3.19.B — Baggage Delay: Pre-Claim Incident Protocol
+Source Question: Q2 — A traveler has two incidents: a flight delay (Incident A) and lost/delayed baggage (Incident B). How should the Coverage Graph handle Incident B? How do the two incidents relate?
+Core Rule: Facts Before Claims
+When a traveler reports that their baggage has not arrived, this is first and foremost a fact — not yet a claim situation. The platform must treat it as a present-tense operational problem, not a financial dispute. The Coverage Graph does not activate claim-routing logic until a defined time threshold has passed and the airline has had the opportunity to respond.
+
+⛔  PROHIBITED — Never Surface These To Travelers
+•Claim language of any kind during the first reporting phase ("file a claim", "start your claim", "claim eligible")
+•"Your bags may be lost" — do not use loss language before airline confirms
+•Linking Incident B to Incident A's CCO classification in edge weighting — these are structurally independent
+•Surfacing weather as a reason to reduce baggage options — baggage rights have specific clauses regardless of weather classification
+
+The Baggage Time-Step Ladder
+The platform follows a staged model based on elapsed time from flight landing. The internal clock is authoritative — not the traveler's stated time. Geographic location is captured as a context anchor.
+
+Time Elapsed	Platform State	Traveler-Facing Response + Actions
+0–60 min after landing	Monitoring / Patience Zone	"It sometimes takes a while for bags to reach the carousel, especially after international flights. Let's check in on this together." Encourage: attach baggage tracker tag evidence, confirm flight arrival time. No routing logic yet.
+1–4 hours	Active Delay — Airline Engagement Phase	"It's been [X] hours since your flight landed and your bags haven't arrived. This is the moment to speak with the airline's baggage desk. Here's what to do: [Step-by-step guide]. Please get a written report number from the airline — that's your anchor document for everything that follows." Capture: airline report number, contact made timestamp.
+4–5 hours (configurable threshold)	Threshold Crossed — Options Phase	"You've been waiting [X] hours. Your airline has had time to respond. Here's what your options look like now." → Coverage Graph activates fully. CoverageClaimPath generated. Routing recommendation surfaced.
+Bags confirmed lost (airline written confirmation)	Claim Routing Active	Full Coverage Graph evaluation. RoutingRecommendation generated. Claim language now appropriate: "Here's how to recover your costs."
+
+Evidence Categories for Baggage Incidents
+Baggage tracker tag / AirTag / airline tracker	Valid. Auto-classified as location_evidence. Captures last known location of bag. Encouraged early.
+Airline Property Irregularity Report (PIR)	Valid. Primary anchor document. Required before Options Phase activates.
+Flight arrival confirmation (boarding pass + arrival time)	Valid. Used to anchor the internal clock.
+Photos of carousel (no bags)	Contextual. Accepted. Supports timeline, not eligibility.
+Receipt for emergency purchases (toiletries, clothing)	Valid. Required for baggage delay reimbursement claims once threshold crossed.
+Tracker showing bag in different city/airport	Valid. Materially upgrades confidence on routing recommendations.
+
+Internal Clock Rule:
+The platform uses the verified flight landing time (from itinerary + geo confirmation) as the clock anchor — not the time the traveler opens the app. If the traveler reports that their bags haven't arrived 3 hours after they landed, the clock reads 3 hours — regardless of when the incident was created in the system.
+
+Cross-Incident Isolation Rule
+Doctrine: Each incident's Coverage Graph remains isolated.
+Incident A (flight delay) and Incident B (baggage) exist on the same Trip and may be linked via linked_incident_ids for context display. However:
+•Incident A's CCO classification does NOT flow into Incident B's edge weighting. A weather-related delay does not suppress baggage claim options.
+•Incident B's EligibilityAssertions are computed entirely from Incident B's own evidence set, its own CCO version, and its own jurisdiction.
+•The link between Incident A and B is informational context shown to the traveler and to the Founder in FOCL — it is never an algorithmic input to the graph computation.
+•Baggage rights have their own clause basis. Whether the flight was delayed due to weather is a separate question from whether the airline is responsible for the bags.
+
+Cascading Exception: When Incidents Must Interact
+There is one defined exception where cross-incident context becomes operationally relevant: when a traveler must re-check bags for a connecting flight while their bags from the previous leg have not arrived.
+
+Trigger Condition	System Response
+Next connecting flight departs within a decision window while bags are still missing	Surface a specific alert: "Your next flight departs in [X hours]. Your bags haven't arrived yet. Here's the guidance most travelers get in this situation: [Go to your gate. Report your bag situation to the airline. They will typically reroute your bags to follow you. Get a confirmation number.]" This is operational guidance, not claim routing.
+Traveler must board without bags	Record event: traveler_boarded_without_bags, timestamp, gate_location. This event anchors the emergency purchase reimbursement clock for applicable policies.
+Bags confirmed diverted to another airport	Upgrade evidence classification. This is now a confirmed diversion, not a delay. Surface airline obligation node with upgraded confidence.
+
+New Behavioral Invariants — Baggage
+Invariant	Rule
+I-30	Claim language is prohibited before the airline engagement phase is complete and the configurable time threshold has been crossed.
+I-31	The platform clock anchors to verified flight landing time, not app-open time.
+I-32	Cross-incident CCO classification never flows into another incident's graph computation. Isolation is the default.
+I-33	A PIR (Property Irregularity Report) number from the airline is required before the Options Phase activates.
+I-34	The cascading exception (connecting flight departure during active baggage delay) triggers operational guidance, not claim routing.
+
+
+3.3.19.C — Evidence Threshold for CCO Dispute
+Source Question: Q3 — The CCO says Weather. The traveler believes it was Maintenance. They submit a photo of a maintenance vehicle. What counts as evidence? What do they see?
+Evidence Validity Ruling: Maintenance Vehicle Photo
+Evidence Classification: Photo of Generic Maintenance Vehicle
+Verdict: NOT VALID for CCO dispute
+Reason: A photo of a maintenance vehicle at an airport does not establish that this vehicle was servicing the specific aircraft the traveler was booked on, nor that a mechanical issue caused the cancellation of that specific flight. It is circumstantial without a traceable connection to the tail number and flight record.
+
+What Counts as Valid Dispute Evidence
+Aircraft tail number matched to specific aircraft	Valid if the tail number can be confirmed against airline records as the aircraft assigned to the traveler's specific flight. Tail number visible in photo of tarmac + airline route data = valid pairing.
+Official airline flight cause record	Primary source. Airlines publish official delay/cancellation cause records accessible by flight number + date. This is the highest-quality evidence. Always the recommended first step.
+Gate agent written statement or notification	Valid if it specifically references maintenance or mechanical cause on the correct flight number.
+FAA or ATC delay data (Phase 2+)	Valid where accessible. Categorizes delay cause by type. If available, this is the most authoritative third-party source.
+Overheard conversation / verbal statement at gate	NOT VALID. Inadmissible. Hearsay without documentation.
+Photo of generic maintenance vehicle near airport	NOT VALID. No traceable connection to specific aircraft or cause.
+Screenshot of a social media post about maintenance	NOT VALID. Unverified, unattributed.
+
+Official Airline Record: Primary Evidence Source
+Airlines publish official cause records for delayed and cancelled flights. The platform must guide travelers to these sources as the first and strongest path for a maintenance dispute. Examples:
+
+Airline Type	Record Access
+Major US carriers (Delta, American, United)	Published via airline website. Traveler provides flight number, date. Record emailed directly. Official designation of cause (weather exemption vs. controllable delay).
+International carriers — varies by carrier	Many provide similar record access. Coverage Graph should surface "Check your airline's official delay reason documentation" with a generic guide, not carrier-specific links (Phase 2: deep-link per carrier via F-6.5.5 Carrier Portal).
+Carriers with no published record	Platform notes: "We couldn't confirm this airline publishes official delay records. Document any written or emailed communication you received from the airline."
+
+What the Traveler Sees When Evidence Is Insufficient for Dispute
+When the traveler's submitted evidence does not meet the threshold, the dual-branch (USER_ASSERTION) output is NOT activated. The platform responds with a calibrated guidance message — not a rejection message.
+
+✓  Approved language when evidence is insufficient for CCO dispute
+"The photo you submitted doesn't establish a clear connection to your specific flight's cancellation. To have your classification reviewed, the strongest step is to request your airline's official flight cause record — you'll need your flight number and travel date. Most major airlines make this available on their website. Once you have it, share it here and we'll take another look."
+
+✓  Approved language if official airline record shows maintenance
+"Your airline's record shows this flight was cancelled due to a maintenance issue. We've updated your coverage analysis to reflect this. Here's what that means for your options."
+
+⛔  PROHIBITED — Never Surface These To Travelers
+•"You're right — the airline may have lied about the cause" — prohibited (makes an accusation)
+•"If this was maintenance, you would get compensation" — prohibited (predicts outcome)
+•"We can't help without better evidence" — prohibited (closes the door instead of guiding)
+•"Your photo shows a maintenance crew — this supports your claim" — prohibited (validates insufficient evidence)
+
+No False Hope — Language Doctrine
+The platform must communicate that official records are the path forward — without implying that a reclassification is likely or that compensation is certain. The approved framing is:
+•Factual: "Airlines classify causes officially."
+•Actionable: "Here's how to access those records."
+•Conditional: "If the official record shows X, your options would include Y."
+•Non-predictive: Never "you will get" / "you are entitled to" / "this guarantees."
+
+New Behavioral Invariants — Dispute Evidence
+Invariant	Rule
+I-35	Dual-branch (USER_ASSERTION) output is NOT activated until evidence meets the minimum dispute threshold. Insufficient evidence = guidance response only.
+I-36	Official airline delay/cause records are the designated primary evidence source for CCO disputes. Platform must always surface this path.
+I-37	A photo of a generic maintenance vehicle is explicitly classified as insufficient evidence and does not meet the dispute threshold.
+I-38	Platform never generates false hope about reclassification outcomes. Conditional framing ("if confirmed, then...") is the only approved pattern.
+
+
+3.3.19.D — Gap and Ambiguity Display Doctrine
+Source Question: Q4 — A traveler uploads a policy with a trip-delay benefit. Their actual incident was a missed connection. The EligibilityAssertion returns AMBIGUOUS. What do they see? How do GAP_IDENTIFIED and AMBIGUOUS differ from the traveler's perspective?
+Core Rule: AMBIGUOUS and GAP_IDENTIFIED Are Never Shown to Travelers
+Doctrine: Internal Results Are Never Traveler-Facing
+•AMBIGUOUS — internal only
+•GAP_IDENTIFIED — internal only
+•LIKELY_APPLICABLE — internal only
+•EXCLUDED — internal only
+From the traveler's perspective, AMBIGUOUS and GAP_IDENTIFIED produce the same output: an actionable, reassurance-forward guidance message. The platform does not expose its internal classification to the traveler. FOCL and founder-facing surfaces may show the internal result.
+
+The Missed Connection: Rebook-First Protocol
+When the incident is a missed connection and the coverage mapping is uncertain or ambiguous:
+The first guidance step is ALWAYS: talk to the airline. Most missed connection situations can be resolved operationally — a rebook — without any claim being needed. The platform must prioritize this path before surfacing any financial or insurance pathway.
+
+#	Step	Platform Guidance
+1	Rebook first	Surface immediately: "The first step here is usually to speak with the airline and ask to be rebooked on the next available flight. Services haven't been fully rendered — airlines will often rebook at no cost." This is the standard operating step.
+2	Conditional outcome A: Rebooked successfully	If traveler confirms rebook: "Great. Let us know how the rest of your trip goes. If you incur any out-of-pocket costs from the delay, come back and we'll look at your options." Close the active guidance flow.
+3	Conditional outcome B: Rebook not possible or declined	If rebook fails or involves conditions traveler doesn't accept: "Okay, let's look at what else is available. You may have options for reimbursement or alternative booking. Here's what to consider."
+4	Conditional outcome C: Paying out of pocket	If traveler pays for rebooking: "Keep your receipts — you may be eligible for reimbursement. Here's how to document this."
+
+Approved Language Templates — Gap and Ambiguity Context
+
+✓  Opening reassurance — when coverage mapping is uncertain
+"We found your policy. There are some terms we're working through to understand how they apply to your situation. Here's what we suggest as your first step."
+
+✓  Rebook-first prompt
+"The first step here is usually to speak with the airline directly and ask about rebooking. Missing a connection happens — airlines rebook people all the time. It's worth asking before anything else."
+
+✓  After rebook fails — transition to options
+"Understood. Let's figure out what you're working with. Depending on what happened and what's in your coverage, you may have some paths worth exploring. Here's what we've found."
+
+✓  Options reassurance — general closer
+"You do have options here. We're going to walk through them with you. Nothing we're showing you is a guarantee, but these are the paths worth considering and the steps to take."
+
+Policy-Coverage Domain Mapping Rule for Missed Connections
+When an incident is classified as missed_connection and a policy has a trip_delay benefit but no explicit missed_connection benefit:
+•The system must evaluate whether the missed connection is a consequence of a covered delay. If yes: the trip_delay benefit node is activated with evidence_dependent edge (requires delay evidence).
+•The system does NOT default to AMBIGUOUS. It defaults to CONDITIONAL with a clear explanation of what evidence would confirm the connection.
+•If the policy language is genuinely unclear: the system maps to CONDITIONAL (not AMBIGUOUS) and surfaces the rebook-first protocol, noting that documentation of what happened is valuable regardless of which path is taken.
+
+Design Principle: Actionable Always Beats Accurate-but-Paralytic
+The platform's job is to give the traveler a next step, not to expose the limits of clause parsing. If the system cannot determine coverage with confidence, it surfaces the most universally useful first action (rebook, contact airline, document expenses) and commits to following up as clarity improves. The traveler is never left without something to do.
+
+New Behavioral Invariants — Gap and Ambiguity
+Invariant	Rule
+I-39	AMBIGUOUS and GAP_IDENTIFIED eligibility results are never surfaced to travelers in any form — not as labels, not as descriptions, not in any paraphrase.
+I-40	The rebook-first protocol is always the first guidance step for missed-connection incidents, before any financial or insurance pathway is surfaced.
+I-41	EligibilityAssertion defaults to CONDITIONAL when policy language is unclear for the relevant domain. AMBIGUOUS is a last resort only when no action can be recommended.
+I-42	Every guidance response must end with a forward-facing reassurance or next-step. The traveler must never be left at a dead end.
+
+
+3.3.19.E — Solo Source Advisory Rule (Q5 Implicit Resolution)
+Source Question: Q5 — A traveler has only one coverage source attached. Should the system suggest adding others? Where is the line between helpful and selling?
+Resolved Doctrine: Operational Context Drives Advisory, Not Coverage Completeness
+The platform does not prompt travelers to add additional coverage sources as a general rule. Unsolicited suggestions to "add your credit card" or "check for more policies" are prohibited in the Coverage Graph flow. The platform is not a product discovery engine.
+
+However, when the Rebook-First Protocol or operational guidance reveals that a different type of coverage source would be specifically relevant to the traveler's current situation — and that information would be useful, not promotional — a single contextual note is permitted.
+
+Situation	Permitted / Prohibited
+Traveler has one travel insurance policy. No card attached. Flight cancelled.	PERMITTED — once, non-pressuring: "Some credit cards include travel protection for situations like this. If yours does, adding it here would let us show you a fuller picture." Then drop it. Do not repeat.
+Traveler has no coverage sources at all.	PERMITTED — factual, non-promotional: "You haven't added any policies or card benefits yet. Adding them would let us show you what coverage you already have — before deciding whether to buy anything."
+Traveler has coverage sources and is in an active claim-routing flow.	PROHIBITED. No suggestion to add sources during active routing. The traveler is focused on resolution, not discovery.
+Traveler has one source, Coverage Graph produces a recommendation.	PROHIBITED. Do not append "you could also check if your card has..." to a routing recommendation. The recommendation stands on its own.
+Coverage Graph produces GAP_IDENTIFIED for a domain the traveler might cover elsewhere.	PERMITTED — once, factual: "Your current policy doesn't appear to cover [domain]. If you have a credit card with travel benefits, it may. You can add it here to check." No pressure, no repetition.
+
+⛔  PROHIBITED — Never Surface These To Travelers
+•Unsolicited suggestions to add coverage sources during active incident flow
+•Language that implies the traveler is underprotected ("You might be missing out on...")
+•Repetitive prompting — any advisory note is shown once and not repeated in the same session
+•Linking the advisory note to a marketplace, affiliate product, or purchase flow
+
+New Behavioral Invariants — Solo Source Advisory
+Invariant	Rule
+I-43	The platform never prompts travelers to add additional coverage sources as a general recommendation. Prompts are contextual, specific, and limited to once per session.
+I-44	Source advisory notes are prohibited during active claim-routing flows.
+I-45	No advisory note links to or implies a purchase. The prompt is informational only.
+
+
+3.3.19.F — New Event Registry Additions (v1.1)
+
+Event Type	Severity	Feature	Trigger
+voucher_acceptance_advisory_shown	info	F-6.5.2	Pre-acceptance digital advisory prompt shown to traveler
+voucher_acceptance_advisory_dismissed	info	F-6.5.2	Traveler dismissed advisory without action
+voucher_acceptance_recorded	warning	F-6.5.2	Voucher accepted (physical or digital). Triggers new snapshot.
+baggage_delay_threshold_crossed	info	F-6.5.6	Configurable time threshold reached — Options Phase activates
+baggage_pir_recorded	info	F-6.5.6	Property Irregularity Report number captured from airline
+baggage_cascade_alert_triggered	warning	F-6.5.6	Cascading exception: connecting flight departure during active baggage delay
+cco_dispute_evidence_rejected	info	F-6.5.2	Submitted evidence did not meet dispute threshold. Guidance sent.
+official_airline_record_requested	info	F-6.5.2	Platform surfaced official airline record guidance to traveler
+rebook_first_protocol_initiated	info	F-6.5.5	Rebook-first guidance shown for missed connection incident
+rebook_confirmed_by_traveler	info	F-6.5.5	Traveler confirmed rebook successful. Flow closed.
+rebook_failed_options_opened	info	F-6.5.5	Rebook failed or declined. Options Phase opened.
+source_advisory_shown	info	F-6.5.2	Solo-source advisory note shown (once per session)
+
+3.3.19.G — Migration Additions (M-35)
+
+M-35: Register v1.1 event types and add voucher + baggage fields
+-- Register new event types (v1.1 narrative resolutions)
+INSERT INTO event_type_registry (event_type, schema_version, feature_id) VALUES
+  ('voucher_acceptance_advisory_shown',  1, 'F-6.5.2'),
+  ('voucher_acceptance_advisory_dismissed',1,'F-6.5.2'),
+  ('voucher_acceptance_recorded',        1, 'F-6.5.2'),
+  ('baggage_delay_threshold_crossed',    1, 'F-6.5.6'),
+  ('baggage_pir_recorded',              1, 'F-6.5.6'),
+  ('baggage_cascade_alert_triggered',    1, 'F-6.5.6'),
+  ('cco_dispute_evidence_rejected',      1, 'F-6.5.2'),
+  ('official_airline_record_requested',  1, 'F-6.5.2'),
+  ('rebook_first_protocol_initiated',    1, 'F-6.5.5'),
+  ('rebook_confirmed_by_traveler',       1, 'F-6.5.5'),
+  ('rebook_failed_options_opened',       1, 'F-6.5.5'),
+  ('source_advisory_shown',             1, 'F-6.5.2')
+ON CONFLICT (event_type) DO NOTHING;
+
+-- Add voucher fields to incidents (track acceptance state)
+ALTER TABLE incidents
+  ADD COLUMN IF NOT EXISTS voucher_accepted boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS voucher_accepted_at timestamptz,
+  ADD COLUMN IF NOT EXISTS voucher_type text CHECK (voucher_type IN ('digital','physical','unknown')),
+  ADD COLUMN IF NOT EXISTS voucher_declared_value numeric;
+
+-- Add baggage delay fields to incidents
+ALTER TABLE incidents
+  ADD COLUMN IF NOT EXISTS baggage_pir_number text,
+  ADD COLUMN IF NOT EXISTS baggage_pir_recorded_at timestamptz,
+  ADD COLUMN IF NOT EXISTS baggage_threshold_crossed_at timestamptz,
+  ADD COLUMN IF NOT EXISTS traveler_boarded_without_bags boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS bags_confirmed_diverted boolean NOT NULL DEFAULT false;
+
+-- Add rebook tracking
+ALTER TABLE incidents
+  ADD COLUMN IF NOT EXISTS rebook_protocol_shown boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS rebook_outcome text CHECK (rebook_outcome IN ('confirmed','failed','pending','not_applicable'));
+
+3.3.19.H — Behavioral Invariant Register (3.3 Complete)
+All invariants from Section 3.3 v1.0 (I-01 to I-25 from Sections 3.1/3.2/3.4) plus new invariants from this amendment.
+
+Invariant	Rule
+I-26	The platform must never render blocking or imperative language instructing a traveler not to accept a voucher.
+I-27	Voucher acceptance — physical or digital — always triggers a new CoverageGraphSnapshot and a new RoutingRecommendation version.
+I-28	Previous snapshots and routing recommendations are never mutated post-voucher. Supersedure is the only mechanism.
+I-29	The digital pre-acceptance advisory prompt may appear at most once per incident. It is dismissible without consequence.
+I-30	Claim language is prohibited before the airline engagement phase is complete and the configurable time threshold has been crossed.
+I-31	The platform clock anchors to verified flight landing time, not app-open time.
+I-32	Cross-incident CCO classification never flows into another incident's graph computation. Isolation is the default.
+I-33	A PIR number from the airline is required before the Options Phase activates.
+I-34	The cascading exception (connecting flight departure during active baggage delay) triggers operational guidance, not claim routing.
+I-35	Dual-branch (USER_ASSERTION) output is NOT activated until evidence meets the minimum dispute threshold.
+I-36	Official airline delay/cause records are the designated primary evidence source for CCO disputes.
+I-37	A photo of a generic maintenance vehicle is explicitly classified as insufficient evidence.
+I-38	Platform never generates false hope about reclassification outcomes. Conditional framing only.
+I-39	AMBIGUOUS and GAP_IDENTIFIED results are never surfaced to travelers in any form.
+I-40	Rebook-first protocol is always the first guidance step for missed-connection incidents.
+I-41	EligibilityAssertion defaults to CONDITIONAL when policy language is unclear. AMBIGUOUS is a last resort.
+I-42	Every guidance response must end with a forward-facing reassurance or next step. No dead ends.
+I-43	Source advisory notes are contextual, incident-specific, and shown at most once per session.
+I-44	Source advisory notes are prohibited during active claim-routing flows.
+I-45	No advisory note links to or implies a purchase.
+
+
+Section 3.3 Amendment v1.1 — Narrative Clarification Resolutions  |  March 2026
+Supersedes open Q1–Q4 in Section 3.3 v1.0  |  Binding on F-6.5.2, F-6.5.5, F-6.5.6 implementation sprints
+20 Behavioral Invariants (I-26 through I-45)  |  12 New Event Types  |  Migration M-35  |  5 Approved Language Templates
