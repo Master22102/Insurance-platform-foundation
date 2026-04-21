@@ -1,0 +1,222 @@
+WAYFARER PLATFORM
+PRODUCT BIBLE
+Feature ID: F-6.7.2 — Field Notes (Saved Intelligence Layer)
+Version 2.0  ·  April 2026  ·  Binding Doctrine
+1. Why This Feature Exists
+Travelers discover interesting things constantly — a YouTube video about a hidden restaurant in Tuscany, a friend’s recommendation for a festival in Bulgaria, a Deep Scan result showing a meteor shower visible from their destination. Today, those discoveries go into browser bookmarks, Notes apps, text messages, and mental notes. They never connect back to actual trip planning.
+Field Notes changes that. Every discovery becomes a structured planning object that the platform can reason about: tagged to a destination, categorized, time-windowed, and ready to become part of a real trip.
+This is the foundation for Trip Spark (F-6.7.3), which detects when a traveler has saved enough in one region to start a trip. Without Field Notes, Trip Spark has nothing to cluster.
+
+Binds to: Section 3.0 (governance events), Section 7.3 (surface registry), Section 7.4 (voice capture), Section 8.4 (RLS), Section 10.2 (entitlement gating), F-6.5.13 Axis 5 (save action on experiential discoveries), F-6.6.11 (creator video location tags as source), F-6.7.3 (Trip Spark consumes Field Notes for clustering).
+2. The Traveler’s Story
+Story 1: Saving from Deep Scan
+Sarah runs a Deep Scan on her Japan trip. Axis 5 surfaces: “The Perseid meteor shower peaks during your trip window. The Atacama region has near-zero light pollution.” Sarah isn’t going to Atacama on this trip, but she taps “Save to Field Notes.”
+The platform creates a Field Note: title “Perseid meteor shower — Atacama,” category “nature,” country “Chile,” seasonality “August,” source “Deep Scan.” It sits in her Field Notes library. Six months later, when she saves three more Chile items, Trip Spark notices and says: “You’ve saved 4 items in Chile. Want to start a trip?”
+Story 2: Importing from outside
+Marcus watches a Jamie Oliver video about a tiny restaurant in Siena. He copies the YouTube URL, opens Wayfarer, goes to Field Notes, taps “Import URL.” The platform fetches the page title and thumbnail, suggests category “food” and region “Tuscany, Italy.” Marcus confirms and saves.
+Two weeks later, he’s building an Italy trip in the Draft Home. The Activity Suggestions panel shows: “From your Field Notes: Restaurant in Siena (saved from YouTube).” He taps “Add to itinerary” and it becomes an activity_candidate.
+Story 3: Voice capture
+During a conversation with a friend, someone mentions a local harvest festival in Provence. Later, Marcus opens Wayfarer and says: “Remember that harvest festival my friend told me about in Provence.” The voice parse creates a Field Note: title “Harvest festival — Provence,” category “event,” region “Provence, France,” confidence “needs_verification.”
+Story 4: Saving from Creator Discovery
+Sarah browses creator videos about Tokyo. She finds a location tag for a hidden temple with a confidence score of 0.95 from the creator’s video. She taps “Save to Field Notes.” The Field Note inherits the coordinates, place type, and confidence from the video_location_tag.
+3. What Field Notes Is Not
+• Not a blog or content publishing system — there is no public-facing content
+• Not a social feed — Field Notes are private to the account
+• Not generic bookmarks — every item must carry structured metadata (category, region, at minimum)
+• Not a replacement for the trip itinerary — Field Notes feed into trip building, they don’t replace it
+• Not an AI content generator — the import normalizer uses Open Graph tags, not LLM inference
+4. Data Model
+4.1 field_notes Table
+Column	Type	Description
+note_id	uuid PK	Surrogate key. gen_random_uuid().
+account_id	uuid FK → auth.users	Owning user. RLS enforces account_id = auth.uid() on all operations.
+title	text NOT NULL	Display title. Pre-filled from source when possible. User can edit.
+description	text	Optional longer description, personal notes, or context.
+source_type	text NOT NULL	How the note was created: platform_discovery | deep_scan_signal | creator_video | user_import | voice_capture | manual_note
+source_reference_id	uuid	FK to originating object. For deep_scan_signal: scan result ID. For creator_video: video_location_tag ID. NULL for manual/voice/import.
+source_url	text	External URL for user_import source type. Sanitized on input. NULL for platform-native sources.
+country_code	text	ISO 3166-1 alpha-2 country code. Used for clustering and Trip Spark.
+region	text	City, province, or region name. Human-readable.
+latitude / longitude	numeric	Coordinates when available (from creator video tags or manual entry).
+category	text NOT NULL	food | event | nature | culture | nightlife | transit | lodging | activity | practical | other
+seasonality	text	year_round | spring | summer | autumn | winter | specific_dates. Affects Trip Spark date suggestions.
+season_start / season_end	date	If seasonality = specific_dates. Used by Trip Spark to suggest travel windows.
+sensitivity_flag	text	NULL | culturally_sensitive | ethically_complex | safety_concern. Shown as contextual note on detail page.
+confidence	text DEFAULT 'user_provided'	user_provided (manual/voice) | platform_verified (Deep Scan/creator with high confidence) | needs_verification (unverified voice/import)
+attached_trip_id	uuid FK → trips	If linked to a specific trip. NULL = unattached (available for Trip Spark clustering). ON DELETE SET NULL.
+status	text DEFAULT 'active'	active | archived | converted_to_activity. Archived items hidden from library but not deleted. Converted items linked to activity_candidate.
+metadata	jsonb DEFAULT '{}'	Extensible: imported thumbnail URL, tags, original video title, etc.
+created_at / updated_at	timestamptz	Standard timestamps.
+4.2 Security Classification
+T2 (Sensitive) for user-created content. T3 (General) for metadata extracted from public URLs. RLS enabled: all operations scoped to account_id = auth.uid(). Source URLs sanitized before storage — no raw HTML stored, Open Graph text extraction only.
+Imported external content is not crawled, indexed, or made searchable by other users. Field Notes are private to the owning account.
+5. Source Types and What Each One Does
+5.1 Platform Discovery (source_type = 'platform_discovery')
+Any platform-native content the traveler wants to save: a readiness pin insight, a coverage finding, a destination fact from the trip workspace. The save modal opens with title pre-filled from the source content.
+5.2 Deep Scan Signal (source_type = 'deep_scan_signal')
+When Axis 5 (experiential discovery) surfaces a positive signal — meteor shower, local festival, seasonal phenomenon — a “Save” button appears on the signal card in DeepScanPanel.tsx. The Field Note inherits: title from the signal, country/region from the scan context, seasonality from the signal’s date window, confidence = ‘platform_verified’ (because it came from a verified axis provider), source_reference_id = the scan result ID.
+This only appears on Axis 5 cards. Other axis results (coverage gaps, weather risks) are not saveable as Field Notes — they belong in coverage and readiness surfaces.
+5.3 Creator Video (source_type = 'creator_video')
+When the traveler saves a location from Creator Discovery (F-6.6.11), the Field Note inherits: title from the video_location_tag place name, coordinates from the tag, category mapped from the tag’s place_type (restaurant → food, landmark → culture, etc.), confidence from the tag’s confidence_score (>0.8 → platform_verified, else needs_verification), source_reference_id = the video_location_tag ID.
+5.4 User Import (source_type = 'user_import')
+The traveler pastes a URL. The import normalizer (server-side) fetches the page’s Open Graph / meta tags and extracts: og:title → title, og:description → description, og:image → metadata.thumbnail_url, any geo meta tags → latitude/longitude/region. The system suggests a category based on URL domain patterns (youtube.com/recipe → food, tripadvisor.com → activity, etc.) but the traveler can change it before saving.
+The import normalizer does NOT use an LLM. It uses HTML meta tags only. If the page has no Open Graph tags, the title falls back to the <title> tag and everything else is left for the traveler to fill in manually.
+5.5 Voice Capture (source_type = 'voice_capture')
+The traveler speaks naturally: “Remember that restaurant in Tuscany.” The voice parse detects a venue/place intent and creates a Field Note. Confidence = ‘needs_verification’ unless the parse extracted a specific named venue. Future enhancement: integrate with the existing venue_intent catch bucket from onboarding so onboarding venue intents automatically become Field Notes.
+5.6 Manual Note (source_type = 'manual_note')
+The traveler types a note directly. No external data needed. The traveler fills in title, category, and optionally region/country/seasonality. Simplest source type.
+6. Screens and Interactions
+6.1 Field Notes Library (/account/field-notes)
+Surface ID: S-FIELDNOTES-001. Entry points: Account page → “Field Notes” row, bottom nav → Account → Field Notes.
+
+Header
+• Back arrow (←) → /account
+• Title: “Field Notes”
+• Subtitle: “{count} saved · {country_count} destinations” — computed from active notes
+Filter Bar
+• Horizontal scroll of category chips: All | 🍽 Food | 🎭 Culture | 🌿 Nature | 🎪 Events | 🏃 Activities | 🏨 Lodging | 📌 Other
+• Active chip: filled background (dark navy). Inactive: outline only.
+• Tap a chip → filters the list to that category. “All” shows everything.
+• Chip counts: each chip shows the number of notes in that category as a small badge.
+Action Bar
+• “+ Add note” button → opens the Save Modal (Section 6.4) in manual_note mode
+• “Import URL” button → opens the Import Modal (Section 6.5)
+Note List
+Each note renders as a card. Cards are sorted by created_at (newest first).
+• Left column: category icon (🍽 food, 🎭 culture, 🌿 nature, 🎪 event, 🏃 activity, 🏨 lodging, 📌 other)
+• Center: title (bold, 14px), region + country below (muted, 12px), seasonality badge if seasonal (“Best in spring”)
+• Right: chevron (>)
+• If attached_trip_id is set: small trip name badge below region (“📋 Japan 2026”)
+• If sensitivity_flag is set: small ⚠ indicator next to title
+• If confidence = needs_verification: small “Unverified” badge
+• Tap card → navigate to /account/field-notes/[note_id] (Detail page)
+• Swipe left (mobile) or hover-reveal (desktop): Archive button | Delete button
+Cluster Banner (Trip Spark integration)
+If F-6.7.3 (Trip Spark) is active in feature_registry AND any country/region has 4+ active Field Notes: show a banner card at the top of the list:
+• “You’ve saved {count} items in {region}. That might be enough to start a trip.”
+• Button: “Explore →” → triggers Trip Spark flow
+• If Trip Spark is not active: this banner does not appear. Field Notes works independently.
+Empty State
+When no notes exist:
+• Centered icon or illustration
+• “Save places, events, and ideas as you discover them.”
+• “They’ll become building blocks for your next trip.”
+• Button: “Add your first note” → opens Save Modal
+6.2 Field Note Detail (/account/field-notes/[note_id])
+Surface ID: S-FIELDNOTES-002. Entry: tap any card in the library.
+
+Header
+• Back arrow → /account/field-notes
+• Title: note.title
+Content Area
+• Source badge: “From Deep Scan” | “From creator video” | “Imported” | “Voice note” | “Manual” — styled as a small pill with appropriate icon
+• If source_url: tappable link “View source →” (opens in new tab, rel=noopener)
+• Description (if present): full text displayed
+• Location: 📍 {region}, {country_code} — with flag emoji if available
+• Category: displayed as a styled chip matching the library filter style
+• Seasonality: if set, “Best in: {season}” or “Available: {date range}”
+• Confidence: if needs_verification, show amber notice: “Unverified — details may need checking before planning around this.”
+• Sensitivity: if set, show contextual note: culturally_sensitive → “This may involve culturally significant practices. Review context before visiting.” ethically_complex → “This experience may raise ethical questions for some travelers.” safety_concern → “Review safety information before visiting.”
+• Created: formatted date (“Saved on Apr 12, 2026”)
+• Attached trip: if set, trip name as a tappable link → /trips/[trip_id]
+Action Buttons (bottom of page, sticky on mobile)
+PRIMARY (full-width, navy background):
+• If not attached to a trip: “Attach to trip” → opens trip picker bottom sheet (lists user’s active trips sorted by departure date). On select: PATCH /api/field-notes/[note_id] with attached_trip_id. Toast: “Attached to {trip_name}.”
+• If already attached: “Move to different trip” → same picker. Or “Detach from trip” → PATCH with attached_trip_id = null.
+
+SECONDARY (outline button):
+• “Start a new trip from this” → navigates to /trips/new with query params: ?destination={region}&country={country_code}. The trip creation page pre-fills destination_summary from these params.
+
+TERTIARY (only visible if attached_trip_id is set):
+• “Add to itinerary” → calls POST /api/field-notes/[note_id]/convert-to-activity. This creates an activity_candidate row on the attached trip with source = ‘field_note’, links back to note_id in metadata. Sets field note status = ‘converted_to_activity’. Toast: “Added to {trip_name} activities.” Navigates to /trips/[trip_id]/draft/activities.
+
+OVERFLOW MENU (⋯ icon, top-right):
+• Edit → toggles inline edit mode: title, description, category, seasonality, region become editable fields. “Save changes” button PATCHes the note. “Cancel” reverts.
+• Archive → PATCH status = ‘archived’. Toast: “Archived.” Navigates back to library.
+• Delete → confirmation dialog: “Delete this field note? This can’t be undone.” On confirm: DELETE, toast “Deleted.” Navigate back to library.
+6.3 Integration Touch Points (modifications to existing screens)
+These are changes to existing files, not new screens:
+
+1. DeepScanPanel.tsx — On each Axis 5 (hidden_opportunity / experiential) positive signal card, add a “💾 Save” button. Gate: only show if F-6.7.2 is active in feature_registry (use check_feature_gate or equivalent). Tapping opens the Save Modal (Section 6.4) with source_type = ‘deep_scan_signal’, title and region pre-filled from the signal.
+2. CreatorDiscoveryModal.tsx — On each video_location_tag result, add a “Save to Field Notes” action. Gate: F-6.7.2 active. Opens Save Modal with source_type = ‘creator_video’, title and coordinates pre-filled.
+3. Trip Overview workspace strip (app/(app)/trips/[trip_id]/page.tsx) — Add a “Save discovery” card in the workspace strip section. Gate: F-6.7.2 active. Opens empty Save Modal.
+4. Account page (app/(app)/account/page.tsx) — Add “Field Notes” row in the account menu between “Safety vault” and “Group & family.” Shows note count badge. Links to /account/field-notes.
+5. FOCL layout (app/focl/layout.tsx) — Add “Field Notes” nav link to /focl/field-notes between “Tasks” and “Financials.”
+6.4 Save Modal (reusable component)
+A bottom sheet (mobile) or centered modal (desktop). Used by all integration points.
+
+HEADER: “Save to Field Notes”
+FORM FIELDS:
+• Title: text input. Pre-filled from source (Deep Scan signal title, creator video place name, imported page title). Editable.
+• Category: dropdown. Values: Food, Event, Nature, Culture, Nightlife, Transit, Lodging, Activity, Practical, Other. Pre-suggested based on source when possible.
+• Region: text input. Pre-filled from source location when available.
+• Country: text input or country dropdown. Pre-filled when available.
+• Seasonality: optional dropdown. Year-round, Spring, Summer, Autumn, Winter, Specific dates. If specific dates selected: two date pickers appear.
+• Notes: optional textarea for personal context.
+BUTTONS:
+• “Save” → POST /api/field-notes with form data + source_type + source_reference_id. Close modal. Toast: “Saved to Field Notes.”
+• “Cancel” → close modal, discard form.
+VALIDATION: title is required. Category is required. Everything else optional.
+6.5 Import Modal
+A bottom sheet (mobile) or centered modal (desktop). Opened from the library’s “Import URL” button.
+
+HEADER: “Import from URL”
+STEP 1: URL input + “Fetch details” button. Loading spinner while fetching.
+STEP 2 (on success): Preview card showing: extracted title, description snippet, thumbnail (if og:image), suggested category, suggested region. All fields editable by the traveler.
+• “Save” → POST /api/field-notes with source_type = ‘user_import’, source_url = the URL, and confirmed/edited metadata.
+• “Cancel” → close.
+ERROR STATES:
+• Invalid URL: “Please enter a valid URL.”
+• Fetch failed: “Couldn’t read that page. You can still save it as a manual note.” with “Save as manual note” button that opens Save Modal with the URL in the description.
+• Rate limit: “Too many imports. Try again in a minute.”
+6.6 FOCL Field Notes Management (/focl/field-notes)
+Founder-only page showing platform-wide Field Notes metrics:
+• Total notes across all accounts
+• Notes by source type breakdown (pie chart or stat cards)
+• Most-saved destinations (top 10 country/region pairs)
+• Notes with sensitivity flags (list for review — founder can view but not edit traveler notes)
+• Feature activation status card (from feature_registry) with activation/deactivation toggle
+7. API Routes
+Route	Method	Purpose + Returns
+/api/field-notes	GET	List notes. Params: ?status=active, ?country_code=, ?category=, ?trip_id=. Returns { notes[], count }.
+/api/field-notes	POST	Create note. Body: title, category + optional fields. Emits field_note_created. Returns { note }.
+/api/field-notes/[note_id]	PATCH	Update note. Body: any editable field. Emits field_note_attached_to_trip if trip changed. Returns { note }.
+/api/field-notes/[note_id]	DELETE	Delete note (permanent). Emits field_note_deleted. Returns { success }.
+/api/field-notes/[note_id]/convert-to-activity	POST	Convert to activity_candidate. Requires attached_trip_id. Creates activity row, sets note status. Emits field_note_converted_to_activity.
+/api/field-notes/import	POST	Import URL metadata. Body: { url }. Fetches Open Graph tags server-side. Returns { suggested: { title, description, category?, region? } }. Does NOT create the note.
+8. FOCL Registration
+Feature ID: F-6.7.2. Display name: Field Notes (Saved Intelligence). Phase: 2. Default enabled: false. Minimum mode: NORMAL.
+Depends on: F-6.5.13 (Deep Scan) and F-6.6.11 (Creator Discovery) — soft dependencies. Field Notes works without them but is richer with them. If neither is active, the only source types available are user_import, voice_capture, and manual_note.
+When F-6.7.2 is inactive: Save buttons do not appear on Deep Scan or Creator Discovery. Account page does not show Field Notes row. /account/field-notes shows “Field Notes is coming soon.”
+9. Governance Events
+field_note_created — { note_id, source_type, country_code, category, account_id }
+field_note_attached_to_trip — { note_id, trip_id, previous_trip_id (if moved), account_id }
+field_note_converted_to_activity — { note_id, activity_candidate_id, trip_id, account_id }
+field_note_archived — { note_id, account_id }
+field_note_deleted — { note_id, account_id }
+10. Stress Behavior (§15.0)
+Under PROTECTIVE mode: Field Notes remain readable. Save actions may be queued but not blocked. Import normalizer may degrade to title-only extraction (skip Open Graph fetch if external network is slow). No Field Notes are lost under any stress condition.
+Load test scenario: 200+ Field Notes per account, clustered across 5+ regions. Verify library pagination performance, filter responsiveness, and Trip Spark clustering speed.
+11. Test Obligations
+E2E tests (tests/e2e/field-notes.spec.ts):
+• Create note from manual entry → appears in library
+• Create note from import URL (mock response) → preview renders → save → appears in library
+• View detail page → all fields display correctly
+• Attach to trip → trip badge appears on library card
+• Convert to activity → status changes to converted_to_activity, activity_candidate created
+• Archive → note disappears from active list, appears under archived filter
+• Delete → confirmation dialog → note removed permanently
+Contract tests:
+• RLS: create note as user A, attempt read as user B → 0 results
+• Feature gate: verify save buttons hidden when F-6.7.2 is disabled
+Stress tests:
+• 200+ notes per account → library loads within 2 seconds
+• Cluster detection with 50 notes across 8 regions → Trip Spark banner appears correctly
+12. §9a Dependency Declaration
+• Trip workspace: YES — save discovery shortcut in workspace strip. Risk: if Field Notes API fails, hide the card gracefully (don’t error the workspace).
+• Readiness: NO
+• Right Now / context: NO
+• FOCL / activation: YES — new FOCL page, feature_registry entry. Risk: if feature is off, FOCL page shows “Not yet activated” with prerequisites.
+
+
+Wayfarer Platform · Product Bible · F-6.7.2 Field Notes · v2.0 · April 2026

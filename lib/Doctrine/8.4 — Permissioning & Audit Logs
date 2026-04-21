@@ -1,0 +1,666 @@
+8.4 — Permissioning & Audit Logs
+This section defines the platform-wide control plane governing authority, state transitions, override behavior, and immutable logging.
+It applies to all features listed in the Master Feature Catalog and must align with:
+• Logging & Downgrade Doctrine
+• QA & Regression Doctrine
+• Founder Operational Control Layer (FOCL)
+• Causality Model (CCO)
+• Stress Testing Framework
+This section is implementation-binding.
+No conceptual interpretation is permitted at runtime.
+
+8.4.1 Purpose
+The Permissioning & Audit system defines:
+• Who can act
+• What can change
+• What can never change
+• How actions are logged
+• How overrides expire
+• How logging failure affects runtime behavior
+It protects:
+• Data integrity
+• Governance integrity
+• Regional isolation
+• User trust
+• Founder accountability
+• 24–48 hour survivability without Founder login
+The system must:
+• Enforce permissions at the database layer
+• Emit structured, machine-readable events for all state transitions
+• Prevent silent override
+• Prevent silent downgrade
+• Prevent permanent override without expiry
+• Prevent log mutation
+
+8.4.2 Role Model
+Roles
+1.Traveler
+2.Support (Internal Operations)
+3.Founder
+4.System (Automated Agents / Enforcement Engine)
+Role mapping aligns with Section 2.6 Permissions Model and FOCL .
+
+8.4.2.a Traveler
+Allowed:
+• Create Trip
+• Create Incident
+• Upload Evidence
+• View Guidance
+• Generate Claim Packet
+• Connect OAuth (read-only)
+• Revoke OAuth
+• Export personal data
+Disallowed:
+• Modify system thresholds
+• Modify feature flags
+• Re-enable connectors
+• Modify retention policy
+• Access other region data
+• View raw event logs
+Step-Up Required For:
+• Data export (sensitive fields)
+• Device role elevation request
+Mandatory Logging:
+• trip_created
+• incident_created
+• evidence_uploaded
+• oauth_connected
+• oauth_revoked
+• claim_packet_generated
+• data_export_requested
+
+8.4.2.b Support (Internal)
+Allowed:
+• Review flagged items
+• Approve manual reviews
+• Escalate to Founder queue
+• View event logs (read-only)
+Disallowed:
+• Change thresholds
+• Modify override duration
+• Disable logging
+• Modify retention policy
+• Override database-enforced rules
+Step-Up Required For:
+• Approving connector re-enable requests
+• Accessing region-sensitive aggregated analytics
+Mandatory Logging:
+• manual_review_approved
+• escalation_created
+• support_note_added
+
+8.4.2.c Founder
+Authority governed by FOCL .
+Allowed (Laptop + Step-Up for structural actions):
+• Enable / disable feature flags
+• Trigger connector re-enable
+• Activate allocation capacity
+• Modify crisis enrollment thresholds
+• Apply time-boxed overrides
+• Enter Protective Mode override
+Disallowed:
+• Delete logs
+• Edit logs
+• Disable immutable ledger
+• Remove Rule A or Rule B enforcement
+• Modify CCO object retroactively
+Step-Up Required For:
+• Any threshold change
+• Any override > 2 hours
+• Region-wide state change
+• Automation re-enable
+• Crisis enrollment activation
+Mandatory Logging:
+• feature_flag_changed
+• override_applied
+• override_expired
+• connector_reenabled
+• crisis_policy_changed
+• allocation_capacity_adjusted
+
+8.4.2.d System
+Automated enforcement engine.
+Allowed:
+• Trigger downgrade
+• Trigger protective mode
+• Emit events
+• Expire overrides
+• Block unsafe transitions
+Disallowed:
+• Permanent override creation
+• Editing historical events
+• Skipping required logging
+Mandatory Logging:
+• auto_downgrade_triggered
+• protective_mode_entered
+• override_auto_expired
+• connector_auto_paused
+• ledger_write_failure
+
+8.4.3 Permission Boundaries
+Immutable Runtime Rules
+Cannot be changed at runtime:
+• Ledger append-only rule
+• Rule A enforcement (Capture → Action gating)
+• Rule B enforcement (ManualOnly → Enabled gating)
+• CCO immutability post-write
+• Connector downgrade thresholds
+
+Time-Boxed Override Rules
+Overrides must include:
+• scope
+• reason_code
+• actor_id
+• region_id
+• expires_at
+• max_duration
+Maximum durations:
+• Feature override: 12 hours
+• Threshold override: 4 hours
+• Protective mode override: 2 hours
+No override may exceed 12 hours.
+
+Region-Scoped Rules
+• Overrides must include region_id
+• Cross-region overrides prohibited
+• Failover logging must replicate ledger entries
+
+Feature-Scoped Rules
+• Feature flags cannot bypass enforcement rules
+• Disabled feature cannot mutate core objects
+• Auto-suppressed features cannot be manually enabled without QA validation
+
+AI Cap Rules
+When AI capacity exceeds defined cap:
+• Enter throttle mode
+• Reduce summarization depth
+• Block non-essential batch jobs
+• Emit ai_cap_exhausted event
+AI throttling must never:
+• Block evidence upload
+• Block incident capture
+• Block ledger writes
+
+AI throttling is triggered by policy (latency + queue depth), not a fixed percent
+
+“Two-layer summary model” behavior:
+
+●Immediate minimal summary
+
+●Deferred full analysis
+
+Guarantees: throttling never blocks evidence capture, incident capture, trip creation
+
+
+Rate Limit Rules
+• Per-IP rate limit enforced
+• Per-account mutation rate limit enforced
+• Burst protection triggers protective_mode_entered
+
+Connector State Rules
+Connector downgrade governed by 12.5 .
+Connector cannot be re-enabled unless:
+• QA smoke test passed
+• Downgrade metrics cleared
+• Re-enable logged
+
+Retention Modification Rules
+Retention policy changes require:
+• Founder laptop
+• Step-up
+• Justification field
+• 24-hour delayed activation
+Cannot retroactively reduce retention for existing records.
+
+Crisis Enrollment Rules
+Crisis policy change must:
+• Be region-scoped
+• Include duration
+• Include financial impact projection
+• Emit crisis_policy_changed
+
+Never Silent Changes
+The following cannot change silently:
+• Threshold values
+• Feature states
+• Connector states
+• Protective mode
+• Retention policies
+• Override state
+• Region load classification
+All must emit structured events.
+
+8.4.4 Override Model
+Required Fields:
+• override_id (UUID)
+• scope_type (feature | threshold | connector | region)
+• scope_id
+• region_id
+• actor_id
+• reason_code (enumerated)
+• justification_text
+• created_at
+• expires_at
+• max_duration
+• stack_block_flag
+Required Expiration:
+• expires_at must be present
+• System must enforce auto-expiration
+Automatic Reversion:
+• System reverts to previous_state
+• Emits override_auto_expired
+Event Emission:
+• override_applied
+• override_expired
+FOCL Surfacing:
+All overrides must appear in:
+• Founder Action Ledger
+• Decision Queue
+Conflict Resolution:
+• Later override cannot extend existing override
+• Overrides cannot stack beyond 1 active per scope
+• stack_block_flag prevents stacking
+Audit Immutability:
+Override entries are append-only.
+
+8.4.5 Immutable Action Ledger
+Properties:
+• Append-only
+• No UPDATE
+• No DELETE
+• Write-once rows
+Write Failure Behavior:
+If ledger write fails:
+• Block structural action
+• Emit ledger_write_failure
+• Enter Protective Mode
+Read Access:
+• Founder: full
+• Support: filtered
+• Traveler: limited to own events
+Export Rules:
+• Export generates ledger_exported event
+• Redaction profile required
+• Identity-bound export authorization required (see 8.7.13–8.7.16), including minor constraints
+Evidence File Retention Policy
+• Active dispute: retain until dispute closed + 12 months
+ • Paid subscriber: retain up to 3–5 years (plan-configurable)
+ • Non-subscriber: retain 12–24 months
+ • If no dispute and no active subscription, file binaries may be purged per retention schedule
+Purging file binaries does not delete ledger records of their existence.
+Ledger entries must permanently record:
+ • evidence_file_uploaded
+ • evidence_file_purged
+ • retention_policy_applied
+Retention policy changes must emit:
+ • retention_policy_modified
+
+Pre-Purge Notification Requirement (B)
+Before automatic purge of evidence file binaries:
+• User must receive a single notification 30 days prior to purge
+ • Notification must be delivered in-app
+ • Email may be sent only if already configured (no additional delivery infrastructure required)
+ • Notification must include:
+●Number of files affected
+
+●Scheduled purge date
+
+●Option to download files
+
+If user takes no action within the 30-day window, purge proceeds automatically.
+Required Event:
+ • evidence_purge_notice_sent
+“Failure to open or acknowledge the notification does not prevent purge execution.”
+
+Manual Deletion (C)
+Users may manually delete evidence files at any time.
+Manual deletion must:
+ • Require explicit confirmation
+ • Not delete ledger record of existence
+ • Emit event: evidence_file_deleted_by_user
+Manual deletion cannot bypass:
+ • Active dispute retention
+ • Legal hold flags
+If deletion attempt is blocked due to dispute or legal hold:
+ • Emit event: evidence_deletion_blocked
+
+Legal Hold / Dispute Override
+If evidence is subject to:
+ • Active dispute
+ • Regulatory inquiry
+ • Legal hold
+Automatic purge must be suspended.
+Suspension must emit:
+ • evidence_retention_extended
+Suspension expiration must emit:
+ • evidence_retention_restored
+
+Cold Storage Tier
+Evidence files older than 36 months may be moved to lower-cost storage tiers.
+Movement to cold storage must:
+ • Preserve immutability
+ • Preserve retrieval capability
+ • Emit event: evidence_moved_to_cold_storage
+Cold storage retrieval must emit:
+ • evidence_retrieved_from_cold_storage
+
+Retention modifications must emit:
+ • retention_policy_modified
+Cross-Region Persistence:
+• Write replicated to secondary region
+• Async replication must complete < 5 seconds
+• If replication fails → protective_mode_entered
+Tamper Detection:
+• Each row includes hash(previous_hash + payload)
+• Daily checksum verification
+• checksum_mismatch triggers protective_mode_entered
+Cross-Region Cryptographic Anchoring (Triangulated, 15-Minute Checkpoints)
+Checkpoint Cadence
+ System must create a ledger checkpoint every 15 minutes per region.
+Checkpoint Artifact
+ Each checkpoint must include:
+ • checkpoint_id
+ • region_id
+ • checkpoint_window_start_utc
+ • checkpoint_window_end_utc
+ • ledger_last_event_id
+ • ledger_chain_hash_or_merkle_root
+ • event_count_in_window
+ • created_at_utc
+Triangulated Anchoring Requirement
+ Each region must write each checkpoint anchor into two other regions.
+ Anchors are append-only records.
+ Anchors must be verifiable by recomputing the checkpoint hash for the same time window.
+Anchoring Failure Behavior
+ If anchoring to one target region fails, the system continues anchoring to the second target.
+ If anchoring to both targets fails, local ledger writes continue.
+ Structural governance actions remain subject to Logging Failure Posture in 8.4.7.
+Anchoring Events (required)
+ • ledger_checkpoint_created
+ • ledger_checkpoint_anchored
+ • ledger_anchor_write_failed
+ • ledger_anchor_verification_failed
+ • ledger_anchor_verification_restored
+
+
+8.4.6 Audit Event Schema
+
+Founder Translation Requirement (FOCL Binding)
+For every audit event_type emitted, the system must provide a founder_readable_explanation generated from structured fields (event_type, reason_code, scope, previous_state, resulting_state). This explanation must be surfaced through FOCL (F-6.5.16) in the “Explain Why Engine” and “What Changed” surfaces. This requirement does not grant FOCL authority to modify events or bypass enforcement rules. 
+All events must include:
+• event_id (UUID)
+• event_type (ENUM)
+• actor_type (traveler | support | founder | system)
+• actor_id
+• region_id
+• feature_id
+• scope_type
+• scope_id
+• previous_state (JSON)
+• resulting_state (JSON)
+• reason_code (ENUM nullable)
+• created_at (UTC)
+• checksum_hash
+Event Types (minimum set):
+• override_applied
+• override_expired
+• feature_flag_changed
+• connector_auto_downgrade_triggered
+• connector_reenabled
+• protective_mode_entered
+• protective_mode_exited
+• ledger_write_failure
+• ai_cap_exhausted
+• crisis_policy_changed
+• retention_policy_modified
+• manual_review_approved
+• logging_queue_backpressure_detected
+• evidence_queue_backpressure_detected
+• decision_queue_backpressure_detected
+• ledger_checkpoint_created
+• ledger_checkpoint_anchored
+• ledger_anchor_write_failed
+• ledger_anchor_verification_failed
+• ledger_anchor_verification_restored
+ENUM lists must be versioned.
+
+8.4.7 Logging Failure Posture
+If logging pipeline stalls:
+• Allow read operations
+• Block structural mutations
+• Display non-alarmist banner (Founder domain)
+If ledger storage unreachable:
+• Block feature flag changes
+• Block overrides
+• Allow incident capture
+• Allow evidence upload (region staging queue only)
+Queue Backpressure Posture (Explicit Queues)
+Definitions
+ • logging_event_queue: event emission pipeline queue (audit + observability events).
+ • evidence_staging_queue: server-side staging queue for evidence chunk writes and finalize operations.
+ • decision_compute_queue: background compute queue for non-essential processing (summaries, enrichment, analytics).
+If logging_event_queue exceeds threshold
+ • Block structural mutations (already enforced).
+ • Continue incident capture and evidence upload only if evidence_staging_queue is healthy.
+ • Emit: logging_queue_backpressure_detected.
+ • Enter Protective Mode if logging_event_queue remains above threshold for more than 10 minutes.
+If evidence_staging_queue exceeds threshold
+ • Allow uploads.
+ • Mark uploads as “Processing.”
+ • Traveler may proceed to next steps.
+ • Do not acknowledge “Complete” until staging finalize succeeds.
+ • Emit: evidence_queue_backpressure_detected.
+ • Enter Protective Mode if evidence_staging_queue remains above threshold for more than 15 minutes.
+If decision_compute_queue exceeds threshold
+ • Degrade non-essential work first (summarization depth reduction, analytics pause).
+ • Do not block incident capture, trip creation, or evidence upload.
+ • Emit: decision_queue_backpressure_detected.
+ • Do not enter Protective Mode solely due to decision_compute_queue backlog.
+
+
+• Enter Protective Mode
+Never degrade:
+• Evidence capture
+• Incident capture
+• Trip creation
+●Evidence Upload Durability Posture
+●Non-Negotiable
+ • Uploads must not be silently dropped.
+ • No full-file persistence on client devices.
+●If logging pipeline stalls
+ • Uploads may proceed if region-level staging writes succeed.
+ • Structural actions remain blocked per 8.4.7 structural mutation rules.
+●If cross-region anchoring is delayed or unavailable
+ • Uploads proceed normally as long as region-level staging storage is healthy.
+ • Traveler experience does not change unless the upload write-path is impacted.
+●If region-level staging storage is degraded but recoverable
+ • Allow uploads.
+ • Mark uploads as “Processing.”
+ • Traveler may proceed to next steps.
+ • System must retry durability confirmation until completed.
+●If region-level staging storage is unavailable
+ • Do not persist files on client.
+ • Do not acknowledge upload as complete.
+ • Display: “Connection required to upload.”
+ • Upload may resume automatically once secure connection is restored.
+●Secure Connection Requirement
+ • Upload submission requires active secure HTTPS connection.
+ • No upload submission permitted over insecure or downgraded transport.
+●Resumable Chunked Upload Requirement
+ • Files must be divided into encrypted chunks in transit.
+ • Each chunk must be durably written before acknowledging progress.
+ • upload_session_id governs resume behavior.
+ • Upload resumes from last confirmed chunk.
+ • Upload cannot complete unless full chunk manifest is confirmed.
+●Required Events
+ • evidence_upload_accepted
+ • evidence_upload_processing
+ • evidence_upload_staged
+ • evidence_upload_confirmed
+ • evidence_upload_retry_scheduled
+
+
+
+8.4.8 Emergency Escalation Policy
+Triggers:
+• ≥ 2 simultaneous region protective modes
+• Ledger checksum mismatch
+• Replication failure > 60 seconds
+• Downgrade spike across 3+ airlines
+Emergency Mode:
+• Duration max 4 hours
+• Structural overrides frozen
+• Automation throttled
+Mandatory Review:
+• Founder review required within 24 hours
+• Emergency exit must emit emergency_mode_exited
+Emergency Mode must not widen permissions for external profiles (Guardian/Investor).
+It may freeze or reduce actions — never expand them
+
+8.4.9 Region-Aware Governance
+Region-Scoped Overrides:
+• Must include region_id
+• No global override without explicit multi-region declaration
+Cross-Region Isolation:
+• No shared mutable threshold object
+• Each region maintains independent load state
+Region Failover Logging:
+• Secondary region must accept writes
+• On failover emit region_failover_triggered
+New Region Expansion Protocol:
+Requires:
+• Baseline retention configuration
+• Threshold default config
+• Replication verified
+• Smoke test pass
+
+8.4.10 QA & Verification Requirements
+Required Automated Tests:
+• Override expiry test
+• Ledger append-only enforcement
+• Threshold change audit emission
+• Protective mode auto-trigger
+• Replication failover test
+Downgrade Simulation Tests:
+Must simulate:
+• connector_auto_downgrade_triggered
+• connector_reenabled
+Override Abuse Simulation:
+• Attempt stacked override
+• Attempt expiry extension
+• Attempt silent threshold change
+Logging Integrity Tests:
+• Simulate ledger write failure
+• Simulate checksum mismatch
+• Simulate replication lag
+Minimum 95% pass rate required before deploy .
+
+8.4.11 Stress Testing Protocol
+Aligned with Section 15 .
+Required Simulations:
+• 10x surge load
+• Multi-region protective mode
+• Logging outage 30 minutes
+• Queue backlog > 1M events
+• AI cap exhaustion
+• Connector meltdown cascade
+Pass Criteria:
+• No silent state change
+• Ledger remains append-only
+• Evidence capture uninterrupted
+• Incident capture uninterrupted
+• Override auto-expiration enforced
+• Replication recovers without data loss
+
+8.4.12 Failure Simulation Matrix
+Scenario	Trigger	Expected State	Allowed	Blocked	Events	Recovery
+Ledger Write Failure	Storage unreachable	Protective Mode	Read ops	Structural change	ledger_write_failure	Restore storage
+Connector Meltdown	30% failure	Downgrade	Manual flow	Automation	auto_downgrade	QA validation
+AI Exhaustion	Cap exceeded	Throttle	Evidence capture	Batch summarization	ai_cap_exhausted	Capacity restored
+Replication Lag	>60s	Protective Mode	Capture	Override	region_failover_triggered	Replication restored
+Override Abuse	Stack attempt	Blocked	None	Override	override_blocked	N/A
+
+8.4.13 Surge Guarantees
+Must Never Degrade:
+• Incident capture
+• Evidence upload
+• Ledger immutability
+• Manual fallback
+May Degrade:
+• Automation
+• AI summarization depth
+• Non-essential exports
+Degrade Order:
+1.AI enrichment
+2.Connector automation
+3.Batch analytics
+4.Predictive modeling
+Remain Functional Regardless:
+• Manual claim packet generation
+• Coverage graph explanation
+• Claim routing logic
+
+8.4.14 Code Transfer Guarantees
+Required Schema Artifacts:
+• overrides table
+• event_ledger table (append-only)
+• region_config table
+• threshold_config table
+• retention_policy table
+Required Service Interfaces:
+• apply_override()
+• expire_override()
+• emit_event()
+• enter_protective_mode()
+• verify_checksum()
+• replicate_event()
+Required Queue Enforcement:
+• All structural actions must call emit_event() transactionally
+• If emit_event() fails → rollback mutation
+Required Feature Flag Hooks:
+• feature_flag_changed event required
+• Auto-suppression state enforced by DB constraint
+Required Logging Hooks:
+• Before state change
+• After state change
+• On failure
+Required Deployment Invariants:
+• Cannot deploy if ledger table lacks append-only constraint
+• Cannot deploy if override expiry job disabled
+• Cannot deploy if checksum job disabled
+• Cannot deploy if replication target unverified
+
+
+8.4.15 Group Jurisdiction Events
+
+Section 4 + Group Jurisdiction Audit Events
+The following audit events SHALL be emitted for Section 4 compliance and group eligibility:
+●GROUP_RESIDENCE_REQUIRED_BLOCKED_DEEP_SCAN
+
+●ORGANIZER_SELECTED_ELIGIBILITY_VIEW_MODE
+
+●JURISDICTION_COMPOSITION_COMPUTED
+
+●PLAN_ELIGIBILITY_FILTER_APPLIED
+
+●STATE_DISCLOSURE_SHOWN
+
+●BROKER_AVAILABILITY_SOURCE_USED (FEED | CATALOG | UNKNOWN)
+
+●PLAN_AS_OF_TIMESTAMP_RECORDED
+
+All events SHALL be immutable and linked to the relevant TripId and (when applicable) ParticipantId.
+Jurisdiction & Disclosure Events
+The platform SHALL support jurisdiction-specific disclosures via the StateRegulatoryConstraintRegistry.
+Audit events SHALL include:
+●STATE_DISCLOSURE_SHOWN (state_code required)
+
+●JURISDICTION_RULE_APPLIED
+
+●PLAN_ELIGIBILITY_FILTER_APPLIED
+
+●REGULATORY_EFFECTIVE_DATE_USED
+
+The system SHALL NOT hardcode state-specific logic (e.g., New York).
+ All state-level disclosures and constraints SHALL be data-driven via the StateRegulatoryConstraintRegistry.
+

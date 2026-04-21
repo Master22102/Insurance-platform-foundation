@@ -1,0 +1,199 @@
+Airline Verification Connector — Structured Event & Downgrade Specification
+This section defines required runtime instrumentation, downgrade thresholds, and automated fallback behavior for the Airline Verification Connector used by F-6.5.3 and F-6.5.6.
+Automation is optional enhancement.
+ Manual fallback must always remain available.
+
+12.5.1 Required Structured Events
+Each connector attempt must emit structured, machine-readable events.
+A. Submission Lifecycle Events
+Every attempt must emit:
+●connector_submission_attempt
+
+○airline_id
+
+○incident_id
+
+○submission_mode (form | email | manual)
+
+○timestamp
+
+●connector_submission_success
+
+○airline_id
+
+○incident_id
+
+○submission_mode
+
+○response_expected (true/false)
+
+○timestamp
+
+●connector_submission_failure
+
+○airline_id
+
+○incident_id
+
+○submission_mode
+
+○failure_reason_code
+
+○timestamp
+
+
+B. Failure Reason Codes (Enumerated)
+Must include at minimum:
+●timeout
+
+●site_unreachable
+
+●captcha_detected
+
+●validation_error
+
+●html_structure_changed
+
+●rate_limited
+
+●unexpected_response
+
+●unknown_error
+
+No free-text-only logging permitted.
+
+C. Downgrade Trigger Event
+When failure thresholds are exceeded (see below), emit:
+●connector_auto_downgrade_triggered
+
+○airline_id
+
+○threshold_exceeded_type
+
+○timestamp
+
+
+D. Fallback Activation Event
+When system switches modes:
+●connector_fallback_activated
+
+○airline_id
+
+○from_mode
+
+○to_mode
+
+○timestamp
+
+
+E. OAuth Observability Events
+If inbox import enabled:
+●oauth_consent_granted
+
+●oauth_consent_revoked
+
+●oauth_token_expired
+
+●oauth_polling_started
+
+●oauth_polling_stopped
+
+●oauth_import_success
+
+●oauth_import_no_match
+
+Each must include:
+●incident_id
+
+●provider_type (gmail | microsoft | yahoo | other)
+
+●timestamp
+
+
+12.5.2 Failure Threshold & Downgrade Logic
+Each airline connector must maintain rolling 24-hour metrics.
+Threshold A — Hard Failure Rate
+If:
+●≥ 30% submission_failure
+ OR
+
+●≥ 10 consecutive submission_failure
+
+Trigger:
+●Auto-downgrade to fallback mode
+
+●Emit downgrade event
+
+●Disable automated form submission
+
+
+Threshold B — Captcha/Blocking Spike
+If:
+●≥ 5 captcha_detected events within 1 hour
+
+Trigger:
+●Immediate downgrade
+
+●Flag airline as “manual-only pending review”
+
+
+Threshold C — Structure Change Detection
+If:
+●html_structure_changed occurs ≥ 3 times within 24 hours
+
+Trigger:
+●Disable automation
+
+●Require manual QA validation before re-enable
+
+
+Threshold D — Rate Limiting
+If:
+●rate_limited ≥ 5 times within 30 minutes
+
+Trigger:
+●Apply backoff
+
+●Temporarily pause automation
+
+●Reattempt after cooldown window
+
+
+12.5.3 Downgrade State Management
+Each airline must maintain status:
+●Enabled
+
+●Degraded (form disabled, email fallback active)
+
+●Manual Only
+
+●Under Review
+
+Downgrade must affect all new attempts immediately.
+Previously initiated requests must not be invalidated.
+
+12.5.4 Recovery Logic
+Automation may only be re-enabled when:
+●Manual QA validation confirms success
+
+●Smoke test passes
+
+●Failure metrics fall below thresholds
+
+Recovery must emit:
+●connector_reenabled
+
+○airline_id
+
+○timestamp
+
+
+12.5.5 Reliability Principle
+The system must:
+●Fail open to fallback
+
+●Never block manual progress
+
+●Never require automation to complete user flow
+
+We can’t predict what will happen, but we can help you move through it with the least friction possible.
