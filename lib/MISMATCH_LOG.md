@@ -72,7 +72,7 @@ Status legend: OPEN · IN_PROGRESS · RESOLVED · DEFERRED
 
 ## M-004 — `f6517_*` migration prefix does not match F-6.5.17 or F-6.5.10
 
-- **Status**: OPEN
+- **Status**: RESOLVED (2026-04-21 via ADR 0001 + feature-migration-map)
 - **Scope**: Four migration files dated 2026-03-30:
   - `20260330100000_f6517_catalog_and_cost_ledger.sql`
   - `20260330100100_f6517_corpus_catalog_seed.sql`

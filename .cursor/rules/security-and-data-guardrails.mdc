@@ -1,0 +1,166 @@
+---
+description: Wayfarer security, data, and feature-build guardrails. MUST be followed for any code, migration, or RPC change.
+globs:
+  - "supabase/migrations/**"
+  - "supabase/functions/**"
+  - "app/**"
+  - "lib/**"
+  - "components/**"
+alwaysApply: true
+---
+
+# Wayfarer Build Guardrails
+
+These rules exist so a change to one feature cannot silently break another.
+Every item below is a **HARD RULE** unless it explicitly says otherwise.
+
+---
+
+## 1. Data Classification — T1 / T2 / T3
+
+Every table, column, and log field is one of:
+
+- **T1 — Restricted personal / safety data.** PII, auth identifiers,
+  geolocation, health/medical, travel-document numbers, financial
+  instruments, minor data, evidence files. **Encrypt at rest (SSE-KMS with
+  per-user DEK for storage), never log raw, never return to unauthenticated
+  clients, never embed in analytics payloads, 15-minute presigned URLs only.**
+- **T2 — Personal operational data.** Trip names, destinations, itinerary
+  fragments, coverage conclusions, non-identifying preferences. Encrypted in
+  transit, RLS-gated by ownership/membership, may be cached server-side but
+  never in third-party analytics.
+- **T3 — Platform metadata.** Feature registry, event type registry, severity
+  classes, public marketing content. Readable by `authenticated` broadly;
+  writable only by maintainers via migration or SECURITY DEFINER RPC.
+
+Every new column declares its class in the migration summary header.
+
+## 2. Row-Level Security — Non-Negotiable
+
+- Every new table: `ALTER TABLE … ENABLE ROW LEVEL SECURITY;` in the same
+  migration that creates it. No exceptions.
+- Never `USING (true)`. Never `FOR ALL`. Always four separate policies
+  (SELECT / INSERT / UPDATE / DELETE) with explicit ownership or membership
+  checks.
+- `auth.uid()` only — never `current_user`.
+- SELECT: USING only. INSERT: WITH CHECK only. UPDATE: USING + WITH CHECK.
+  DELETE: USING only.
+- When a table references another table for authorization, the policy uses
+  `EXISTS (SELECT 1 FROM …)` against `auth.uid()`; it never trusts a column
+  on the row being inserted as the authorization source.
+
+## 3. Event Ledger Immutability
+
+- `event_ledger` is **append-only**. Never `UPDATE` or `DELETE` rows.
+- Metadata tables (`event_type_registry`, `feature_registry`) are not the
+  ledger; they can be corrected via migration, but every correction emits an
+  `event_type_registry_correction` or equivalent governance event to the
+  ledger with before/after state.
+- Never emit ledger events from client code. All emissions go through
+  SECURITY DEFINER RPCs that validate the caller's scope.
+
+## 4. Migrations — Never Modify History
+
+- **Never edit an applied migration file.** Forward-only corrections via a
+  new migration.
+- Every migration starts with the multi-line block-comment summary described
+  in the root Supabase doctrine.
+- Every DDL is guarded: `IF NOT EXISTS` / `IF EXISTS` / `DO $$ … END $$`
+  conditionals for columns that may already exist.
+- Never issue `DROP TABLE`, `DROP COLUMN`, `TRUNCATE`, or `DELETE` without an
+  accompanying ADR explaining the data-loss path and a preservation strategy.
+- Never issue bare `BEGIN`/`COMMIT`/`ROLLBACK`. (PL/pgSQL `DO $$ BEGIN … END $$`
+  blocks are fine.)
+
+## 5. feature_registry INSERT Rule
+
+- Every new user-facing feature inserts one `feature_registry` row in the
+  migration that delivers it, with: `feature_id`, `display_name`,
+  `description`, `default_enabled` (false unless doctrine says otherwise),
+  `minimum_mode`, `phase`, `capability_tier_current`, `capability_tier_max`,
+  `requires_connector`, `connector_status`, and (if a sub-feature)
+  `parent_feature_id`.
+- Every event type inserted into `event_type_registry` declares its
+  `feature_id`. Referencing a feature that does not exist is a migration-time
+  error.
+- Feature IDs are immutable. If a feature is renamed or retired, add a new
+  row and deprecate the old one — do not reassign the ID.
+
+## 6. Cross-Feature Non-Breakage (Dependency Discipline)
+
+- Before modifying any shared table (`incidents`, `trips`, `event_ledger`,
+  `event_type_registry`, `feature_registry`, `claims`, `coverage_graph`,
+  `evidence`, `policies`, `policy_versions`), list every feature that reads
+  or writes it (§9a dependency declaration) at the top of the PR / migration
+  comment. If the list is not obvious, `rg` for the table name across
+  `supabase/migrations/`, `app/`, and `lib/` first.
+- Additive-only changes to shared tables (new nullable columns, new indexes,
+  new policies). Any breaking change (type narrowing, NOT NULL on existing
+  column, rename) requires an ADR + two-phase migration (expand → backfill →
+  contract).
+- New RPCs never change the signature of an existing RPC. If behavior must
+  change, deprecate the old name and introduce a new name; leave the old one
+  until its last caller is gone.
+
+## 7. SECURITY DEFINER & search_path
+
+- Every SECURITY DEFINER function sets `SET search_path = ''` (or an
+  explicit, minimal schema list) as a function attribute.
+- SECURITY DEFINER functions validate `auth.uid()` explicitly; they never
+  assume the caller is authorized just because the function was invoked.
+- SECURITY DEFINER is the only mechanism for writing to T3 metadata tables
+  from user-facing RPCs.
+
+## 8. Edge Functions
+
+- Supabase Edge Functions only. No other serverless providers.
+- Never share code between functions via relative imports; each function is
+  a standalone deployable.
+- CORS headers are the exact set: `Access-Control-Allow-Origin: *`;
+  `Access-Control-Allow-Methods`: must include OPTIONS and every method the
+  function accepts; `Access-Control-Allow-Headers: Content-Type,
+  Authorization, X-Client-Info, Apikey`. Applied to every response including
+  errors.
+- Entire handler wrapped in try/catch.
+- `npm:` or `jsr:` specifiers only; never `deno.land/x`, `esm.sh`, or `unpkg`.
+
+## 9. Client-Side Hooks
+
+- Any file that uses `useState`, `useEffect`, `useRouter`, `useContext`, etc.
+  starts with `"use client"`. No exceptions.
+- `supabase.auth.onAuthStateChange` callbacks are **never declared `async`**.
+  Wrap async work inside an IIFE inside the sync callback to avoid deadlocks.
+
+## 10. Never-Purple Rule & UX
+
+- No purple, indigo, or violet hues anywhere unless the product owner
+  requests them explicitly.
+- All text maintains ≥ 4.5:1 contrast on every background state, including
+  transition states (transparent → solid header backgrounds).
+- 8px spacing system; 3 font weights maximum; 150% body line-height, 120%
+  heading line-height.
+
+## 11. Secret Handling
+
+- No secret values in repo. `.env` is dev-local only.
+- Deployed secrets are managed via `mcp__supabase__list_edge_function_secrets`
+  and the Supabase dashboard. Reference secret existence by name, never
+  assume a value.
+- Never hard-code a Supabase anon key, service key, or third-party key in
+  committed code.
+
+## 12. MISMATCH_LOG Discipline
+
+- Any detected drift between repo and DB — no matter how small — gets an
+  entry in `lib/MISMATCH_LOG.md` before any remediation code is written.
+- An entry is closed (RESOLVED) only when both repo and DB agree and a
+  verification query has been run.
+
+---
+
+## Enforcement
+
+A change that violates one of these rules is blocked at review. A change
+that requires a temporary exception must cite the rule number in the PR
+description and include an ADR in `docs/adr/` justifying the exception and
+its sunset date.
