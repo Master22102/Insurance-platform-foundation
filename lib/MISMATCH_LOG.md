@@ -104,6 +104,150 @@ Status legend: OPEN · IN_PROGRESS · RESOLVED · DEFERRED
   status enum, requestor identity, scope descriptor, SLA deadline, and RLS
   limiting visibility to the requestor and privacy admins. Defer until Section
   8.9 doctrine requirements are re-reviewed.
+- **Update (2026-04-21)**: Section 8.9 doctrine v1.0 now on disk at
+  `lib/Doctrine/SECTION 8.9 DATA ERASURE & RIGHT-TO-ERASURE PROTOCOL`.
+  Status flipped to `IN_PROGRESS`. Migration
+  `f_6_8_9_erasure_requests_table` applied; binding doctrine file
+  `lib/feature-bindings/F-6.8.9_Data_Erasure_Protocol.md` committed. See
+  M-011 for the resolution entry.
+
+---
+
+## M-007 — F-6.7.x binding draft numbering drift
+
+- **Status**: RESOLVED (2026-04-21)
+- **Scope**: `lib/feature-bindings/F-6.7.*`
+- **Observed**: An earlier drafting pass bound the four Phase-2 save-layer
+  features as F-6.7.1 Field Notes, F-6.7.2 Trip Spark, F-6.7.3 Budget
+  Intelligence, F-6.7.4 Preference Memory. The canonical doctrine in
+  `lib/Doctrine/` unambiguously numbers them F-6.7.2 Field Notes, F-6.7.3
+  Trip Spark, F-6.7.4 Budget Intelligence, F-6.7.5 Preference Memory.
+- **Risk**: Any feature_registry insert, migration, event type, or
+  cross-reference written against the draft IDs would ship to production
+  with the wrong feature_id, breaking FOCL dependency wiring and audit
+  traces.
+- **Remediation**: Deleted the four old draft files. Wrote replacements at
+  the correct feature IDs against source doctrine:
+  - `F-6.7.2_Field_Notes.md`
+  - `F-6.7.3_Trip_Spark.md`
+  - `F-6.7.4_Budget_Intelligence.md` (no new table — JSONB only)
+  - `F-6.7.5_Preference_Memory.md` (three-layer model, preference-item
+    array)
+  All four carry a `Source doctrine:` header pointing at the relevant file
+  in `lib/Doctrine/` plus a numbering-history note.
+- **Verified**: Directory listing shows only the four canonical files;
+  `grep -rn "F-6.7.1" lib/` returns no live binding references.
+
+---
+
+## M-008 — Section 6.5.13 v2.0 absorbs 6.5.11 and 6.5.12
+
+- **Status**: IN_PROGRESS (doctrine side RESOLVED; registry side OPEN)
+- **Scope**: `lib/Doctrine/SECTION 6.5.13 — DEEP SCAN INTELLIGENCE ENGINE`,
+  `feature_registry`, `docs/DEEP_SCAN_AXIS_DOCTRINE.md`
+- **Observed**: Section 6.5.13 v2.0 (March 2026) formally supersedes
+  Section 6.5.13 v1.0 and absorbs Sections 6.5.11 (Regulatory-Aware
+  Incident Reporting) and 6.5.12 (Authority-Driven Travel Disruptions) as
+  Axes 9 and 11 respectively. Both 6.5.11 and 6.5.12 are removed from the
+  Table of Contents.
+- **Remediation (doctrine)**: `docs/DEEP_SCAN_AXIS_DOCTRINE.md` fully
+  populated with the ten canonical axes (plus Axis 11 on-demand),
+  Itinerary Optimizer mode matrix, Quick-vs-Deep comparison, credit
+  governance invariants DS-1 and DS-2, and the Local Partner signal. Axes
+  9 and 11 carry absorption notes.
+- **Remediation (registry) — OPEN**: `feature_registry` still contains
+  rows for F-6.5.11 and F-6.5.12 as standalone features. A follow-up
+  migration must either mark them `absorbed_by = 'F-6.5.13'` or retire
+  them to a `retired_features` table. Blocked until FOCL retirement
+  semantics are agreed.
+- **Next action**: Scope the registry retirement migration; decide whether
+  to preserve the historical rows (preferred, with an `absorbed_by`
+  column) or move them.
+
+---
+
+## M-009 — Section 3.3 v1.1 amendments not yet wired
+
+- **Status**: OPEN
+- **Scope**: Coverage Graph model runtime, event_type_registry,
+  routing_recommendation supersedure path
+- **Observed**: Section 3.3 v1.1 (March 2026) is binding doctrine and adds
+  five sub-doctrines plus nine new invariants:
+  - **3.3.19.A Voucher Acceptance**: Advisory-only posture. Invariants
+    I-26, I-27, I-28, I-29. Required events:
+    `voucher_acceptance_recorded`, `routing_recommendation_superseded`.
+  - **3.3.19.B Baggage Delay Pre-Claim Protocol**: Time-step ladder (0–60
+    min, 1–4 h, 4–5 h threshold, confirmed-lost). Invariants I-30 through
+    I-34. Required event: `traveler_boarded_without_bags`. Cross-incident
+    CCO isolation rule.
+  - **3.3.19.C Evidence Threshold for CCO Dispute**: Maintenance vehicle
+    photo NOT VALID; Official Airline Record is the primary source. No
+    false-hope generation.
+  - **3.3.19.D Gap and Ambiguity Language**: AMBIGUOUS / GAP_IDENTIFIED
+    strings abolished from traveler-facing surfaces. Rebook-first
+    protocol. Reassurance-forward language.
+  - **3.3.19.E Solo Source Advisory Rule**: Defines when the platform may
+    suggest additional coverage without crossing into sales or pressure.
+- **Risk**: None of the new invariants, events, or language constraints
+  are enforced in the current codebase. Shipping Coverage Graph surfaces
+  today would produce doctrine-non-compliant output.
+- **Next action**: Scope three migrations — voucher supersedure chain,
+  baggage cascade state machine, approved-language linter for Coverage
+  Graph render output. Binding doctrine file
+  `lib/feature-bindings/SECTION_3.3_v1.1_Amendments.md` drafted this pass.
+
+---
+
+## M-010 — Section 3.6 FAM-16 statutory rights engine not built
+
+- **Status**: OPEN
+- **Scope**: `lib/Doctrine/SECTION 3.6 PASSENGER RIGHTS & DISRUPTION
+  RESOLUTION ENGINE`, Coverage Graph statutory-node extension, Causality
+  Model `cause_class_internal` linkage
+- **Observed**: Section 3.6 v1.0 (March 2026) is binding doctrine and
+  encodes four statutory frameworks as deterministic lookup tables: EU
+  Regulation 261/2004, US DOT Rules (14 CFR Part 250 + 2024 Refund Rule),
+  Montreal Convention 1999 Articles 19 and 22, and UK retained EC
+  261/2004. All four are registered under clause family FAM-16. Doctrine
+  also defines the Disruption Resolution State Machine. EU/EEA commercial
+  launch is gated on this work.
+- **Risk**: No statutory rights are surfaced today. A traveler with a
+  weak or absent policy has no visibility into the statutory floor. EU
+  launch blocker.
+- **Next action**: Scope the FAM-16 rule-table schema (compensation
+  tiers, distance brackets, right-to-care tiers, extraordinary
+  circumstances matrix, MC liability caps in SDR), the jurisdiction
+  applicability function, and the Coverage Graph statutory-node
+  extension. Binding doctrine file
+  `lib/feature-bindings/SECTION_3.6_Statutory_Rights.md` drafted this
+  pass.
+
+---
+
+## M-011 — Section 8.9 erasure protocol — unblocked and scoped
+
+- **Status**: RESOLVED (2026-04-21) for doctrine + scope; IMPLEMENTATION
+  follows M-005.
+- **Scope**: `lib/Doctrine/SECTION 8.9 DATA ERASURE & RIGHT-TO-ERASURE
+  PROTOCOL` (v1.0), `erasure_requests` table, Section 8.9 binding
+  doctrine, MISMATCH_LOG M-005.
+- **Observed**: Section 8.9 v1.0 is now present and binding. It defines
+  intake and verification, per-object PII field register, event ledger
+  redaction protocol, lawful retention exceptions, nine-step execution
+  sequence, and nine behavioral invariants E-I-01 through E-I-09. EU/EEA
+  commercial launch is unblocked by this section.
+- **Remediation (this pass)**:
+  - Created `lib/feature-bindings/F-6.8.9_Data_Erasure_Protocol.md`
+    covering intake, the nine execution steps, ledger redaction
+    reconciliation, actor anonymization rule, and the nine invariants.
+  - Applied migration `f_6_8_9_erasure_requests_table` creating
+    `erasure_requests` (status enum, requestor identity, scope descriptor,
+    SLA deadline), RLS (requestor + privacy admin visibility only),
+    supporting event types under feature_id `F-6.8.9`.
+- **Next**: Wire the `pii_erasure_*` event types through
+  `event_type_registry` (already seeded by the migration) and stand up
+  the execution RPCs per the nine-step sequence. Tracked as follow-up
+  under M-005.
 
 ---
 
