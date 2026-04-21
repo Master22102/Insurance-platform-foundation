@@ -1,0 +1,111 @@
+
+WAYFARER PLATFORM — PRODUCT BIBLE
+SECTION 8.9
+DATA ERASURE & RIGHT-TO-ERASURE PROTOCOL
+GDPR Article 17 · UK GDPR · Immutable Ledger Reconciliation · Per-Object PII Field Register
+Version 1.0  ·  Binding  ·  March 2026  ·  EU/EEA Commercial Launch Unblocked by this Section
+
+REPLACES PLACEHOLDER
+Section 3.2.0.1 contains a placeholder erasure doctrine pending this section. That placeholder is superseded by Section 8.9 in its entirety. All references to 'pending Section 8.9' in Section 3.2 are now resolved.
+
+8.9.0 — Purpose and Legal Basis
+GDPR Article 17 grants data subjects the right to request erasure of their personal data when: (a) the data is no longer necessary for the purpose it was collected, (b) the subject withdraws consent and no other legal basis exists, (c) the subject objects to processing and no overriding legitimate interests exist, or (d) the data was unlawfully processed. The UK GDPR contains equivalent provisions post-Brexit.
+
+This section defines the platform's erasure protocol: how requests are received and verified, which data is erased, which data is lawfully retained, how the immutable event ledger is reconciled with erasure obligations, how erasure is logged without creating a paradox, and what the data subject receives as confirmation.
+
+THE FUNDAMENTAL TENSION — RESOLVED
+The platform uses an append-only immutable event ledger as a core architectural invariant. GDPR Article 17 requires erasure. These are not irreconcilable. The resolution: the ledger records that events happened, structured as typed events with actor IDs and scope IDs. The personal data associated with those events — names, documents, descriptions — lives in domain tables that are erasable. The ledger entries themselves can have their PII-containing fields redacted while preserving the chain integrity. The ledger proves the platform behaved. It does not need to contain the traveler's passport number to do so.
+
+8.9.1 — Scope
+This protocol applies to any natural person whose personal data is processed by the platform, including: travelers who created accounts, travelers who were added as group participants, emergency contacts added by account holders, and any person whose data appears in evidence or claim documentation uploaded by an account holder.
+
+This protocol does not apply to: corporate entity data (legal names, registered addresses — these are not personal data under GDPR), anonymized or aggregated data, or data that has already been anonymized as part of routine retention expiry.
+
+8.9.2 — Request Intake and Verification
+How requests are received
+•In-platform: Privacy & Data Controls surface (Section 7.3 System & Utility Domain) has an explicit 'Request data erasure' action
+•Email: a designated privacy contact email address (privacy@wayfarer.com or equivalent) receives written requests
+•Support: support staff receiving erasure requests must route them to the Founder within 24 hours — support staff do not action erasure requests directly
+
+Identity verification
+•For authenticated requests (in-platform): session authentication is sufficient. The request is tied to the authenticated account.
+•For unauthenticated requests (email): the requestor must provide: (a) email address associated with the account, (b) one piece of verifiable account information (e.g., a trip name, a date of signup). Step-up OTP sent to the registered email to confirm identity before proceeding.
+•For requests on behalf of a minor or incapacitated person: guardian or legal representative must provide documentation of authority. Founder reviews before proceeding.
+
+Response timeline
+•Acknowledgment: within 72 hours of request receipt
+•Completion: within 30 days of verified request (GDPR Article 12 requirement)
+•Extension: if complexity or volume requires extension, the data subject is notified within the initial 30-day window with an explanation. Maximum extension: 2 additional months (total 3 months from request).
+
+8.9.3 — Per-Object PII Field Register
+The following table defines, for every object in Section 3.2, which fields are erased on a valid erasure request versus which fields are retained and on what legal basis. This replaces the per-object compliance sensitivity sections in Section 3.2 for the purposes of erasure. Section 3.2's PII classifications remain for data minimization purposes.
+
+Object	Fields ERASED	Fields RETAINED	Retention Basis
+Trip	trip_name, destination_summary	trip_id, account_id (nulled ref), created_at, maturity_state, itinerary_hash, itinerary_version, paid_unlock, paid_unlock_at	Financial record (7 years). Audit trail. Trip_id required for ledger chain integrity.
+Policy / PolicyVersion	policy_label, provider_name, raw_artifact_path (file deleted from storage), coverage_limits_json, deductible_json, exclusions_json	policy_id, version_id, content_hash, confidence_tier, ingested_at, normalization_pipeline_version	Audit trail of policy processing. Hash proves document existed without reproducing PII content.
+Incident	title, description	id, trip_id, canonical_status, disruption_type, created_at, causality_status	Claim record basis (7 years from resolution). Status history in ledger retained.
+Evidence	description, file_path (file deleted from storage), name	id, incident_id, evidence_category, upload_status, hash_sha256, created_at	Hash proves evidence existed. Audit trail.
+Claim	denial_reason_text, primary_provider (if personally identifying)	claim_id, incident_id, claim_status, claim_type, estimated_amount, outcome, outcome_amount, filing_deadline, created_at	Financial record basis (7 years). Outcome amounts are financial records.
+Contact	display_name, phone_number, email, relationship, notes	contact_id, contact_type, created_at	Minimal identifiers required for audit trail. Type retained (emergency/counterparty).
+ParticipantChecklistItem	item_detail, resolution_notes	item_id, trip_id, item_category, item_key, status, itinerary_version, created_at	Audit trail of readiness state changes.
+ScanJob	feature_flag_snapshot (if contains PII)	scan_id, trip_id, scan_type, scan_status, itinerary_hash, credit_consumed, created_at	Credit consumption is a financial record.
+ScanCreditLedger	(no PII fields)	All fields retained	Financial ledger — no PII. Credits_delta records are financial.
+InterpretiveTraceRecord	input_context (if contains PII), raw_output (if contains PII)	trace_id, decision_fingerprint, confidence_label, feature_id, created_at	Decision fingerprint is required for audit trail integrity. Proves platform's interpretive behavior.
+EventLedger (previous_state / resulting_state fields)	PII content within previous_state and resulting_state JSONB fields — replaced with '[ERASED]' string in erasure_redaction_log	event_id, event_type, created_at, scope_type, scope_id, actor_id (anonymized), checksum	Ledger chain integrity preserved. Checksums recomputed post-redaction. Event_id chain unbroken.
+
+8.9.4 — Event Ledger Redaction Protocol
+The event ledger is append-only. No rows are ever deleted. Erasure of PII within ledger rows is performed through a separate erasure_redaction_log table rather than in-place mutation. This preserves ledger chain integrity while satisfying Article 17 for the PII content.
+
+Mechanism
+•Step 1: Identify all event_ledger rows where previous_state or resulting_state JSONB contains PII fields for the erasure subject
+•Step 2: For each identified row: write a row to erasure_redaction_log with: event_id, erasure_record_id, field_path, original_hash (SHA-256 of the original field value — proves the field existed without reproducing it), redacted_at, redacted_by
+•Step 3: Update previous_state and resulting_state in the identified event_ledger rows — replace PII field values with the string '[ERASED — erasure_record_id: {id}]'
+•Step 4: Recompute checksum for each updated row. The new checksum reflects the post-redaction state. The erasure_redaction_log records both the original checksum and the post-redaction checksum for audit purposes.
+•Step 5: The event_id chain, event_type, timestamps, and scope_ids are never modified. The chain remains intact and replayable.
+
+IMPORTANT — ACTOR_ID ANONYMIZATION
+event_ledger.actor_id references auth.users. When an account is deleted, the actor_id in ledger rows is replaced with a stable anonymous identifier (a UUID derived from a one-way hash of the original account_id + a platform secret). This means 'this action was taken by someone' is preserved, but 'that someone was Christian Doe' is not. The anonymized ID is consistent across all ledger rows for the same original actor, so replay and causality analysis remain intact.
+
+erasure_redaction_log table (required migration)
+CREATE TABLE erasure_redaction_log with fields: redaction_id (uuid PK), erasure_record_id (uuid — groups all redactions from one erasure request), event_id (uuid FK → event_ledger), field_path (text — JSONPath to the redacted field), original_field_hash (text — SHA-256 of original value), pre_redaction_checksum (text), post_redaction_checksum (text), redacted_at (timestamptz), redacted_by (uuid — the system process that executed erasure, logged as system actor). RLS: SELECT for authenticated. No INSERT/UPDATE/DELETE policies — written only by erasure RPC.
+
+8.9.5 — Lawful Retention Exceptions
+GDPR Article 17(3) permits retention despite an erasure request where data is necessary for: (a) exercising freedom of expression, (b) compliance with a legal obligation, (c) public health purposes, (d) archiving, research, or statistical purposes in the public interest, or (e) establishment, exercise, or defence of legal claims.
+
+The platform relies on the following Article 17(3) exceptions:
+
+Exception	What Is Retained	Duration	How Subject Is Notified
+Legal obligation (Article 17(3)(b)) — financial records	Claim financial outcomes (amounts, dates), payment records, credit ledger	7 years from transaction — standard financial record retention	Erasure confirmation states: 'Financial transaction records are retained for 7 years per legal requirement. These contain no personally identifying information beyond what is required for the financial record.'
+Legal obligation — audit trail	Event ledger entries (redacted per 8.9.4), interpretive trace decision fingerprints	7 years from event	Erasure confirmation states: 'Audit trail records are retained to demonstrate platform behavior. Personal data within these records has been erased. The records prove we acted correctly — they do not reproduce your personal information.'
+Defence of legal claims (Article 17(3)(e)) — active dispute hold	Any evidence file or document subject to an active dispute with an airline, insurer, or card issuer	Until dispute resolution + 90 days	'One or more documents are subject to an active dispute hold and cannot be erased until the dispute closes. You will be notified when these are erased. Estimated resolution: [date if known].'
+Legal hold	Any data subject to a lawful legal hold order	Duration of hold	'Certain data is subject to a legal hold. We cannot provide details of the hold. Erasure of affected data is suspended for its duration.'
+
+8.9.6 — Erasure Execution Sequence
+The following steps execute atomically where possible, or in a logged sequence where atomicity across all systems is not achievable. Every step emits an event to the ledger.
+
+Step	Action	Event Emitted	Rollback If Failed
+1	Verify identity and validate request. Check for active dispute holds and legal holds.	pii_erasure_requested	N/A — validation only
+2	Generate erasure_record_id. Create erasure request record with timestamp and verified identity method.	pii_erasure_initiated	Cancel erasure
+3	Erase T1/T2 fields: passport images, policy document files, evidence files — delete from object storage. Log deletion confirmation.	pii_erasure_storage_purged	Re-attempt storage deletion. Alert Founder if storage deletion fails.
+4	Null/erase PII fields in domain tables (Trip, Policy, Incident, Evidence, Claim, Contact) per Section 8.9.3 field register.	pii_erasure_domain_tables_processed	Re-attempt. Alert Founder if domain table erasure fails.
+5	Execute event ledger redaction per Section 8.9.4. Recompute checksums. Write erasure_redaction_log.	pii_erasure_ledger_redacted	Re-attempt. Ledger redaction failure is a critical alert.
+6	Anonymize actor_id in event ledger per 8.9.4 note.	pii_erasure_actor_anonymized	Re-attempt.
+7	Mark all ITR records for this account with pii_redacted = true.	pii_erasure_itr_flagged	Re-attempt.
+8	Apply dispute hold and legal hold exceptions — document what was NOT erased and why.	pii_erasure_exceptions_recorded	N/A — documentation step
+9	Generate erasure confirmation document: what was erased, what was retained, legal basis for retention, date of completion, erasure_record_id for reference.	pii_erasure_completed	N/A — confirmation step
+10	Deliver confirmation to data subject: in-platform notification if account still active; email if account being deleted; PDF available for download for 30 days.	pii_erasure_confirmation_delivered	Re-attempt delivery. Log failure.
+
+8.9.7 — Behavioral Invariants
+ID	Rule
+E-I-01	Erasure requests are processed within 30 days of verified receipt. No exception without notification to the data subject and documented reason for extension.
+E-I-02	The event ledger is never directly deleted. PII is redacted from ledger field values via the erasure_redaction_log mechanism. Chain integrity is preserved.
+E-I-03	Every erasure request is assigned a unique erasure_record_id. This ID appears in the confirmation to the data subject and in every event emitted during erasure. It is the audit trail for the erasure itself.
+E-I-04	Files deleted from object storage (passport images, policy documents, evidence files) have their deletion confirmed and logged. A deletion confirmation token is stored in the erasure record. If deletion cannot be confirmed, the Founder is alerted immediately.
+E-I-05	Retained data is explicitly disclosed to the data subject in the erasure confirmation. The data subject is never left wondering what was kept.
+E-I-06	Dispute holds and legal holds are documented at the time of erasure. When a hold lifts, the platform automatically proceeds with the deferred erasure and notifies the data subject.
+E-I-07	The platform does not require the data subject to justify their erasure request. Verification of identity is required. Justification is not.
+E-I-08	Erasure of one account does not erase data about the account holder that appears in another user's records (e.g., a person listed as an emergency contact in someone else's account). Each account's data is erased independently.
+E-I-09	This protocol is reviewed annually and updated if the platform's data model changes materially. The per-object field register in Section 8.9.3 must be updated whenever new PII fields are added to any Section 3.2 object.
+
+Section 8.9 — Data Erasure & Right-to-Erasure Protocol  ·  Version 1.0  ·  March 2026
+EU/EEA Commercial Launch Unblocked  ·  Replaces Section 3.2.0.1 Placeholder  ·  Migration Required: erasure_redaction_log table
