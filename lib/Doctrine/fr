@@ -1,0 +1,98 @@
+SECTION 7.8 — DETERMINISTIC DECISION COMMUNICATION LAYER
+
+7.8 — Deterministic Decision Communication Layer
+7.8.0 Purpose & Scope
+This section defines the structural communication architecture used when the platform presents interpretive outputs to travelers.
+It governs:
+●How decisions are structured
+●How clause alignment is communicated
+●How conflicts are presented
+●How exclusions are framed
+●How next steps are delivered
+●How authority boundaries are stated
+This section does not govern:
+●Emotional tone (see Section 7.2 — Calm Mode Language System)
+●Confidence scoring definitions (see Section 9.2 — Confidence Labels & Uncertainty Language)
+●Visual layout or component design (see Section 7.7)
+●Logging or enforcement logic (see Section 8.4)
+●Decision logic itself (see Sections 3.4 and 6.5.x)
+This section ensures that all decision outputs are deterministic, clause-bound, and structurally consistent.
+
+7.8.1 Core Structural Formula (Mandatory)
+All interpretive outputs must follow this order:
+1.Recorded Fact
+2.Clause Comparison
+3.Structural Alignment or Conflict
+4.Concrete Next Step
+5.Boundary Statement
+This structure must be preserved across:
+●Coverage Graph outputs (6.5.2)
+●Claim Routing (6.5.5)
+●Credit Card Benefit Orchestration (6.5.4 / 6.5.7)
+●Case study generation
+●Crisis-related evaluations
+
+7.8.2 Structural Authority Vocabulary
+Approved Alignment Language
+●“This aligns with the stated criteria under Section X.”
+●“No exclusion is indicated under the reviewed sections.”
+●“An exclusion applies under Section X.”
+●“This does not meet the stated threshold at this time.”
+●“This assessment reflects the current documentation.”
+Prohibited Language
+●“You qualify.”
+●“You’re covered.”
+●“Guaranteed.”
+●“Best option.”
+●“Very likely to win.”
+Structural alignment is communicated without predictive payout language.
+
+7.8.3 Boundary Statement Standard
+All interpretive outputs must include a single boundary statement:
+“Final review is performed by the benefit administrator.”
+This statement must:
+●Appear once per interpretive output
+●Not undermine structural clarity
+●Not appear as a hedge before alignment is explained
+
+7.8.4 Causality Communication
+When cause is not established:
+“The available documentation does not establish a confirmed cause at this time.”
+When conflict exists:
+“Carrier documentation and the recorded timeline are in conflict.”
+Causality language must remain structural and non-speculative.
+See Section 3.4 — Causality Model.
+
+7.8.5 Ambiguity Communication
+Ambiguity must be surfaced with context:
+“The term ‘X’ is not defined in the policy. Prior interpretations have varied.”
+Ambiguity must not be expressed as:
+●“Unclear.”
+●“We’re not sure.”
+Ambiguity detection occurs during policy parsing.
+
+7.8.6 Elevated & ManualOnly Communication
+Elevated Mode:
+●“High disruption volume in your region.”
+●“Processing may take longer than usual.”
+●“Your documentation is securely recorded.”
+ManualOnly:
+●“Automatic submission is temporarily unavailable.”
+●“Manual submission remains available.”
+●“Nothing you did caused this.”
+See:
+●Section 6.7.1
+ Feature ID F-6.7.1
+●Section 12.6
+ Section 12.6 — QA Approach (edg…
+
+7.8.7 Enforcement
+All outputs structured under this section must comply with:
+●Section 7.2 — Calm Mode Language System
+●Section 9.2 — Confidence Labels & Uncertainty Language
+●Section 8.4 — Logging & Governance
+ 8.4 — Permissioning & Audit Logs
+●Section 12.6 — Regression Requirements
+ Section 12.6 — QA Approach (edg…
+●Section 15 — Stress Testing
+ SECTION 15 — STRESS TESTING & S…
