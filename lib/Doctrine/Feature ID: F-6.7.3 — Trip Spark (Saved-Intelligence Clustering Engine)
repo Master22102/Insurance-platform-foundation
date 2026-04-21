@@ -1,0 +1,135 @@
+WAYFARER PLATFORM
+PRODUCT BIBLE
+Feature ID: F-6.7.3 — Trip Spark (Saved-Intelligence Clustering Engine)
+Version 2.0  ·  April 2026  ·  Binding Doctrine
+1. Why This Feature Exists
+People save travel ideas over weeks and months — a restaurant here, a festival there, a scenic route somewhere else. Those saves accumulate without anyone noticing that they’ve quietly built enough for a real trip. Trip Spark is the system that notices.
+When a traveler’s Field Notes cluster around a geographic region, Trip Spark detects the concentration, estimates whether it’s enough for a trip, identifies what’s missing, and offers to convert the cluster into a draft trip — using the existing Trip Draft Engine, the existing readiness checklist, and optionally the traveler’s budget preferences.
+This is the feature that turns “I’ve been saving things about Italy for months” into “Want to build a 7-day Italy trip from what you’ve saved?”
+
+Hard dependency: F-6.7.2 (Field Notes). Trip Spark clusters Field Notes data. If Field Notes is not active, Trip Spark is inoperable and must remain REGISTERED in the feature registry. Do not activate Trip Spark without Field Notes.
+Soft dependencies: F-6.7.4 (Budget Intelligence — enables budget-aware trip estimates), Trip Draft Engine (ensure_trip_draft_version RPC — creates the actual draft), F-6.5.9 participant_checklist_items (auto-generates checklist on draft creation), F-6.5.13 Deep Scan Axis 5 (pre-scan query on clustered region for additional discoveries).
+2. The Traveler’s Story
+Story 1: The gradual saver
+Over three months, Sarah saves: a Tuscany cooking class (from a YouTube import), a Siena restaurant (from Creator Discovery), a Florence hidden-gem market (from Deep Scan Axis 5), and a Chianti wine tour (manual note from a friend’s recommendation). She also saves two Rome items — a neighborhood walking tour and a late-night pizza spot.
+One day she opens her Field Notes library. A banner at the top says: “You’ve saved 6 items across Tuscany and Rome. That’s enough for a 5–7 day Italy trip. Want to build it?”
+She taps “Explore.” The Trip Spark screen shows: her 6 saved items on a map, a suggested duration (5–7 days), what she’s heavy on (food and culture), what’s missing (transit, lodging, and at least one scenic/nature day), and — if Budget Intelligence is active — an estimate: “Based on your preferences, this trip is likely $1,800–$2,400.”
+She taps “Build this trip.” The system creates a trip draft via ensure_trip_draft_version with destination_summary = “Tuscany + Rome, Italy,” links all 6 Field Notes to the trip, fires generate_trip_checklist for Italy destination requirements (visa, passport validity), and navigates her to the Draft Home where her saved items appear as activity candidates.
+Story 2: The seasonal match
+Marcus has saved 4 items in Chile: Atacama stargazing (seasonal: July–September), a Santiago food market (year-round), a Valparaiso street art tour (year-round), and a Patagonia glacier hike (seasonal: November–March). Trip Spark detects the cluster but notices the seasonal conflict: “2 of your saved items are best in winter (Jul–Sep) and 1 is best in summer (Nov–Mar). Want to see options for each window?”
+It offers two versions: a winter Chile trip (Santiago + Atacama, 5 days) and a summer Chile trip (Santiago + Valparaiso + Patagonia, 7–10 days).
+Story 3: The budget-aware prompt
+Sarah has Budget Intelligence active with lodging_per_night_cap = $150. Trip Spark knows Florence averages $180/night in spring. The prompt says: “Florence may exceed your lodging target in spring. Bologna is nearby and fits your budget. Want to include it as a base for day trips?”
+3. How Clustering Works
+3.1 When Clustering Runs
+Clustering runs as a background computation triggered by: Field Note creation, Field Note update (country/region change), Field Note deletion, and periodically on library page load (debounced, not on every render). It does NOT require user action to trigger.
+3.2 Clustering Algorithm
+Group active (non-archived, non-converted) Field Notes by country_code. Within each country, sub-group by region proximity (if coordinates are available, use haversine distance with 100km radius; if no coordinates, group by exact region string match).
+Each cluster is scored:
+• Note count: minimum 4 to be trip-worthy
+• Category diversity: minimum 2 distinct categories (prevents “4 restaurants” from being a trip)
+• Geographic coherence: notes within reasonable travel distance (100km radius or same region)
+• Seasonality overlap: if notes have seasonal data, do the seasons overlap in a viable window? Score higher if they do.
+3.3 Trip-Worthiness Threshold
+A cluster is trip-worthy when: note_count >= 4 AND category_count >= 2 AND geographic_coherence = true. Clusters that are trip-worthy but have seasonal conflicts get a modified prompt (see Story 2).
+3.4 Duration Estimation
+Based on note count and type: 4–6 notes → 3–4 days, 7–12 notes → 5–7 days, 13–20 notes → 8–10 days, 20+ notes → 10+ days. These are suggestions displayed to the traveler, not hard constraints. The traveler picks their preferred duration before building.
+3.5 Missing-Category Detection
+Compare the cluster’s categories against a complete trip template: food, culture/activity, transit, lodging, scenic/nature. Identify which are present and which are missing. Surface as: “Your saved items are mostly food and culture. Want us to suggest transit, lodging, and one scenic day?”
+4. Screens and Interactions
+4.1 Trip Spark Prompt (appears in multiple places)
+This is NOT a dedicated page. It’s a banner/card that appears on:
+• Field Notes library page (top of list, above note cards)
+• Trips list page (if no active trip exists for the clustered region)
+• Account dashboard (as a suggestion card)
+
+PROMPT CARD:
+• Icon: ✨ or compass icon
+• Headline: “You’ve saved {count} items in {region}.”
+• Subline: “That’s enough for a {duration_estimate} trip.”
+• If Budget Intelligence active: “Estimated range: ${low}–${high} based on your preferences.”
+• Primary button: “Explore →” → navigates to Trip Spark detail view
+• Secondary: “Not now” → suppresses this prompt for 30 days (stored in localStorage or user_profiles.preferences.trip_spark_dismissed)
+• Tertiary: “Dismiss” → permanently hides this specific cluster prompt (stored in metadata, resurfaces only if 2+ new notes are added to the cluster)
+4.2 Trip Spark Detail View (/account/field-notes/spark/[cluster_id])
+Surface ID: S-TRIPSPARK-001. Entry: “Explore” from any prompt card.
+
+Header
+• Back arrow → previous page (library or trips list)
+• Title: “Trip Spark: {region}”
+• Subtitle: “{count} saved items · {category_count} categories”
+Map Section
+• Map showing all clustered Field Notes as pins (if coordinates available)
+• Pins colored by category (food = orange, culture = purple, nature = green, etc.)
+• Tap pin → shows note title in a tooltip
+Your Saved Items
+• List of all Field Notes in this cluster, each as a compact card (icon + title + category chip)
+• Each card has a checkbox — all checked by default. Uncheck to exclude from the trip draft.
+• Seasonal badges on items that have seasonality data
+Trip Estimate
+• Duration options: radio buttons for “3–4 days” / “5–7 days” / “8–10 days” / “Custom”
+• Selected duration highlights which saved items fit and which might not (e.g., too many for 3 days)
+• If Budget Intelligence active: estimated cost range for each duration option
+What’s Missing
+• Section showing gap analysis: “Your saves cover: 🍽 Food, 🎭 Culture. You might want to add: 🚌 Transit, 🏨 Lodging, 🌿 Scenic.”
+• “Fill gaps for me” button → generates AI-suggested filler items (transit routes, lodging areas, scenic stops) as proposed activity_candidates. These are suggestions, not auto-added.
+Seasonal Alert (if applicable)
+• If seasonal conflict detected: amber alert card: “2 items are best in Jul–Sep, 1 is best in Nov–Mar. Consider splitting into two trips or picking one season.”
+• Toggle: “Show summer version” / “Show winter version” — filters the item list to seasonally compatible items
+Budget Estimate (if F-6.7.4 active)
+• Card showing: “Based on your budget preferences:”
+• Lodging: “{duration} nights × ${cap}/night = ${total}”
+• Food: “{duration} days × ${daily}/day = ${total}”
+• Activities: “{count} planned × estimated ${avg} = ${total}”
+• Estimated total: “${low}–${high}”
+• If any category exceeds budget: amber note: “Lodging in {region} may exceed your ${cap}/night target. Consider nearby alternatives.”
+Action Buttons (bottom, sticky on mobile)
+• PRIMARY: “Build this trip” → creates trip draft (see Section 5). Full-width navy button.
+• SECONDARY: “Save for later” → returns to library, cluster remains, prompt suppressed for 30 days.
+• If per-trip unlock paywall active: Primary button reads “Build this trip — ${unlock_price}” and triggers the unlock flow before draft creation.
+5. What Happens When “Build This Trip” Is Tapped
+This is the critical downstream flow. In order:
+
+1. Create trip draft: call ensure_trip_draft_version with destination_summary = “{region}, {country}” (e.g., “Tuscany + Rome, Italy”) and departure_date / return_date set to the selected duration window (or null if dates not specified).
+2. Link Field Notes: PATCH each selected Field Note with attached_trip_id = new trip_id.
+3. Create activity candidates: for each selected Field Note, create an activity_candidate row with source = ‘field_note’, activity_name = note title, city = note region, country_code = note country_code, metadata.field_note_id = note_id.
+4. Generate checklist: fire generate_trip_checklist (or the equivalent readiness generation logic) for the trip’s destinations. This produces participant_checklist_items for visa, passport validity, health requirements.
+5. Deep Scan Axis 5 pre-query (if F-6.5.13 is active): run a lightweight Axis 5 query against the clustered region to surface 2–3 additional experiential discoveries. Show them as “Bonus finds” in a toast or card after draft creation.
+6. Navigate: redirect to /trips/[new_trip_id]/draft where the traveler sees their Field Notes as activity candidates in the Draft Home.
+6. FOCL Registration
+Feature ID: F-6.7.3. Phase: 2. Default enabled: false.
+Hard dependency: F-6.7.2 (Field Notes). If F-6.7.2 is not active, F-6.7.3 must remain REGISTERED. The FOCL Feature Intelligence page should show: “Requires Field Notes (F-6.7.2) to be active first.”
+Soft dependency: F-6.7.4 (Budget Intelligence). If not active, budget estimates are not shown. Everything else works.
+When F-6.7.3 is inactive: cluster banners do not appear anywhere. The /account/field-notes/spark/ route shows “Trip Spark is coming soon.”
+7. Governance Events
+cluster_detected — { cluster_id, country_code, region, note_count, category_count }
+cluster_trip_worthy — { cluster_id, score, duration_estimate }
+trip_spark_prompt_shown — { cluster_id, surface (library/trips/dashboard), account_id }
+trip_spark_accepted — { cluster_id, selected_duration, notes_included_count, account_id }
+trip_spark_dismissed — { cluster_id, dismiss_type (not_now/permanent), account_id }
+trip_spark_draft_created — { cluster_id, trip_id, notes_linked, activities_created, account_id }
+8. API Routes
+Route	Method	Purpose
+/api/field-notes/clusters	GET	Returns all trip-worthy clusters for the authenticated user. Each cluster includes: cluster_id, country_code, region, note_ids, note_count, category_count, duration_estimate, score.
+/api/field-notes/clusters/[cluster_id]	GET	Returns full cluster detail: notes with metadata, map coordinates, category breakdown, seasonal analysis, missing categories, budget estimate (if F-6.7.4 active).
+/api/field-notes/clusters/[cluster_id]/build	POST	Builds trip from cluster. Body: { selected_note_ids, duration_preference, include_fillers }. Creates trip draft, links notes, creates activity candidates, generates checklist. Returns { trip_id, activities_created, checklist_items_generated }.
+/api/field-notes/clusters/[cluster_id]/dismiss	POST	Dismiss cluster prompt. Body: { type: 'not_now' | 'permanent' }. Stores dismissal. Returns { success }.
+9. Stress Behavior (§15.0)
+Under PROTECTIVE: clustering computation pauses. Existing cluster prompts remain visible but “Build” is disabled. No new trip drafts created automatically.
+Stress scenario: 200+ Field Notes across 10 regions. Verify: clustering completes within 3 seconds, correct clusters detected, prompt appears for the strongest cluster only (not all 10 at once).
+10. Test Obligations
+E2E (tests/e2e/trip-spark.spec.ts):
+• Save 5 Field Notes in one region → cluster detected → prompt appears on library page
+• Tap Explore → detail view loads with correct items, map, estimates
+• Tap Build → trip draft created → navigate to Draft Home → activity candidates present
+• Dismiss (not now) → prompt hidden → re-appears after 30 days (mock time)
+• Dismiss (permanent) → prompt hidden → does NOT re-appear unless 2+ new notes added
+Contract: cluster detection with 3 notes (below threshold) → no prompt. 4 notes same category → no prompt (category diversity required).
+11. §9a Dependency Declaration
+• Trip workspace: YES — builds trip drafts via ensure_trip_draft_version. Risk: if draft creation fails, show error and keep cluster intact.
+• Readiness: YES — fires checklist generation on draft creation. Risk: if checklist generation fails, trip still creates but readiness items are empty.
+• Right Now / context: NO
+• FOCL / activation: YES — feature_registry entry with hard dependency on F-6.7.2.
+
+
+Wayfarer Platform · Product Bible · F-6.7.3 Trip Spark · v2.0 · April 2026
