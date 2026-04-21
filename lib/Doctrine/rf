@@ -1,0 +1,1084 @@
+INSURANCE COMPARISON PLATFORM
+SECTION 3.2
+Core Data Objects
+Surge-Ready Production Doctrine  |  Version 1.0  |  March 2026
+
+3.2.0 — Constitutional Purpose
+This section defines the canonical data objects that form the structural fabric of the platform. Every feature, every flow, every interpretive output, and every ledger event refers to one or more of these objects. This section is binding.
+All objects defined here are governed by:
+•Section 3.0 — Governance Substrate (mutation guard, event ledger, operational modes)
+•Section 3.4 — Causality Model (CCO binding)
+•Section 3.5 — Trip Maturity States (lifecycle state machine)
+•Section 8.4 — Permissioning & Audit Logs (role enforcement)
+•Section 8.7 — Export & Data Egress Governance
+•Section 9.4 — Interpretive Traceability
+•Section 10.2 — Pricing & Entitlement Governance
+•Section 15.0 — Stress Testing & Scenario Hardening
+
+Invariants binding ALL objects in this section:
+•No object may be mutated without calling precheck_mutation_guard()
+•No object may be mutated without emitting a registered event via emit_event()
+•All ledger writes are append-only. No UPDATE. No DELETE on event_ledger.
+•Every object supports deterministic replay from the event ledger alone
+•Soft-delete is permitted on domain objects; the deletion event is immutable
+•GDPR erasure requests create a redaction event; they do not delete ledger rows
+
+⚖ GDPR FLAG  GDPR Right-to-Erasure vs. Immutable Ledger: Section 8.x does not yet contain a formal erasure protocol. Placeholder classification is applied in Section 3.2.0.1 below. A dedicated erasure doctrine section must be written before commercial launch in any EU/EEA jurisdiction.
+
+3.2.0.1 — GDPR Erasure Placeholder Doctrine (Pending Section 8.9)
+Until Section 8.9 (Data Erasure & Right-to-Erasure Protocol) is written, the following placeholder rules apply to all objects in 3.2:
+•PII fields are identified per object (see Compliance Sensitivity Classification in each object definition)
+•Upon valid erasure request: a pii_erasure_requested event is emitted; affected fields are nullified in domain tables; the erasure_record_id is stored in metadata
+•Event ledger rows are NEVER deleted. previous_state and resulting_state fields containing PII are redacted to "[ERASED]" strings in a separate erasure_redaction_log
+•ITR records containing PII references are flagged pii_redacted = true; decision_fingerprint is preserved
+•Erasure does not break ledger chain integrity. Checksums are computed post-redaction
+⚡ GAP DETECTED  Section 8.9 (Data Erasure Protocol) must be created. Assigned owner: Founder. Blocking condition for EU commercial launch.
+
+
+3.2.1 — Object Index
+⚠ CONFLICT  NAMING CONFLICT RESOLVED: The current database contains a table named `projects`. In all Product Bible documentation, the canonical top-level entity is called "Trip". These are the same object. This section formally adopts "Trip" as the canonical name. The `projects` table must be renamed to `trips` in a migration. See Section 3.2.2 and Migration Checklist.
+
+#	Object	Phase	DB Status	PII Level	Description
+1	Trip	MVP	⚠ Rename req.	Medium	Top-level unit of traveler context. Maps to current `projects` table.
+2	Policy	MVP	🔴 Missing	High	Travel insurance policy artifact. Versioned, immutable after ingestion.
+3	Incident	MVP	✅ Exists	High	Disruption event tied to a Trip. Primary object for claim work.
+4	Evidence	MVP	✅ Partial	High	Documentation artifact attached to an Incident.
+5	Claim	MVP	🔴 Missing	High	Structured claim preparation and submission intent record.
+6	Contact	MVP	🔴 Missing	High	Emergency contact or counterparty associated with a Trip or Account.
+7	CoverageNode	MVP	🔴 Stub only	Medium	Node in the Coverage Graph. Represents one coverage source.
+8	JurisdictionReference	MVP	🔴 Missing	Low	Regulatory jurisdiction metadata. Used for eligibility filtering.
+9	ScanJob	MVP	🔴 Missing	Low	QuickScan or DeepScan execution unit. Tied to Trip + entitlement.
+10	ScanCreditLedger	MVP	🔴 Missing	Low	Credit balance and deduction ledger per paid Trip.
+11	ParticipantRiskProfile	Ph2	🔴 Missing	High	Risk profile for a single group participant.
+12	GroupRiskProfile	Ph2	🔴 Missing	Medium	Aggregated risk profile for a Group.
+13	InterpretiveTraceRecord	MVP	✅ Exists	Medium	Immutable AI decision audit record (Section 9.4). Defined here for cross-ref.
+14	CausalityObject (CCO)	MVP	⚠ In 3.4	Medium	Causality Classification Object. Defined in Section 3.4. Cross-referenced here.
+
+
+3.2.2 — Object 1: Trip
+⚠ CONFLICT  DB table is currently named `projects`. Migration required to rename to `trips`. All foreign key references in incidents, evidence, connectors, event_ledger (scope_type="project") must be updated simultaneously. See Migration Checklist.
+
+Canonical Name	Trip
+DB Table	trips (migration required from `projects`)
+Purpose	The top-level unit of traveler context. Every scan, incident, coverage graph, evidence set, and claim is anchored to a Trip. A Trip represents one travel itinerary — not a booking, not a session. A trip may span multiple legs, policies, and participants.
+Lifecycle Section	Section 3.5 — Trip Maturity States & Binding Alignment Protocol
+Primary Owner	Traveler (creator); Organizer (group trips)
+Scope	Account-scoped. One account may own many Trips. One Trip may have many Participants (Phase 2).
+
+Fields
+Field	Type	Immutable	Required	Description
+trip_id	UUID	YES	YES	Primary key. Immutable after creation.
+account_id	UUID → accounts	YES	YES	Owner account. Immutable after creation.
+trip_name	text	NO	YES	Display name. Mutable with guard + event.
+maturity_state	trip_maturity_state ENUM	NO	YES	Current lifecycle state per Section 3.5. DRAFT → … → ARCHIVED.
+destination_summary	text	NO	NO	Human-readable destination summary. Free text.
+departure_date	date	NO	NO	Declared departure date.
+return_date	date	NO	NO	Declared return date.
+jurisdiction_ids	UUID[]	NO	NO	FK → jurisdiction_references. Resolved at itinerary confirmation.
+itinerary_hash	text	NO	NO	SHA-256 of canonical itinerary JSON. Updated on material itinerary change. Drives scan cache lookup.
+itinerary_version	integer	NO	YES	Monotonically incrementing. Default 1. Incremented on every material itinerary change.
+group_id	UUID → groups	NO	NO	FK to Group. Null for solo trips. Phase 2.
+travel_mode_primary	text ENUM	NO	NO	air | rail | sea | road | mixed. Drives connector eligibility.
+is_group_trip	boolean	NO	YES	Default false. Drives organizer permission model.
+paid_unlock	boolean	NO	YES	Default false. True after per-trip payment confirmed.
+paid_unlock_at	timestamptz	YES	NO	Set once at time of payment. Immutable thereafter.
+lifecycle_flags	jsonb	NO	NO	Extensible flag bag: { material_change_pending, claim_routing_locked, deep_scan_gated, … }
+metadata	jsonb	NO	NO	Extensible. Not for structured logic.
+created_at	timestamptz	YES	YES	Ledger anchor. Immutable.
+created_by	UUID	YES	YES	Actor ID at creation. Immutable.
+updated_at	timestamptz	NO	YES	Updated via trigger on domain table change.
+archived_at	timestamptz	NO	NO	Soft-delete timestamp. Null = active.
+archived_by	UUID	NO	NO	Actor who archived.
+
+Mutation Rules
+•All mutations must call precheck_mutation_guard(region_id, feature_id="trips", mutation_class)
+•trip_name, destination_summary, departure_date, return_date: mutable in DRAFT and PRE_TRIP_STRUCTURED states only via trip_field_updated event
+•jurisdiction_ids: mutable until CLAIM_ROUTING_LOCKED via trip_jurisdiction_updated event
+•itinerary_hash update triggers itinerary_version increment and trip_itinerary_changed event
+•paid_unlock: set once via trip_unlock_confirmed event. Cannot be reversed.
+•maturity_state: governed exclusively by Section 3.5 state machine. No direct field update.
+•archived_at: set via trip_archived event. Once set, no further mutations permitted except via Founder override.
+
+State Machine
+Full state definitions in Section 3.5. Summary:
+State	From	To	Guard Condition	Emitted Event
+DRAFT	—	PRE_TRIP_STRUCTURED	Itinerary confirmed, no incident	trip_itinerary_confirmed
+PRE_TRIP_STRUCTURED	DRAFT	INCIDENT_OPEN	Incident created (CCO instantiated)	trip_state_advanced
+INCIDENT_OPEN	PRE_TRIP_STRUCTURED	DOCUMENTATION_IN_PROGRESS	Evidence attached	trip_state_advanced
+DOCUMENTATION_IN_PROGRESS	INCIDENT_OPEN	CLAIM_ROUTING_LOCKED	User enters routing stage	trip_state_advanced
+CLAIM_ROUTING_LOCKED	DOCUMENTATION…	CLAIM_SUBMITTED	Claim packet generated	trip_state_advanced
+CLAIM_SUBMITTED	CLAIM_ROUTING_LOCKED	POST_TRIP_RESOLVED	Resolution confirmed	trip_state_advanced
+POST_TRIP_RESOLVED	CLAIM_SUBMITTED	ARCHIVED	User or system archives	trip_archived
+
+Event Emissions
+Event Type	Severity	Trigger	Required Payload Fields
+trip_created	info	New Trip row inserted	trip_id, account_id, created_by
+trip_field_updated	info	Mutable field changed	trip_id, field_name, previous_value, new_value
+trip_itinerary_confirmed	info	Itinerary hash locked	trip_id, itinerary_hash, itinerary_version
+trip_itinerary_changed	warning	Material itinerary change post-lock	trip_id, previous_hash, new_hash, itinerary_version, material_change_flag
+trip_unlock_confirmed	info	Per-trip payment confirmed	trip_id, account_id, payment_reference
+trip_state_advanced	info	maturity_state transition	trip_id, previous_state, new_state, trigger_event_id
+trip_archived	warning	Soft-delete	trip_id, archived_by, reason_code
+trip_mutation_blocked	warning	precheck_mutation_guard rejected	trip_id, mutation_class, block_reason_code, region_mode
+
+Role Visibility
+Role	Read	Create	Mutate	Export	Notes
+Traveler (Owner)	✅	✅	✅	✅	Full access to own trips
+Group Participant	✅	🔴	🔴	🟡	Read own participation context; export limited to own data
+Organizer	✅	✅	🟡	🟡	Can create group trips; cannot edit participant-private fields
+Trusted Ally	🟡	🔴	🔴	🟡	Read subject trips only; no creation; limited export
+Support	✅	🔴	🔴	🔴	Read only; cannot create, mutate, or export
+Founder	✅	✅	✅	✅	Full access with step-up for structural mutations
+System	✅	🔴	✅	🔴	Automated state transitions only; no creation or export
+
+Surge Behavior
+•Under ELEVATED mode: Trip creation allowed. Itinerary confirmation allowed. Scan job creation rate-limited per account.
+•Under PROTECTIVE mode: Trip creation allowed (core capability, never paywalled). Itinerary confirmation allowed. Deep Scan creation blocked. paid_unlock blocked pending queue.
+•Under RECOVERY mode: Read-only. No new trip creation. Existing trips accessible. Mutations queued.
+•Trip itinerary_hash lookup is cached. Identical hash returns cached Quick Scan result (account-bound, rate-limited) without new ScanJob creation.
+
+Export Requirements
+•Export profile TRAVELER_PERSONAL: full trip data, PII included, redaction_ruleset_version binding required
+•Export profile INVESTOR: aggregated only, no individual trip_id, no PII
+•Export profile AUDITOR: full trip data including ledger references, PII masked
+•paid_unlock_at and created_by are always included in AUDITOR exports
+•Export completeness manifest must include trip_id, maturity_state, itinerary_version
+
+Data Retention & Compliance Sensitivity
+PII Level	Medium — contains destination, dates, group membership. No passport data at this object level.
+Retention	Active trips: retain indefinitely while account active. Archived trips: retain 7 years (financial record) then anonymize. [Placeholder — pending Section 8.x retention schedule]
+GDPR Erasure	trip_name, destination_summary erasable. trip_id, created_at, ledger references retained per 3.2.0.1 placeholder doctrine.
+Encryption	Encryption at rest via Supabase default (AES-256). Field-level encryption for destination data: pending Section 8.x encryption spec.
+
+Replay Requirements
+•Trip maturity_state must be reconstructable by replaying all trip_state_advanced events in ledger order
+•itinerary_version must be reconstructable by counting trip_itinerary_changed events
+•paid_unlock status must be reconstructable from trip_unlock_confirmed event presence
+•No heuristic reconstruction permitted. All state derivable from event_ledger alone.
+
+Required SQL Schema
+CREATE TYPE trip_maturity_state AS ENUM (  'DRAFT', 'PRE_TRIP_STRUCTURED', 'INCIDENT_OPEN',  'DOCUMENTATION_IN_PROGRESS', 'CLAIM_ROUTING_LOCKED',  'CLAIM_SUBMITTED', 'POST_TRIP_RESOLVED', 'ARCHIVED');ALTER TABLE projects RENAME TO trips;ALTER TABLE trips RENAME COLUMN id TO trip_id;ALTER TABLE trips RENAME COLUMN name TO trip_name;ALTER TABLE trips RENAME COLUMN status TO maturity_state;ALTER TABLE trips  ADD COLUMN IF NOT EXISTS itinerary_hash text,  ADD COLUMN IF NOT EXISTS itinerary_version integer NOT NULL DEFAULT 1,  ADD COLUMN IF NOT EXISTS jurisdiction_ids uuid[] NOT NULL DEFAULT '{}',  ADD COLUMN IF NOT EXISTS travel_mode_primary text DEFAULT 'air',  ADD COLUMN IF NOT EXISTS is_group_trip boolean NOT NULL DEFAULT false,  ADD COLUMN IF NOT EXISTS paid_unlock boolean NOT NULL DEFAULT false,  ADD COLUMN IF NOT EXISTS paid_unlock_at timestamptz,  ADD COLUMN IF NOT EXISTS lifecycle_flags jsonb NOT NULL DEFAULT '{}',  ADD COLUMN IF NOT EXISTS group_id uuid REFERENCES groups(id),  ADD COLUMN IF NOT EXISTS archived_at timestamptz,  ADD COLUMN IF NOT EXISTS archived_by uuid;ALTER TABLE trips ADD COLUMN IF NOT EXISTS created_by uuid;
+
+
+3.2.3 — Object 2: Policy
+⚡ GAP DETECTED  No `policies` or `policy_versions` table exists in any migration. Section 4.1 defines PolicyVersion doctrine but no DB schema has been created. This object requires a full schema migration.
+
+Canonical Name	Policy / PolicyVersion
+DB Table	policies (parent) + policy_versions (versioned artifact) — both missing, creation required
+Purpose	Represents a travel insurance policy document ingested by a traveler. Versioned on any structural update. Immutable per version. Governs coverage graph construction.
+Lifecycle	Draft → Ingested → Active → Superseded → Archived
+Ingestion Path	PDF upload | email forwarding | structured manual entry (Section 4.3)
+Critical Constraint	PolicyVersion is immutable after ingestion. A new version is created for any policy update. No in-place mutation.
+
+Fields — policies (parent record)
+Field	Type	Immutable	Required	Description
+policy_id	UUID	YES	YES	Stable identifier across all versions of this policy.
+account_id	UUID → accounts	YES	YES	Owning account.
+trip_id	UUID → trips	NO	NO	Attached trip. May be null if uploaded pre-trip.
+policy_label	text	NO	YES	User-assigned or extracted label.
+active_version_id	UUID → policy_versions	NO	YES	Points to current active PolicyVersion.
+provider_name	text	NO	NO	Extracted or user-declared insurer name.
+lifecycle_state	text ENUM	NO	YES	active | superseded | archived
+created_at	timestamptz	YES	YES	Immutable.
+created_by	UUID	YES	YES	Immutable.
+archived_at	timestamptz	NO	NO	Soft-delete.
+
+Fields — policy_versions (immutable artifact)
+Field	Type	Immutable	Required	Description
+version_id	UUID	YES	YES	Immutable artifact ID.
+policy_id	UUID → policies	YES	YES	Parent policy.
+version_number	integer	YES	YES	Monotonic. Immutable after creation.
+effective_date	date	YES	NO	Policy effective date as extracted.
+expiration_date	date	YES	NO	Policy expiration as extracted.
+governing_jurisdiction	UUID[]	YES	NO	FK → jurisdiction_references.
+coverage_limits_json	jsonb	YES	YES	Structured coverage limit objects.
+deductible_json	jsonb	YES	NO	Structured deductible definitions.
+exclusions_json	jsonb	YES	NO	Exclusion clause array.
+content_hash	text	YES	YES	SHA-256 of normalized structured content.
+normalization_pipeline_version	text	YES	YES	Version of ingestion pipeline that produced this.
+confidence_tier	text ENUM	YES	YES	HIGH | CONDITIONAL | AMBIGUOUS | DOCUMENTATION_INCOMPLETE | CONFLICT_PRESENT | INSUFFICIENT_DATA
+source_type	text ENUM	YES	YES	pdf_upload | email_forward | manual_entry
+raw_artifact_path	text	YES	NO	Storage path to original document. Immutable.
+ingested_at	timestamptz	YES	YES	Ingestion timestamp. Immutable.
+ingested_by	UUID	YES	YES	Actor. Immutable.
+itr_trace_id	UUID → interpretive_trace_records	YES	NO	Linked ITR if AI extraction was used.
+
+Mutation Rules
+•policy_versions rows are INSERT-ONLY. No UPDATE or DELETE permitted. Enforced by trigger (same pattern as interpretive_trace_records).
+•Updating a policy creates a new policy_version row and updates policies.active_version_id
+•policies.trip_id may be updated via policy_attached_to_trip event only
+•Archiving a policy requires Founder or Owner role + step-up + policy_archived event
+
+Event Emissions
+Event Type	Severity	Trigger	Required Payload Fields
+policy_created	info	New policy parent record	policy_id, account_id, trip_id
+policy_version_ingested	info	New PolicyVersion inserted	policy_id, version_id, version_number, confidence_tier, source_type
+policy_attached_to_trip	info	trip_id linked to policy	policy_id, trip_id
+policy_version_superseded	info	New version replaces active	policy_id, old_version_id, new_version_id
+policy_archived	warning	Policy soft-deleted	policy_id, archived_by, reason_code
+policy_version_mismatch_detected	warning	Version hash conflict	policy_id, version_id, detected_by
+
+Role Visibility
+Role	Read	Create	Mutate	Export	Notes
+Traveler (Owner)	✅	✅	🟡	✅	Can ingest, view, attach to trips; cannot delete versions
+Organizer	🟡	🔴	🔴	🔴	Can view policy presence on group trips; cannot access clause detail
+Support	✅	🔴	🔴	🔴	Read-only
+Founder	✅	✅	✅	✅	Full access
+System	✅	✅	🔴	🔴	Ingestion pipeline only
+
+Compliance Sensitivity
+PII Level	High — policy documents may contain passport numbers, travel companion names, home address, health declarations.
+GDPR Erasure	raw_artifact_path content erasable. Structured clause data may be anonymized. version_id, content_hash, ingested_at retained.
+Encryption	raw_artifact_path storage requires encryption at rest. Field-level encryption for health-declaration clauses: pending Section 8.x.
+
+Required SQL
+CREATE TABLE policies (  policy_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),  account_id uuid NOT NULL REFERENCES auth.users(id),  trip_id uuid REFERENCES trips(trip_id),  policy_label text NOT NULL,  active_version_id uuid,  -- FK added after policy_versions created  provider_name text,  lifecycle_state text NOT NULL DEFAULT 'active'    CHECK (lifecycle_state IN ('active','superseded','archived')),  created_at timestamptz NOT NULL DEFAULT now(),  created_by uuid NOT NULL,  archived_at timestamptz,  CONSTRAINT policy_label_not_empty CHECK (length(trim(policy_label)) > 0));CREATE TABLE policy_versions (  version_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),  policy_id uuid NOT NULL REFERENCES policies(policy_id) ON DELETE RESTRICT,  version_number integer NOT NULL,  effective_date date, expiration_date date,  governing_jurisdiction uuid[] NOT NULL DEFAULT '{}',  coverage_limits_json jsonb NOT NULL DEFAULT '{}',  deductible_json jsonb,  exclusions_json jsonb NOT NULL DEFAULT '[]',  content_hash text NOT NULL,  normalization_pipeline_version text NOT NULL,  confidence_tier text NOT NULL CHECK (confidence_tier IN (    'HIGH','CONDITIONAL','AMBIGUOUS','DOCUMENTATION_INCOMPLETE',    'CONFLICT_PRESENT','INSUFFICIENT_DATA')),  source_type text NOT NULL CHECK (source_type IN ('pdf_upload','email_forward','manual_entry')),  raw_artifact_path text,  ingested_at timestamptz NOT NULL DEFAULT now(),  ingested_by uuid NOT NULL,  itr_trace_id uuid REFERENCES interpretive_trace_records(trace_id),  CONSTRAINT policy_version_unique UNIQUE (policy_id, version_number));-- Immutability trigger (same pattern as interpretive_trace_records) required
+
+
+3.2.4 — Object 3: Incident
+The Incident object exists in the database (table: incidents). However, the DB schema predates Section 3.4 (CCO) and Section 3.5 maturity states. Reconciliation required.
+⚠ CONFLICT  Current `incident_status` ENUM uses (Capture, Review, Action) — an operational workflow state. Section 3.5 defines Trip maturity states separately. The Incident needs its own canonical status model aligned with CCO binding. These are NOT the same state machine.
+
+Canonical Name	Incident
+DB Table	incidents (exists; augmentation required)
+Purpose	Represents a discrete travel disruption event. The Incident is the primary object for all claim work, evidence collection, causality classification, benefit evaluation, and routing recommendations. An Incident is always anchored to a Trip.
+Key Constraint	An Incident requires a Trip anchor. An Incident instantiates a Causality Classification Object (CCO) per Section 3.4 at the moment of creation. No Incident may exist without a CCO.
+Status Model	Capture → Review → Action (existing DB states) — retained for backward compat but formally reinterpreted below.
+
+Fields
+Field	Type	Immutable	Required	Description
+id	UUID	YES	YES	Primary key. Immutable.
+trip_id	UUID → trips	YES	YES	Anchor trip. Immutable after creation.
+account_id	UUID → accounts	YES	YES	Owner. Immutable.
+title	text	NO	YES	Mutable label. Emits event on change.
+description	text	NO	NO	Mutable narrative.
+status	incident_status	NO	YES	Capture | Review | Action. State machine enforced.
+classification	classification	NO	YES	Operational | External | Unknown. Maps to CCO control_type.
+control_type	control_type	NO	YES	Internal | External | Mixed. Descriptive only.
+cco_id	UUID → causality_objects	NO	NO	FK to CCO record. Created atomically with Incident. [NEW FIELD]
+disruption_type	text ENUM	NO	NO	delay | cancellation | missed_connection | denied_boarding | baggage | other. [NEW FIELD]
+disruption_start_at	timestamptz	NO	NO	When the disruption began. From CCO timestamp chain.
+resolution_status	text ENUM	NO	NO	open | partially_resolved | resolved | abandoned. [NEW FIELD]
+dual_branch_active	boolean	NO	YES	True when causality_status=UNKNOWN and dual-branch evaluation is running. [NEW FIELD]
+assigned_to	UUID	NO	NO	Support assignee.
+metadata	jsonb	NO	NO	Extensible.
+created_at	timestamptz	YES	YES	Immutable.
+created_by	UUID	YES	YES	Immutable.
+updated_at	timestamptz	NO	YES	Trigger-maintained.
+
+Mutation Rules
+•Rule A (existing, retained): Capture → Action transition requires at least one Evidence record
+•Rule B (new): cco_id must be set at creation. If CCO creation fails, Incident creation rolls back.
+•Rule C (new): disruption_type must be set before status advances from Capture to Review
+•status transitions: governed by change_incident_status() RPC. Must call precheck_mutation_guard.
+•dual_branch_active: set by System when CCO causality_status=UNKNOWN. Cannot be manually set by Traveler or Support.
+
+Event Emissions
+Event Type	Severity	Trigger	Required Payload Fields
+incident_created	info	New Incident + CCO atomically created	incident_id, trip_id, account_id, cco_id
+incident_status_changed	info	Status transition	incident_id, previous_status, new_status, reason_code
+incident_dual_branch_activated	warning	causality UNKNOWN — dual branch started	incident_id, cco_id, branch_A_type, branch_B_type
+incident_resolution_updated	info	resolution_status changed	incident_id, previous_resolution, new_resolution
+incident_archived	warning	Soft-delete	incident_id, archived_by, reason_code
+incident_mutation_blocked	warning	Guard rejected mutation	incident_id, mutation_class, block_reason_code
+
+Role Visibility
+Role	Read	Create	Mutate	Export	Notes
+Traveler (Owner)	✅	✅	✅	✅	Full access; cannot modify cco_id or dual_branch_active
+Group Participant	✅	✅	🟡	🟡	Can create own incidents; cannot view other participants
+Organizer	🟡	🔴	🔴	🔴	Incident presence indicator only; no detail access
+Trusted Ally	✅	🟡	🟡	✅	Can create/update on behalf of subject; step-up required
+Support	✅	🔴	🟡	🔴	Can update status/assignee; cannot create or export
+Founder	✅	✅	✅	✅	Full access with step-up for structural changes
+System	✅	✅	✅	🔴	Automated status transitions, dual_branch updates
+
+Compliance Sensitivity
+PII Level	High — incident descriptions may include medical details, location data, personal circumstances, minor travel companion information.
+GDPR Erasure	description, title erasable. id, trip_id, cco_id, created_at, status history (in ledger) retained.
+Retention	Retain for duration of claim resolution + 7 years. [Placeholder]
+
+Required Schema Additions
+ALTER TABLE incidents  ADD COLUMN IF NOT EXISTS trip_id uuid REFERENCES trips(trip_id) ON DELETE RESTRICT,  ADD COLUMN IF NOT EXISTS cco_id uuid,  -- FK added after causality_objects table created  ADD COLUMN IF NOT EXISTS disruption_type text CHECK (disruption_type IN (    'delay','cancellation','missed_connection','denied_boarding','baggage','other')),  ADD COLUMN IF NOT EXISTS resolution_status text NOT NULL DEFAULT 'open'    CHECK (resolution_status IN ('open','partially_resolved','resolved','abandoned')),  ADD COLUMN IF NOT EXISTS dual_branch_active boolean NOT NULL DEFAULT false,  ADD COLUMN IF NOT EXISTS disruption_start_at timestamptz;
+
+
+3.2.5 — Object 4: Evidence
+Evidence exists in the database with recent enhancements (evidence_category, validation_status). Augmentation required for surge compliance, upload session tracking, and chunk manifest anchoring.
+
+Canonical Name	Evidence
+DB Table	evidence (exists; augmentation required)
+Purpose	An artifact attached to an Incident that documents a disruption event, expense, communication, or airline response. Evidence is never validated for sufficiency by the platform. It is captured, stored, categorized, and passed downstream without evaluation of coverage outcome.
+Key Constraint	Evidence must be attached to an Incident. Standalone evidence not permitted. Upload must use chunked transport with session ID for resumability.
+Immutability	Evidence content (file) is immutable after upload completes. Metadata fields (category, notes) are mutable. Mutability tracked via events.
+
+Fields
+Field	Type	Immutable	Required	Description
+id	UUID	YES	YES	Immutable.
+incident_id	UUID → incidents	YES	YES	Anchor. Immutable.
+type	evidence_type	NO	YES	file | log | screenshot | network_capture | memory_dump | other. Extend for travel domain.
+evidence_category	text	NO	YES	receipt | boarding_pass | delay_notice | carrier_confirmation | expense | screenshot | email | other [NEW ENUM values]
+name	text	NO	YES	Display name.
+description	text	NO	NO	User notes.
+file_path	text	YES	NO	Storage path. Immutable after upload complete.
+file_size_bytes	bigint	YES	NO	Immutable after upload complete.
+mime_type	text	YES	NO	Immutable.
+hash_sha256	text	YES	NO	Content hash. Immutable. Set at upload completion.
+upload_session_id	UUID	YES	NO	Resumable upload session identifier. [NEW FIELD]
+upload_status	text ENUM	NO	YES	pending | in_progress | staged | complete | failed. [NEW FIELD]
+chunk_manifest_hash	text	YES	NO	Hash of completed chunk manifest. Immutable after upload complete. [NEW FIELD]
+validation_status	text	NO	YES	pending | passed | flagged | not_required
+linked_guide_id	UUID	NO	NO	FK to credit_card_guide_versions if evidence relates to CC benefit.
+source_type	text ENUM	NO	NO	direct_upload | oauth_import | voice_capture | manual_entry. [NEW FIELD]
+oauth_import_session_id	UUID	NO	NO	FK to oauth import session if source=oauth_import. [NEW FIELD]
+causality_tag	text ENUM	NO	NO	Maps to CCO evidence_source_type. [NEW FIELD]
+confidentiality_flag	boolean	NO	YES	Default false. If true, evidence access requires step-up.
+created_at	timestamptz	YES	YES	Immutable.
+created_by	UUID	YES	YES	Immutable.
+
+Upload Protocol (Section 12.6 binding)
+•Upload initiates an upload_session_id
+•Chunked transport: each chunk confirmed before next is sent
+•upload_status transitions: pending → in_progress → staged → complete
+•upload_status = "complete" only after full chunk manifest confirmed AND staging durability confirmed
+•"Complete" shown to user only after complete status set AND evidence_upload_completed event emitted
+•No silent drop on failure: upload_status = "failed" + evidence_upload_failed event emitted
+•Resume: upload_session_id allows resuming from last confirmed chunk
+
+Event Emissions
+Event Type	Severity	Trigger	Required Payload Fields
+evidence_upload_initiated	info	Upload session created	evidence_id, incident_id, upload_session_id, source_type
+evidence_upload_staged	info	Staging durability confirmed	evidence_id, upload_session_id, chunk_manifest_hash
+evidence_upload_completed	info	Fully committed	evidence_id, hash_sha256, file_size_bytes
+evidence_upload_failed	warning	Upload failed or abandoned	evidence_id, upload_session_id, failure_reason_code
+evidence_upload_resumed	info	Resuming from last chunk	evidence_id, upload_session_id, resumed_from_chunk
+evidence_categorized	info	Category updated post-upload	evidence_id, previous_category, new_category
+evidence_validation_completed	info	Validation run recorded	evidence_id, validation_status, validation_run_id
+
+Role Visibility
+Role	Read	Create	Mutate	Export	Notes
+Traveler (Owner)	✅	✅	🟡	✅	Can upload, categorize; cannot alter hash or file_path
+Trusted Ally	✅	✅	🟡	✅	On behalf of subject only; step-up for sensitive evidence
+Organizer	🟡	🔴	🔴	🔴	Presence indicator only; no file access without explicit grant
+Support	✅	🔴	🟡	🔴	Can update validation_status; no upload or export
+System	✅	✅	✅	🔴	Upload completion, validation, OAuth import
+
+Required Schema Additions
+ALTER TABLE evidence  ADD COLUMN IF NOT EXISTS upload_session_id uuid,  ADD COLUMN IF NOT EXISTS upload_status text NOT NULL DEFAULT 'pending'    CHECK (upload_status IN ('pending','in_progress','staged','complete','failed')),  ADD COLUMN IF NOT EXISTS chunk_manifest_hash text,  ADD COLUMN IF NOT EXISTS source_type text DEFAULT 'direct_upload'    CHECK (source_type IN ('direct_upload','oauth_import','voice_capture','manual_entry')),  ADD COLUMN IF NOT EXISTS oauth_import_session_id uuid,  ADD COLUMN IF NOT EXISTS causality_tag text,  ADD COLUMN IF NOT EXISTS confidentiality_flag boolean NOT NULL DEFAULT false;-- Extend evidence_type enum for travel domainALTER TYPE evidence_type ADD VALUE IF NOT EXISTS 'receipt';ALTER TYPE evidence_type ADD VALUE IF NOT EXISTS 'boarding_pass';ALTER TYPE evidence_type ADD VALUE IF NOT EXISTS 'delay_notice';ALTER TYPE evidence_type ADD VALUE IF NOT EXISTS 'carrier_response';
+
+
+3.2.6 — Object 5: Claim
+🆕 NEW OBJECT REQUIRED  No `claims` table exists in any migration. This object must be created. The Claim object represents the traveler's intention to pursue a specific claim path — not the claim submitted to the insurer. The platform creates and manages structured claim preparation artifacts only.
+
+Canonical Name	Claim
+DB Table	claims — MISSING, creation required
+Purpose	Represents a structured claim preparation artifact. The Claim is the output of the Claim Routing & Sequencing Engine (F-6.5.5). It does not submit claims to insurers. It organizes evidence, routing recommendations, and sequencing logic into a copy-only packet that the traveler uses to pursue their own claim.
+Key Distinction	A Claim is not a submission. The platform never acts as a claims intermediary. The Claim object is a decision-support artifact only.
+Lifecycle	Initiated → Evidence Attached → Routing Determined → Packet Generated → Submitted (traveler action) → Outcome Recorded (optional)
+
+Fields — claims
+Field	Type	Immutable	Required	Description
+claim_id	UUID	YES	YES	Immutable.
+incident_id	UUID → incidents	YES	YES	Anchor incident. Immutable.
+trip_id	UUID → trips	YES	YES	Denormalized for query efficiency.
+account_id	UUID	YES	YES	Immutable.
+claim_type	text ENUM	NO	YES	travel_insurance | credit_card_benefit | airline_compensation | combined
+claim_status	text ENUM	NO	YES	initiated | evidence_gathering | routing_determined | packet_ready | submitted_by_traveler | outcome_recorded | abandoned
+routing_rec_id	UUID → routing_recommendations	NO	NO	Linked routing recommendation from F-6.5.5.
+primary_provider	text	NO	NO	Identified primary coverage provider name.
+sequence_position	integer	NO	NO	Position in multi-claim sequence (1=first to file).
+estimated_amount	numeric(12,2)	NO	NO	User-declared estimated claim amount. NOT a platform calculation.
+currency_code	char(3)	NO	NO	ISO 4217 currency code.
+packet_id	UUID	NO	NO	FK to claim_packets when packet generated.
+submitted_at	timestamptz	NO	NO	When traveler declared they submitted to provider.
+outcome	text ENUM	NO	NO	approved | denied | partial | pending | unknown. Self-reported only.
+outcome_amount	numeric(12,2)	NO	NO	Self-reported outcome amount.
+outcome_recorded_at	timestamptz	NO	NO	When outcome was recorded.
+denial_reason_text	text	NO	NO	User-reported denial reason.
+metadata	jsonb	NO	NO	Extensible.
+created_at	timestamptz	YES	YES	Immutable.
+created_by	UUID	YES	YES	Immutable.
+
+Mutation Rules
+•claim_status may only advance forward (no backward transitions) except: routing_determined → evidence_gathering (if new evidence requires re-routing)
+•packet_id is set once when Claim Packet Generator (F-6.5.14) runs. Immutable thereafter.
+•outcome and outcome_amount are self-reported by traveler only. System never sets these.
+•estimated_amount is advisory. The platform never computes payout probability.
+
+Event Emissions
+Event Type	Severity	Trigger	Required Payload Fields
+claim_initiated	info	Claim object created	claim_id, incident_id, claim_type
+claim_status_changed	info	Status transition	claim_id, previous_status, new_status, reason_code
+claim_packet_generated	info	Packet ready	claim_id, packet_id
+claim_submitted_declared	info	Traveler declared submission	claim_id, submitted_at, primary_provider
+claim_outcome_recorded	info	Traveler recorded outcome	claim_id, outcome, outcome_amount
+claim_abandoned	warning	Claim abandoned	claim_id, reason_code
+
+Compliance Sensitivity
+PII Level	High — denial reasons, outcome amounts, provider interactions may reveal financial circumstances.
+Retention	Retain 7 years post-outcome for financial record purposes. [Placeholder]
+Export	TRAVELER_PERSONAL profile exports full claim detail. INVESTOR profile: aggregate counts only, no claim_id, no amounts.
+
+Required SQL
+CREATE TABLE claims (  claim_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),  incident_id uuid NOT NULL REFERENCES incidents(id) ON DELETE RESTRICT,  trip_id uuid NOT NULL REFERENCES trips(trip_id) ON DELETE RESTRICT,  account_id uuid NOT NULL,  claim_type text NOT NULL CHECK (claim_type IN (    'travel_insurance','credit_card_benefit','airline_compensation','combined')),  claim_status text NOT NULL DEFAULT 'initiated' CHECK (claim_status IN (    'initiated','evidence_gathering','routing_determined','packet_ready',    'submitted_by_traveler','outcome_recorded','abandoned')),  routing_rec_id uuid REFERENCES routing_recommendations(rec_id),  primary_provider text,  sequence_position integer,  estimated_amount numeric(12,2),  currency_code char(3),  packet_id uuid,  submitted_at timestamptz,  outcome text CHECK (outcome IN ('approved','denied','partial','pending','unknown')),  outcome_amount numeric(12,2),  outcome_recorded_at timestamptz,  denial_reason_text text,  metadata jsonb NOT NULL DEFAULT '{}',  created_at timestamptz NOT NULL DEFAULT now(),  created_by uuid NOT NULL);
+
+
+3.2.7 — Object 6: Contact
+🆕 NEW OBJECT REQUIRED  No Contact table exists in any migration or documentation section beyond its mention in the Product Bible ToC. This object is required for emergency contact handling, group participant listings, and trusted ally linkage.
+
+Canonical Name	Contact
+DB Table	contacts — MISSING, creation required
+Purpose	Represents a named person associated with a Trip or Account in a non-traveler capacity: emergency contacts, counterparties (airline agents, hotel staff), witnesses, or insurance contacts referenced during incident documentation.
+Key Distinction	A Contact is NOT an Account. Contacts do not have login credentials. They are metadata objects. Some contacts may later become Accounts (e.g., emergency contact creating own profile) — that linkage is out of scope for MVP.
+
+Fields
+Field	Type	Immutable	Required	Description
+contact_id	UUID	YES	YES	Immutable.
+account_id	UUID	YES	YES	Owning account. Immutable.
+trip_id	UUID → trips	NO	NO	Optional trip association.
+incident_id	UUID → incidents	NO	NO	Optional incident association (counterparty).
+contact_type	text ENUM	NO	YES	emergency | counterparty | witness | insurance_rep | other
+display_name	text	NO	YES	Mutable. PII.
+phone_number	text	NO	NO	PII. Optional.
+email	text	NO	NO	PII. Optional.
+relationship	text	NO	NO	Free text. "Spouse", "Friend", "Gate Agent".
+notes	text	NO	NO	Free text notes.
+is_primary_emergency	boolean	NO	YES	Default false. Only one per account can be true.
+created_at	timestamptz	YES	YES	Immutable.
+created_by	UUID	YES	YES	Immutable.
+
+Compliance Sensitivity
+PII Level	High — name, phone, email are direct identifiers.
+GDPR Erasure	All PII fields erasable on request. contact_id, contact_type, created_at retained.
+
+Required SQL
+CREATE TABLE contacts (  contact_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),  account_id uuid NOT NULL,  trip_id uuid REFERENCES trips(trip_id) ON DELETE SET NULL,  incident_id uuid REFERENCES incidents(id) ON DELETE SET NULL,  contact_type text NOT NULL DEFAULT 'emergency'    CHECK (contact_type IN ('emergency','counterparty','witness','insurance_rep','other')),  display_name text NOT NULL,  phone_number text, email text, relationship text, notes text,  is_primary_emergency boolean NOT NULL DEFAULT false,  created_at timestamptz NOT NULL DEFAULT now(),  created_by uuid NOT NULL);
+Event: contact_created, contact_updated, contact_removed (soft)
+
+
+3.2.8 — Object 7: CoverageNode
+⚡ GAP DETECTED  F-6.5.2 (Coverage Graph & Overlap Resolution) is registered as a DISABLED stub in feature_registry. No schema tables exist. Section 3.3 (Coverage Graph Model) is entirely absent. This object definition establishes the data model interface. Section 3.3 must define the graph traversal and overlap resolution algorithm.
+
+Canonical Name	CoverageNode
+DB Table	coverage_nodes — MISSING, creation required
+Purpose	Represents a single coverage source (one policy, one credit card benefit, one airline obligation) as a node in the Coverage Graph. Nodes have edges representing overlap, exclusion, and sequencing relationships.
+Integration	CoverageNode is constructed from PolicyVersion clauses (via F-6.5.1 Policy Parsing). The Coverage Graph is rebuilt per Trip when itinerary or policy changes occur.
+
+Fields — coverage_nodes
+Field	Type	Immutable	Required	Description
+node_id	UUID	YES	YES	Immutable.
+trip_id	UUID → trips	YES	YES	Anchor trip.
+source_type	text ENUM	YES	YES	travel_insurance | credit_card_benefit | airline_obligation | home_renters | warranty | other
+source_id	UUID	YES	YES	FK to policy_versions.version_id or credit_card_guide_versions.guide_id depending on source_type.
+coverage_domains	text[]	NO	YES	delay | cancellation | interruption | missed_connection | rebooking | baggage | medical | other
+primacy_type	text ENUM	NO	NO	primary | secondary | tertiary | unknown. Extracted from policy language.
+coverage_limit	numeric(12,2)	NO	NO	Maximum payout amount if determinable.
+currency_code	char(3)	NO	NO	ISO 4217.
+exclusions_summary	jsonb	YES	NO	Extracted exclusion array. Immutable after construction.
+other_insurance_clause	boolean	YES	NO	True if policy contains "other insurance" language.
+graph_version_id	UUID → coverage_graph_snapshots	NO	NO	The graph snapshot this node belongs to.
+confidence_label	confidence_label	NO	YES	Per Section 9.2 enum.
+created_at	timestamptz	YES	YES	Immutable.
+
+Fields — coverage_graph_snapshots
+Field	Type	Immutable	Required	Description
+snapshot_id	UUID	YES	YES	Immutable.
+trip_id	UUID	YES	YES	Immutable.
+incident_id	UUID	NO	NO	Set if snapshot is incident-bound.
+snapshot_status	text ENUM	NO	YES	STRUCTURAL_PREVIEW | STRUCTURAL_ACTIVE | STRUCTURAL_VERSIONED | STRUCTURAL_LOCKED (per Section 3.5)
+itinerary_version	integer	YES	YES	Itinerary version this snapshot was built from.
+node_count	integer	YES	YES	Count of CoverageNodes in snapshot.
+build_timestamp	timestamptz	YES	YES	When snapshot was computed.
+itr_trace_id	UUID	NO	NO	Linked ITR if AI was used in construction.
+
+📌 NOTE  Section 3.3 (Coverage Graph Model) must define: overlap resolution algorithm, exclusion edge types, primacy conflict resolution rules, and graph traversal order. These CANNOT be inferred from this object definition alone.
+
+
+3.2.9 — Object 8: JurisdictionReference
+🆕 NEW OBJECT REQUIRED  Referenced in Sections 4.1, 11.2, and policy ingestion but no table exists. This object is required for plan eligibility filtering, regulatory overlay ordering, and compliance boundary enforcement.
+
+Canonical Name	JurisdictionReference
+DB Table	jurisdiction_references — MISSING, creation required
+Purpose	Canonical registry of legal and regulatory jurisdictions used for plan eligibility filtering, regulatory overlay ordering, and compliance boundary identification. Read-only to all roles except Founder and System.
+
+Field	Type	Immutable	Required	Description
+jurisdiction_id	UUID	YES	YES	Immutable.
+jurisdiction_code	text	YES	YES	ISO 3166-1 country or ISO 3166-2 state/province code. Immutable.
+jurisdiction_name	text	NO	YES	Human-readable name.
+jurisdiction_type	text ENUM	YES	YES	country | state | province | territory
+parent_id	UUID	YES	NO	Parent jurisdiction (e.g., state → country).
+regulatory_notes	jsonb	NO	NO	Structured notes on key regulations. Not for display to travelers.
+is_active	boolean	NO	YES	Default true.
+created_at	timestamptz	YES	YES	Immutable.
+
+
+3.2.10 — Object 9: ScanJob
+🆕 NEW OBJECT REQUIRED  Section 10.2 defines Quick Scan and Deep Scan entitlement logic in detail. No `scan_jobs` table exists. This is a critical MVP object — it governs credit deduction, caching, and rate limiting.
+
+Canonical Name	ScanJob
+DB Table	scan_jobs — MISSING, creation required
+Purpose	Represents a single scan execution — either Quick Scan (lightweight, rate-limited) or Deep Scan (credit-consuming, explicit confirmation required). ScanJobs are the unit of entitlement enforcement per Section 10.2.
+Key Constraints	No silent scan execution. All ScanJob creation requires explicit user confirmation (Deep Scan) or rate-limit check (Quick Scan). | No credit deduction without emitting deep_scan_credit_consumed event. | Identical itinerary_hash returns cached scan result — no new ScanJob created.
+
+Field	Type	Immutable	Required	Description
+scan_id	UUID	YES	YES	Immutable.
+trip_id	UUID → trips	YES	YES	Anchor trip. Immutable.
+account_id	UUID	YES	YES	Immutable.
+scan_type	text ENUM	YES	YES	quick | deep. Immutable.
+scan_status	text ENUM	NO	YES	pending | running | completed | failed | cached_hit
+itinerary_hash	text	YES	YES	Hash input to this scan. Immutable.
+itinerary_version	integer	YES	YES	Trip itinerary version. Immutable.
+result_id	UUID → scan_results	NO	NO	Set when scan completes.
+cached_from_scan_id	UUID → scan_jobs	NO	NO	If cached_hit, points to source scan.
+credit_consumed	boolean	NO	YES	Deep scan only. Default false. Set true atomically with deduction event.
+credit_ledger_entry_id	UUID	NO	NO	FK → scan_credit_ledger row that recorded deduction.
+user_confirmed_at	timestamptz	NO	NO	For Deep Scan: timestamp of explicit user confirmation.
+initiated_by	text ENUM	YES	YES	user_action | material_change_trigger. Immutable.
+region_id	UUID	YES	YES	Operational region at time of scan. Immutable.
+feature_flag_snapshot	jsonb	YES	NO	Snapshot of active feature flags at scan time. Immutable. Supports replay.
+created_at	timestamptz	YES	YES	Immutable.
+
+Mutation Rules
+•Quick Scan: ScanJob created after rate-limit check passes (4 per 7-day window per paid trip; 2 lifetime per free tier)
+•Deep Scan: ScanJob creation requires explicit user_confirmed_at timestamp. No auto-execution.
+•credit_consumed: set to true atomically with deep_scan_credit_consumed ledger event. Never set before that event.
+•cached_hit: if itinerary_hash + account_id matches an existing completed ScanJob in rolling window, return that result; do not create new ScanJob; do not consume credit
+
+Event Emissions
+Event Type	Severity	Trigger	Required Payload Fields
+scan_job_created	info	ScanJob row inserted	scan_id, trip_id, scan_type, itinerary_hash
+scan_job_cache_hit	info	Result returned from cache	scan_id, trip_id, cached_from_scan_id
+deep_scan_credit_consumed	info	Credit deduction	scan_id, trip_id, account_id, credit_ledger_entry_id
+scan_job_completed	info	Scan finished successfully	scan_id, result_id
+scan_job_failed	warning	Scan failed	scan_id, failure_reason_code
+scan_rate_limit_exceeded	warning	Rate limit hit, scan blocked	trip_id, account_id, scan_type, limit_type
+scan_credit_insufficient	warning	No credits; deep scan blocked	trip_id, account_id, credits_remaining
+
+
+3.2.11 — Object 10: ScanCreditLedger
+🆕 NEW OBJECT REQUIRED  Section 10.2 defines 2 Deep Scan credits per paid trip unlock. No credit ledger table exists. This is a launch-blocking gap — credits cannot be enforced without this object.
+
+Canonical Name	ScanCreditLedger
+DB Table	scan_credit_ledger — MISSING, creation required
+Purpose	Append-only ledger of credit grants and deductions per trip. The current balance is always computed by summing ledger rows (credits_delta). No stored balance field — balance is a derived value. This mirrors the event_ledger pattern.
+Key Invariant	No UPDATE. No DELETE. Balance = SUM(credits_delta) WHERE trip_id = ?. Negative deductions record credit consumption. Positive entries record grants.
+
+Field	Type	Immutable	Required	Description
+entry_id	UUID	YES	YES	Immutable.
+trip_id	UUID → trips	YES	YES	Immutable.
+account_id	UUID	YES	YES	Immutable.
+entry_type	text ENUM	YES	YES	grant | deduction | refund | expiry. Immutable.
+credits_delta	integer	YES	YES	Positive = grant; negative = deduction. Immutable.
+scan_id	UUID → scan_jobs	NO	NO	Linked ScanJob for deduction entries.
+grant_source	text ENUM	NO	NO	trip_unlock | additional_purchase | promotional. For grant entries.
+reason_code	text	NO	NO	Reason for adjustment.
+actor_id	UUID	YES	YES	Who triggered this entry. Immutable.
+actor_type	text ENUM	YES	YES	traveler | system | founder. Immutable.
+event_ledger_id	UUID → event_ledger	YES	YES	FK to the governing ledger event. Immutable.
+created_at	timestamptz	YES	YES	Immutable.
+
+Computed balance function:
+CREATE OR REPLACE FUNCTION get_scan_credits_balance(p_trip_id uuid)RETURNS integer LANGUAGE sql STABLE SECURITY DEFINER AS $$  SELECT COALESCE(SUM(credits_delta), 0)::integer  FROM scan_credit_ledger WHERE trip_id = p_trip_id;$$;
+
+Event Emissions
+Event Type	Severity	Trigger	Required Payload Fields
+scan_credit_granted	info	Credits added to trip	trip_id, entry_id, credits_delta, grant_source
+deep_scan_credit_consumed	info	Credit deducted for Deep Scan	trip_id, scan_id, entry_id, credits_delta
+scan_credit_insufficient	warning	Deduction attempted with 0 balance	trip_id, account_id
+
+
+3.2.12 — Object 11: ParticipantRiskProfile  (Phase 2)
+📌 NOTE  Defined here for structural completeness and cross-reference. Implementation is Phase 2. MVP may omit the schema but must not build Group logic that conflicts with this definition.
+
+Canonical Name	ParticipantRiskProfile
+DB Table	participant_risk_profiles — Phase 2, creation deferred
+Purpose	Individual risk profile for a single group participant. Captures residence, policy status, coverage gaps, and trip-specific risk indicators. Feeds into GroupRiskProfile aggregation.
+PII Level	High — may include age, pre-existing condition flags, residence, policy coverage detail.
+Fields to define in Phase 2 (forward reference):
+•participant_id, trip_id, account_id, residence_jurisdiction_id, policy_ids[], coverage_gap_flags[], risk_indicators[], last_evaluated_at, itr_trace_id
+3.2.13 — Object 12: GroupRiskProfile  (Phase 2)
+📌 NOTE  Phase 2. MVP may surface "Group Travel — Coming Soon" per Section 10.2. No backend obligations required at MVP beyond ensuring the Trip object supports is_group_trip and group_id.
+
+Canonical Name	GroupRiskProfile
+DB Table	group_risk_profiles — Phase 2, creation deferred
+Purpose	Aggregated risk profile for a Group trip. Synthesizes ParticipantRiskProfiles. Governs organizer-level coverage gap identification and group plan eligibility.
+PII Level	Medium — aggregate indicators; individual PII masked.
+
+
+3.2.14 — Cross-Object Relationship Diagram (Textual)
+Reading guide: → means "has one or many". ↔ means "bidirectional reference". Parenthetical gives FK direction.
+
+Account
+  └─→ Trip                     (account_id)        [3.2.2]
+       ├─→ Policy              (trip_id)           [3.2.3]
+       │    └─→ PolicyVersion  (policy_id)         [3.2.3]
+       ├─→ ScanJob             (trip_id)           [3.2.10]
+       │    └─→ ScanCreditLedger (trip_id)         [3.2.11]
+       ├─→ Contact             (trip_id)           [3.2.7]
+       └─→ Incident            (trip_id)           [3.2.4]
+            ├─→ CausalityObject (CCO) (incident_id)[3.4]
+            ├─→ Evidence        (incident_id)       [3.2.5]
+            │    └─→ EvidenceValidationRun         [DB]
+            ├─→ Claim           (incident_id)       [3.2.6]
+            │    └─→ ClaimPacket (packet_id)        [F-6.5.14]
+            ├─→ RoutingRecommendation (incident_id)[DB]
+            │    └─→ AcceptanceCheckpoint          [DB]
+            └─→ InterpretiveTraceRecord             [3.2/9.4]
+
+Trip
+  └─→ CoverageGraphSnapshot   (trip_id)           [3.2.8 / 3.3]
+       └─→ CoverageNode       (snapshot_id)       [3.2.8]
+            └─→ PolicyVersion or GuideVersion      [3.2.3 / 4.1]
+
+Trip → JurisdictionReference  (jurisdiction_ids[]) [3.2.9]
+Policy → JurisdictionReference (governing_jurisdiction) [3.2.3]
+
+
+3.2.15 — Migration Checklist
+Migrations must be applied in this exact order due to foreign key dependencies.
+
+#	Migration Name	Changes	Blocking	Status
+M-01	rename_projects_to_trips	Rename projects → trips. Rename id→trip_id, name→trip_name, status→maturity_state. Add all new Trip fields. Update all FKs in incidents, event_ledger.	YES	🔴 Required
+M-02	create_jurisdiction_references	New table jurisdiction_references. Seed with common country codes.	YES (for M-03)	🔴 Required
+M-03	create_policies_and_versions	New tables: policies, policy_versions. Add immutability trigger to policy_versions.	YES (for M-05)	🔴 Required
+M-04	alter_incidents_add_fields	Add trip_id FK, cco_id, disruption_type, resolution_status, dual_branch_active, disruption_start_at to incidents. Add trip_id FK.	YES	🔴 Required
+M-05	alter_evidence_add_fields	Add upload_session_id, upload_status, chunk_manifest_hash, source_type, causality_tag, confidentiality_flag. Extend evidence_type enum.	NO	🔴 Required
+M-06	create_claims	New table: claims. FK to incidents, trips.	NO	🔴 Required
+M-07	create_contacts	New table: contacts.	NO	🔴 Required
+M-08	create_coverage_nodes_and_snapshots	New tables: coverage_graph_snapshots, coverage_nodes. FK to trips, policy_versions.	NO (F-6.5.2 is stub)	🟠 Required for F-6.5.2
+M-09	create_scan_jobs	New table: scan_jobs. Add confidence_label references.	YES (for M-10)	🔴 Required
+M-10	create_scan_credit_ledger	New table: scan_credit_ledger. FK to trips, scan_jobs. Add get_scan_credits_balance() function.	YES (for credit deduction)	🔴 Required
+M-11	register_new_event_types	Register all new event types from 3.2 in event_type_registry.	YES	🔴 Required
+M-12	create_causality_objects_table	New table: causality_objects (per Section 3.4 definition). Add FK from incidents.cco_id.	YES	🔴 Required
+
+
+3.2.16 — Event Registry Additions
+The following event types must be registered in event_type_registry before their corresponding migrations are deployed.
+
+event_type	severity	feature_id	required_keys
+trip_created	info	trips	trip_id, account_id, created_by
+trip_field_updated	info	trips	trip_id, field_name, previous_value, new_value
+trip_itinerary_confirmed	info	trips	trip_id, itinerary_hash, itinerary_version
+trip_itinerary_changed	warning	trips	trip_id, previous_hash, new_hash, material_change_flag
+trip_unlock_confirmed	info	trips	trip_id, account_id
+trip_state_advanced	info	trips	trip_id, previous_state, new_state
+trip_archived	warning	trips	trip_id, archived_by, reason_code
+policy_created	info	policies	policy_id, account_id
+policy_version_ingested	info	policies	policy_id, version_id, confidence_tier
+policy_archived	warning	policies	policy_id, archived_by
+policy_version_mismatch_detected	warning	policies	policy_id, version_id
+incident_created	info	incidents	incident_id, trip_id, cco_id
+incident_dual_branch_activated	warning	incidents	incident_id, cco_id
+evidence_upload_initiated	info	F-6.5.6	evidence_id, upload_session_id
+evidence_upload_completed	info	F-6.5.6	evidence_id, hash_sha256
+evidence_upload_failed	warning	F-6.5.6	evidence_id, failure_reason_code
+claim_initiated	info	F-6.5.5	claim_id, incident_id
+claim_packet_generated	info	F-6.5.14	claim_id, packet_id
+claim_submitted_declared	info	F-6.5.5	claim_id, submitted_at
+claim_outcome_recorded	info	F-6.5.5	claim_id, outcome
+scan_job_created	info	scan_jobs	scan_id, trip_id, scan_type
+deep_scan_credit_consumed	info	scan_jobs	scan_id, trip_id, entry_id
+scan_rate_limit_exceeded	warning	scan_jobs	trip_id, scan_type
+scan_credit_insufficient	warning	scan_jobs	trip_id
+pii_erasure_requested	critical	compliance	account_id, object_type, object_id
+contact_created	info	contacts	contact_id, account_id, contact_type
+
+
+3.2.17 — Unresolved Dependencies & Required Cross-Section Work
+
+Section 3.3 — Coverage Graph Model
+Severity: BLOCKING
+Must define overlap resolution algorithm, exclusion edge types, primacy conflict rules, and graph traversal logic before CoverageNode can be operationally used. CoverageNode schema (M-08) can be deployed but F-6.5.2 cannot be activated without 3.3.
+Section 3.4 — Causality Model (CCO)
+Severity: BLOCKING
+Must define the causality_objects table schema and the atomic creation procedure. The Incident object has a cco_id FK that requires this table. M-12 is blocked until 3.4 defines the full CCO schema.
+Section 8.9 — Data Erasure Protocol
+Severity: BLOCKING for EU launch
+Must define the GDPR erasure procedure for all PII-classified fields across all objects defined in 3.2. The placeholder doctrine in 3.2.0.1 must be replaced.
+Section 8.x — Encryption Specification
+Severity: Major risk
+raw_artifact_path storage (Policy artifacts), evidence file storage, and PII fields in Contact all require a formal encryption spec before the platform stores sensitive data in production.
+Section 3.1 — Incident OS Model
+Severity: BLOCKING
+Must define the full Incident state machine, event sequence, and data object binding. The Incident object in 3.2.4 is partially orphaned without a complete 3.1 to anchor its operational behavior.
+Section 10.2 — Scan Rate Limit RPC
+Severity: Required for MVP
+The rate-limiting logic for Quick Scans (4/week paid, 2-lifetime free) must be implemented as a guarded RPC aligned to ScanJob and ScanCreditLedger. Currently undocumented as an RPC contract.
+connector_type ENUM
+Severity: Conflict
+Current enum contains github, gitlab, jira, aws etc. Needs: airline_verification, oauth_inbox_gmail, oauth_inbox_microsoft, oauth_inbox_yahoo. Schema migration M-11 should include this extension.
+failure_code ENUM
+Severity: Gap
+Missing: captcha_detected, site_unreachable, validation_error, unexpected_response, html_structure_changed. Required by Section 12.5 downgrade thresholds.
+action_inbox tables
+Severity: Undocumented
+action_inbox_items, action_inbox_notes, action_inbox_state_changes, action_inbox_projector_state tables exist in DB but have no Product Bible section. A doctrine section must be written or these tables must be formally adopted into the Feature Catalog.
+
+
+3.2.18 — Narrative Clarification Questions
+The following questions require your guidance before certain behavioral logic can be finalized. They are written in narrative form to surface system intent, not technical details.
+
+Q1 — The Incomplete Itinerary Trip
+Walk me through what happens when a group organizer creates a trip with only a destination and departure date — no return date, no passenger list, no policy attached. The organizer saves and comes back two days later. Meanwhile, one participant tried to add their policy but couldn't find the trip to attach it to.
+What should the system feel like at each of these moments? What is the organizer allowed to do with an incomplete itinerary? What is the participant's experience when they can't yet contribute? When does the trip move from DRAFT to PRE_TRIP_STRUCTURED — and who controls that gate?
+
+Q2 — Late Evidence and Re-Evaluation
+Imagine a user filed an incident and the system ran a benefit evaluation. The evaluation came back CONDITIONAL_ALIGNMENT because the airline confirmation email hadn't arrived yet. Three days later, the email arrives via the OAuth inbox importer and automatically attaches to the incident.
+Should the benefit evaluation re-run automatically? Or should it go into a decision queue and wait for the traveler to explicitly request re-evaluation? Tell me the story of how that moment unfolds — from the email landing to whatever the user sees. Does the system feel proactive or controlled? Who decides?
+
+Q3 — The Second Claim Against the Same Incident
+A traveler files a credit card benefit claim for their trip delay. The claim status moves to submitted_by_traveler. Two weeks later, the card benefit is denied. Now they want to pursue the travel insurance claim for the same underlying disruption event.
+Is this a second Claim object against the same Incident? Or does the platform expect this sequence from the start and model it as a routing sequence? Walk me through what happens — does the denial of Claim #1 automatically surface Claim #2 as a suggestion? Does it require a new routing recommendation? How does the evidence relationship work — is the same evidence packet used, or must the traveler rebuild it?
+
+Q4 — The Protective Mode Scan
+A major airline IT outage hits. The platform enters PROTECTIVE mode for the affected region. A traveler whose flight was just cancelled opens the app and tries to run a Deep Scan to understand their coverage.
+Deep Scan creation is blocked in PROTECTIVE mode per the mutation guard matrix. But this traveler has a paid trip unlock and 2 remaining Deep Scan credits. From their perspective, they paid for this. They are in a stressful disruption moment. What do they see? What is the language? Is there a fallback — a cached result, a partial read-only output, a queue position? Walk me through what the system should communicate and what it actually does.
+
+Q5 — The Archived Trip with a Pending Claim
+A user has a trip in CLAIM_SUBMITTED state. They go back into the app and manually archive the trip — maybe they got frustrated and gave up. The Claim object is still pending an outcome.
+Should the platform allow this? Should it warn? Should it block? If it blocks, what is the language? If it allows, what happens to the Claim — does it become abandoned automatically, or does it stay alive in limbo? Who can see a Claim for an archived trip? Tell me what the right behavior is and why.
+
+Q6 — The Multi-Leg Trip and Incident Jurisdiction
+A traveler is on a trip that passes through three countries — US departure, UK layover, France final destination. An incident happens in the UK during the layover. The trip's jurisdiction_ids includes all three countries. The policy has governing_jurisdiction pointing to US.
+Which jurisdiction governs the incident? Is it the trip's jurisdiction set, or the incident's physical location, or the policy's governing jurisdiction? Walk me through what the platform should communicate to the traveler about this ambiguity — and how it affects what the Coverage Graph can deterministically say.
+
+
+Section 3.2 — Core Data Objects  |  Version 1.0  |  Surge-Ready Draft  |  March 2026
+Pending: 3.1, 3.3, 3.4 completion | 12 migration files | 6 narrative clarifications
+
+
+
+WAYFARER PLATFORM — PRODUCT BIBLE
+SECTION 3.2
+Core Data Objects — Amendment v1.2
+Narrative Clarification Resolutions (Q1–Q10)  ·  Behavioral Invariants I-46–I-68  ·  Migration Addenda  ·  Platform State Summary
+Version	1.2 — Narrative Clarification Resolutions
+Date	April 7, 2026
+Supersedes	Open questions Q1–Q10 in Section 3.2 v1.1 (3.2.32)
+Status	Binding Doctrine — Pre-Build Sprint Required
+Binds to	Section 3.1 (Incident OS), 3.3 (Coverage Graph), 3.4 (CCO), 3.5 (Trip Maturity), F-6.5.5, F-6.5.8, F-6.5.14, F-6.5.17
+Invariants	I-46 through I-68 (23 new invariants)
+Migrations	M-36 through M-40 (route_segments, draft_version, activity_candidates, unresolved_items, draft_narration_versions)
+ 
+3.2.33 — Amendment Context & Source
+This amendment formally resolves all 10 open narrative clarification questions from Section 3.2.32 (v1.1). Questions Q1–Q6 originated in v1.0. Questions Q7–Q10 were added in v1.1 to cover voice narration conflicts, readiness gating, activity rejection feedback, and group collaboration.
+ 
+Answers were derived from: (a) prior session transcripts where Christian narrated platform behavior conversationally; (b) the Section 3.3 Amendment v1.1 voucher and rebook-first doctrine which implicitly resolves Q2 and Q3 sequencing; (c) Section 5.0 canonical flow decisions on voice-first authority; and (d) Section 3.5 trip maturity state machine which resolves Q1 gating.
+ 
+All resolutions below are binding on implementation. No implementation may deviate without a new amendment filed by the Founder.
+ 
+
+
+3.2.33.A — Q1: The Incomplete Itinerary Trip
+Q1 — The Incomplete Itinerary Trip
+RESOLUTION: RESOLVED — Soft gate, organizer-controlled, participant-visible via search
+ 
+Core Rule: DRAFT is a workspace, not a gate
+An organizer creating a trip with only a destination and departure date — no return date, no passenger list, no policy — is in a legitimate planning state. The system does not block them, warn them, or apply urgency language. The trip remains in DRAFT state. DRAFT is not a problem; it is the starting condition.
+ 
+The Organizer Experience
+When the organizer saves an incomplete trip and returns two days later, they see exactly what they left: a draft workspace with a readiness indicator showing what is present and what is not. The system does not show a "you forgot X" warning. It shows a calm readiness summary: which segments exist, whether dates are set, whether a policy is attached. Tone is informational, never admonishing.
+ 
+Approved copy: "Your trip is taking shape. Add your return date and route segments when you're ready — coverage analysis starts once your itinerary is confirmed."
+ 
+PROHIBITED: "Your trip is incomplete." / "Missing required information." / "You haven't added X yet."
+ 
+The Participant Experience
+A participant who tries to find the trip to attach their policy cannot see a trip they have not been invited to. The trip is organizer-private in DRAFT state. The participant sees nothing — not an error, not a "this trip doesn't exist." The correct path is for the organizer to invite them.
+ 
+This is not a gap. It is intended behavior. Participants do not browse-search trips. They join via invitation. If a participant says "I can't find the trip," the organizer needs to send the invite — the platform cannot and should not surface private draft trips to uninvited participants.
+ 
+The DRAFT → PRE_TRIP_STRUCTURED Gate
+The gate is organizer-controlled and explicit. The trip advances from DRAFT to PRE_TRIP_STRUCTURED when the organizer clicks "Confirm itinerary" — which is only enabled when: (a) at least one route segment exists, and (b) departure_date is set. Return date is recommended but not required at this gate. Passenger list is not required at this gate.
+ 
+The system does not auto-advance the maturity state. Only the organizer's explicit confirm action triggers the transition. The confirm action emits trip_itinerary_confirmed, locks the itinerary_hash, and increments itinerary_version.
+ 
+Behavioral Invariants — Q1
+I-46	DRAFT state is never surfaced to the traveler as an error or warning state. It is a neutral working state.
+I-47	Uninvited participants cannot see draft trips. The platform never surfaces trip existence to non-invited accounts.
+I-48	The DRAFT → PRE_TRIP_STRUCTURED gate requires: (a) ≥1 route segment, (b) departure_date set. Organizer confirms explicitly. System never auto-advances.
+I-49	Readiness indicators are informational (what is present) not prescriptive (what you must add). Language is never admonishing.
+ 
+
+
+3.2.33.B — Q2: Late Evidence and Re-Evaluation
+Q2 — Late Evidence and Re-Evaluation
+RESOLUTION: RESOLVED — Proactive notification, traveler-controlled re-evaluation trigger
+ 
+Core Rule: The platform is proactive in notifying, controlled in acting
+When new evidence arrives via OAuth inbox importer — an airline confirmation email landing three days after an incident was filed — the platform notifies the traveler immediately and clearly. It does not silently re-run the benefit evaluation. It does not queue the re-evaluation for the traveler to discover later. It surfaces the new evidence and offers one clear action.
+ 
+The platform detects. The traveler decides. The system never auto-re-evaluates coverage without explicit traveler confirmation.
+ 
+The Exact Flow
+• Evidence arrives via OAuth inbox importer → evidence_upload_completed event emitted
+• evidence is causality_tagged to the open incident automatically
+• The traveler receives a push notification: "New document arrived — your airline confirmation email has been added to your incident."
+• The incident detail screen shows a banner: "New evidence added since your last evaluation. Want to re-run the analysis?"
+• Traveler taps "Re-run analysis" → benefit evaluation re-executes → new ITR created → result displayed
+• Traveler taps "Not now" → banner persists until dismissed or traveler re-runs
+ 
+Approved copy: "New document added to your [Flight Delay — AC780] incident. Re-run your coverage analysis to include it."
+ 
+PROHIBITED: Silent re-evaluation without notification. / Auto-updating the coverage result without traveler confirmation. / Losing the previous evaluation result.
+ 
+Previous Evaluation Preservation
+The prior benefit evaluation result is never overwritten. Each evaluation run creates a new InterpretiveTraceRecord. The incident detail screen shows the most recent evaluation prominently, with a "View history" option to see prior evaluations in chronological order. The traveler can compare what changed between evaluations.
+ 
+Behavioral Invariants — Q2
+I-50	New evidence attached to an incident triggers an immediate notification to the traveler. The notification names the document type and the incident.
+I-51	Benefit evaluation never re-runs automatically. Traveler must explicitly trigger re-evaluation after reviewing new evidence.
+I-52	All prior evaluation results are preserved as ITR records. No result is ever overwritten.
+I-53	The re-evaluation banner persists on the incident screen until the traveler either re-runs or explicitly dismisses it.
+ 
+
+
+3.2.33.C — Q3: The Second Claim Against the Same Incident
+Q3 — The Second Claim Against the Same Incident
+RESOLUTION: RESOLVED — Second Claim object, routing re-runs, evidence auto-shared
+ 
+Core Rule: Multi-claim sequencing is modeled from the start
+The claim routing engine (F-6.5.5) already generates a sequenced recommendation when an incident is first evaluated. It knows there may be multiple coverage paths. The routing recommendation includes sequencing: "File with Chase first. If denied, travel insurance is the next path." This is documented in the routing_recommendations table as sequence_position.
+ 
+When Claim #1 is denied, Claim #2 is not a surprise to the system. The routing engine anticipated it. The platform surfaces it proactively.
+ 
+What Happens When Claim #1 Is Denied
+• Traveler records outcome on Claim #1: outcome = "denied", denial_reason_text provided
+• claim_outcome_recorded event emitted
+• System evaluates: does the routing recommendation have a sequence_position 2 path? If yes → surface it
+• Banner appears on incident screen: "Your Chase benefit claim was denied. Based on your coverage, you may have a travel insurance path available."
+• "View next step" → opens Claim #2 creation flow, pre-populated with incident data
+• Claim #2 is a new Claim object against the same incident_id. It is not a continuation of Claim #1.
+ 
+Evidence Relationship
+Evidence is attached to the incident, not to any individual Claim object. When Claim #2 is created, all evidence already attached to the incident is automatically available to it. The traveler does not rebuild the evidence set. However, the denial reason from Claim #1 becomes new evidence — the traveler is prompted to upload the denial letter, which attaches to the incident as a new Evidence record of type "carrier_confirmation" with a note that it is a benefit denial.
+ 
+The same evidence pool is shared across all Claims on an incident. Denial letters from prior claims are surfaced as actionable evidence for subsequent claims.
+ 
+Does a New Routing Recommendation Generate?
+Yes, but with the denial context loaded. The routing engine re-evaluates with: (a) the denial reason from Claim #1 as an input, (b) the denial letter as attached evidence, (c) the full original coverage graph snapshot. The new recommendation may differ in language and sequencing from the original. A new ITR is created. The old routing recommendation is marked superseded.
+ 
+Behavioral Invariants — Q3
+I-54	Evidence is incident-scoped, not claim-scoped. All claims against an incident share the same evidence pool.
+I-55	When a claim is denied and a next-sequence path exists in the routing recommendation, the platform surfaces it proactively via a banner on the incident screen.
+I-56	Claim #2 is a new Claim object with its own claim_id. It references the same incident_id. It is not a sub-record of Claim #1.
+I-57	A denial letter from Claim #1 is treated as new evidence on the incident and surfaced as an input to the Claim #2 routing recommendation.
+I-58	The routing engine re-runs for Claim #2 with denial context loaded. The prior routing recommendation is marked superseded, not deleted.
+ 
+
+
+3.2.33.D — Q4: The Protective Mode Scan
+Q4 — The Protective Mode Scan
+RESOLUTION: RESOLVED — Cached result surfaced immediately, credits preserved, queue offered
+ 
+Core Rule: Paid users are never left empty-handed
+A traveler who paid for a trip unlock and has Deep Scan credits should never see a hard wall during a disruption. PROTECTIVE mode blocks new Deep Scan job creation — it does not destroy existing results. The platform surfaces whatever it has and tells the traveler honestly what it cannot do right now.
+ 
+The Decision Tree
+• Does a completed Deep Scan result exist for this trip's current itinerary_hash? → Surface it immediately with a timestamp and a calm note that this is a prior result.
+• No prior result exists? → Surface Quick Scan coverage summary (cached or live, depending on mode) as a fallback, labeled "Coverage overview — Deep Scan unavailable right now."
+• In both cases: show a queue option — "We'll run your full Deep Scan when service resumes. You'll be notified." Credits are NOT consumed until the scan actually runs.
+ 
+Credits are never consumed for a blocked scan. The credit is consumed only when the Deep Scan job completes successfully.
+ 
+What the Traveler Sees
+Approved copy (when cached result exists): "Your Deep Scan from [date] is available below. We're temporarily limiting new scans due to high demand — your credits are safe and your scan will run automatically when things settle."
+ 
+Approved copy (no cached result): "We're temporarily limiting new scans due to high demand. Your coverage overview is below. Your Deep Scan credits are safe — tap 'Queue Scan' and we'll run it automatically when things settle."
+ 
+PROHIBITED: "Service unavailable." / "Try again later." / "Deep Scan is blocked." / Any language that implies the credit was spent or lost.
+ 
+Behavioral Invariants — Q4
+I-59	PROTECTIVE mode never consumes a Deep Scan credit. Credits are consumed only on successful job completion.
+I-60	When a Deep Scan is blocked, any prior completed result for the same itinerary_hash is surfaced immediately with a clear timestamp.
+I-61	A scan queue option is always offered when a Deep Scan is blocked. The queue promise is honored: the scan runs when PROTECTIVE mode lifts.
+I-62	The traveler is never shown a bare error. Fallback content (cached result or Quick Scan summary) is always present when a Deep Scan is unavailable.
+ 
+
+
+3.2.33.E — Q5: The Archived Trip with a Pending Claim
+Q5 — The Archived Trip with a Pending Claim
+RESOLUTION: RESOLVED — Warn and require explicit acknowledgment, Claim survives in accessible limbo
+ 
+Core Rule: The platform warns, but does not block. The traveler decides.
+A traveler who wants to archive a trip with a submitted claim has a valid reason to do so — they may be done with the platform's help, they may want to clean up their workspace, or they may have given up. The platform respects that decision. It does not block. It surfaces a calm, factual warning and requires explicit acknowledgment before proceeding.
+ 
+The Warning Modal
+Approved copy: "This trip has an active claim in progress. Archiving won't delete your claim or evidence — you can still access them from your claims history. Your claim will remain open until you record an outcome or mark it abandoned. Archive this trip?"
+ 
+The modal has two buttons: "Archive trip" (proceeds) and "Keep active" (cancels). There is no third option. The traveler makes the choice explicitly.
+ 
+What Happens to the Claim
+The Claim object is not automatically abandoned when the trip is archived. It enters a claim_status of "submitted_by_traveler" (or whatever its current status is) and remains there. The trip's archived_at timestamp is set. The Claim continues to exist and is accessible via Claims History, not via the archived trip.
+ 
+• Claims History is a platform-level view, not trip-scoped. It shows all claims regardless of trip archive status.
+• The Founder can see all claims on archived trips via the FOCL claims view.
+• Support can read but cannot mutate claims on archived trips.
+• The traveler can record an outcome on the claim at any time, even after trip archival.
+ 
+Behavioral Invariants — Q5
+I-63	Archiving a trip with an active Claim is permitted. It is never silently blocked.
+I-64	A warning modal is shown before archiving a trip with an active Claim. The warning is factual, not alarming. Explicit confirmation is required.
+I-65	A Claim is never automatically abandoned on trip archival. The claim_status is not changed by the archive action.
+I-66	Claims are accessible via Claims History regardless of their trip's archive status. Claims are never hidden.
+ 
+
+
+3.2.33.F — Q6: The Multi-Leg Trip and Incident Jurisdiction
+Q6 — Multi-Leg Trip and Incident Jurisdiction
+RESOLUTION: RESOLVED — Physical location governs incident; policy jurisdiction governs benefit evaluation; both displayed transparently
+ 
+Core Rule: Jurisdiction is layered, not singular
+A trip passing through US, UK, and France — where an incident occurs in the UK, but the policy governs US — does not have a single governing jurisdiction. It has layers. The platform surfaces each layer transparently and does not resolve the ambiguity on behalf of the traveler. That is a legal question. The platform's role is to display all three layers clearly and flag where they conflict.
+ 
+The Three Layers
+• Physical incident jurisdiction: UK (where the disruption occurred). Governs statutory passenger rights — EU261 if UK has adopted equivalent post-Brexit, which it has via the retained EU law framework.
+• Policy governing jurisdiction: US (as stated in governing_jurisdiction). Governs which law the insurer uses to interpret the policy.
+• Trip jurisdiction set: US, UK, France (all three countries the trip passes through). Governs which regulatory overlays are shown.
+ 
+What the Coverage Graph Does
+The Coverage Graph uses physical incident location to determine which statutory rights apply. EU261 / UK261 equivalent is surfaced for the UK incident regardless of the traveler's nationality or the policy's governing jurisdiction. The policy benefit evaluation uses the policy's governing_jurisdiction for benefit clause interpretation.
+ 
+Where these conflict — e.g., a US policy excludes something that UK statute requires the carrier to provide — the platform surfaces both and labels them clearly: "Your airline has a statutory obligation under UK aviation law" vs "Your insurance policy governs under US law." The traveler is shown both. The platform does not tell them which takes precedence.
+ 
+The platform never resolves multi-jurisdiction conflicts with a single deterministic answer. It labels each layer, surfaces both, and directs the traveler to relevant authorities for legal questions.
+ 
+Behavioral Invariants — Q6
+I-67	Physical incident location governs statutory rights evaluation. The traveler's policy jurisdiction does not override statutory rights at the incident location.
+I-68	Multi-jurisdiction conflicts are surfaced transparently with each layer labeled. The platform never collapses layers into a single verdict.
+ 
+
+
+3.2.33.G — Q7: The Voice Narration Conflict
+Q7 — The Voice Narration Conflict
+RESOLUTION: RESOLVED — Proposal model, user chooses Replace or Add Both, no auto-deletion
+ 
+Core Rule: Voice is a proposal, never an authority over confirmed data
+This is already the platform's foundational voice doctrine (Section 7.4 and Section 5.0). When a user narrates "I want to fly Paris to Barcelona on June 10 instead of Prague," the system detects a conflict with a confirmed segment and never auto-resolves it. The narration creates a proposal, not a command.
+ 
+The Conflict Detection Flow
+• User narrates: "Paris to Barcelona June 10 instead of Prague"
+• System parses: detects new segment (PAR→BCN, June 10) and a replacement intent ("instead of Prague")
+• System finds the confirmed PAR→PRG segment
+• Proposal screen appears with two clear options:
+ 
+"Replace Prague with Barcelona"
+Marks PAR→PRG segment as cancelled. Creates PAR→BCN segment. Itinerary version increments.	"Add Barcelona alongside Prague"
+Creates PAR→BCN as an additional segment. Both segments remain. Route normalization flags the overlap as an UnresolvedItem.
+ 
+• User chooses Replace → segment_status on PAR→PRG set to "cancelled" (not deleted). PAR→BCN created. Emits route_segment_cancelled and route_segment_added events.
+• User chooses Add Both → both segments exist. Route normalization creates an UnresolvedItem: "Two segments depart from Paris on June 10 — which is your primary route?" The unresolved item blocks readiness confirmation until resolved.
+• User taps "Start over" on the proposal screen → the entire narration is discarded. No segments are changed.
+ 
+Cancelled Segments vs Deleted Segments
+Cancelled segments are never deleted. They are marked segment_status = "cancelled" and remain in the data model for audit trail and potential reinstatement. The route editor shows cancelled segments as crossed-out with a "Restore" option. Deleted segments are not a concept in this system — the soft-cancel pattern applies always.
+ 
+
+
+3.2.33.H — Q8: The Readiness Gate and Unresolved Items
+Q8 — The Readiness Gate and Unresolved Items
+RESOLUTION: RESOLVED — Two-tier: critical blockers vs advisory warnings. Traveler acknowledges warnings, cannot bypass blockers.
+ 
+Core Rule: Unresolved items are tiered
+Not all unresolved items are equal. The system distinguishes critical blockers (missing return date with flights booked past the departure date) from advisory warnings (connection buffer is tight but legally within airline operating minimums). The traveler can proceed through warnings with explicit acknowledgment. They cannot bypass blockers.
+ 
+The Two Tiers
+Tier	Examples	Traveler Action
+BLOCKER — cannot proceed	Missing return date with booked outbound flight. Two segments with identical departure that cannot both be true. Invalid dates (return before departure).	Must resolve before "Confirm itinerary" is enabled.
+WARNING — can proceed with acknowledgment	Connection buffer under 60 minutes (tight but within airline operating minimums). No return date (traveler may have one-way). Single segment with no policy attached.	Acknowledge warning → "Confirm anyway" becomes enabled.
+ 
+Connection Buffer — Specifically
+The connection buffer scenario from Q8 is a WARNING, not a BLOCKER. An airline may operate with a 45-minute minimum connection time. The platform flags it: "Your Paris → Prague connection is 48 minutes — this is within airline minimums but tight if your first flight is delayed." The traveler acknowledges and proceeds. The platform does not block them from confirming their own itinerary.
+ 
+
+
+3.2.33.I — Q9: Activity Suggestion Rejection and Creator Discovery
+Q9 — Activity Suggestion Rejection and Creator Discovery
+RESOLUTION: RESOLVED — Independent systems. Rejection is session-scoped, not persistent. No cross-system suppression.
+ 
+Core Rule: No creepy tracking. Two separate systems with separate data.
+Activity suggestions in the Trip Draft engine (F-6.5.19) and Creator Discovery (F-6.6.11) are independent features with independent data models. A rejection in one system does not propagate to the other. This is intentional.
+ 
+The Resolution
+When a user rejects "Visit Senso-ji Temple" in their trip draft — because they've already been there — that rejection is stored on the ActivityCandidate record as decision = "rejected" with the reason captured if volunteered. It applies to the current draft session's activity suggestions only.
+ 
+Creator Discovery is a separate browseable surface. A user searching "temples in Tokyo" sees Senso-ji in Creator Discovery because that feature does not read ActivityCandidate decisions. The user searching for temples may be researching for someone else, may have changed their mind, or may want to show it to a travel companion.
+ 
+Activity rejection decisions are draft-scoped. They are never used to filter or suppress results in Creator Discovery, Search, or any other platform surface.
+ 
+The line between helpful memory and unwanted tracking: the platform remembers what you've decided within a workflow (your trip draft). It does not build a profile of "places this user dislikes" that follows them across the platform. That is the line.
+ 
+
+
+3.2.33.J — Q10: Group Trip Draft Collaboration
+Q10 — Group Trip Draft Collaboration
+RESOLUTION: RESOLVED — Suggestion queue for non-co-organizers. No real-time conflict resolution at MVP. Last-confirmed-wins for co-organizers.
+ 
+Core Rule: Permissions govern contribution; proposal model governs conflicts
+Group trip collaboration at MVP uses a two-tier model. Co-organizers can edit directly (with the standard proposal → confirm loop). Non-co-organizer participants submit suggestions that go into a queue for the organizer to approve or reject.
+ 
+Bob Cannot Add a Segment Directly — Unless Made a Co-Organizer
+If Alice has not granted Bob co-organizer status, Bob's attempt to add a segment goes into a suggestion queue. Bob sees: "Segment suggestion submitted — Alice will review." Alice sees a notification and an inbox item: "Bob suggested adding [segment]. Accept or decline?"
+ 
+If Alice grants Bob co-organizer status, Bob can add segments directly with the same proposal → confirm loop as Alice. Both are subject to the same narration conflict detection.
+ 
+Simultaneous Editing at MVP
+Real-time conflict resolution is not implemented at MVP. Simultaneous editing uses last-confirmed-wins: whichever co-organizer confirms their edit most recently wins. The system does not merge or flag in-progress edits. If Alice and Bob both edit the same segment simultaneously, the last confirm wins and the other's edit is quietly superseded.
+ 
+This is a known limitation for MVP. Phase 2 adds real-time conflict detection and a merge UI. The UnresolvedItems system handles post-facto conflicts that are detectable (two segments with identical departure slots).
+ 
+MVP collaboration model: Suggestions for non-co-organizers. Last-confirmed-wins for co-organizers. Real-time conflict resolution is Phase 2.
+ 
+
+
+3.2.34 — Migration Addenda (M-36 through M-40)
+The following migrations are required for the v1.1 objects (TripDraftVersion, RouteSegment, ActivityCandidate, UnresolvedItem, DraftNarrationVersion). These tables are referenced by the draft/ pages in the repo but do not yet exist as formal migrations. The RPCs ensure_trip_draft_version, upsert_route_segment, delete_route_segment, sync_trip_draft_activities, and sync_trip_draft_version_route_segments are called from the frontend but their backing tables must be verified against the migration chain.
+ 
+#	Migration	Changes	Status
+M-36	create_trip_draft_versions	Create trip_draft_versions table. FK to trips. Fields: draft_version_id, trip_id, account_id, draft_status (ENUM), version_number, title, destination_summary, departure_date, return_date, confirmed_at, confirmed_by, metadata.	�� Required
+M-37	create_route_segments	Create route_segments table. FK to trips and optionally draft_version_id. Fields: segment_id, trip_id, draft_version_id, origin_location, destination_location, travel_mode, carrier_name, departure_time, arrival_time, segment_order, segment_status (ENUM: active/cancelled), reference, notes. Add upsert_route_segment and delete_route_segment RPCs.	�� Required
+M-38	create_activity_candidates	Create activity_candidates table. FK to draft_version_id. Fields: candidate_id, draft_version_id, trip_id, activity_name, activity_category, confidence_score, source_type, decision (accepted/rejected/deferred), source_reference_id (FK to creator_videos, Phase 2).	�� Required
+M-39	create_unresolved_items	Create unresolved_items table. FK to draft_version_id. Fields: item_id, draft_version_id, trip_id, item_type, item_title, description, severity (critical/warning), resolved_at, resolved_by, resolution_note.	�� Required
+M-40	create_draft_narration_versions	Create draft_narration_versions table. FK to draft_version_id. Fields: narration_id, draft_version_id, trip_id, transcript_raw (IMMUTABLE), transcript_normalized (IMMUTABLE), parse_attempt (IMMUTABLE), parse_status (ENUM), confirmed_at, confirmed_by. Add immutability trigger for transcript fields. Add ensure_trip_draft_version and sync_trip_draft_version_route_segments RPCs.	�� Required
+ 
+3.2.35 — Platform State Summary (April 2026)
+This section provides a current-state summary of the platform for sprint planning purposes. It is not a to-do list. It is a calibrated assessment of what is built, what is specced-but-not-built, and what is outstanding.
+ 
+What is built and wired
+• Authentication: Supabase + Netlify, hydration errors resolved, sign-in working
+• Trips table: Renamed from projects, all v1.0 fields present, maturity_state ENUM live
+• Core tables: policies, policy_versions, incidents, evidence, claims, contacts, coverage_nodes, coverage_graph_snapshots, scan_jobs, scan_credit_ledger, jurisdiction_references — all exist in migrations
+• Governance substrate: precheck_mutation_guard, emit_event, event_ledger, feature_registry, operational modes — all live
+• Voice narration: OpenRouter + Claude Haiku, 7 context types, wired to Supabase
+• Claim routing RPC: route_claim exists, auth-bound (A1 migration), routing_recommendations table exists
+• Draft UI routes: /draft, /draft/route, /draft/activities, /draft/readiness, /draft/voice, /draft/unresolved — all pages exist
+• DeepScanPanel.tsx: wired to initiate_deep_scan RPC, axis connector framework present
+• Section 5.0 flows: Splash → Account creation → Terms → Voice signal → Anchor choice — all documented and splash page is built
+• FOCL: 8 pages live (/focl, /focl/attention, /focl/features, /focl/inbox, /focl/ops, /focl/status, /focl/financials, /focl/notifications)
+• Security: 129 migrations, RLS policies, SECURITY DEFINER RPCs, auth binding on all sensitive RPCs
+• F-6.5.17 corpus pipeline: coverage_catalog, coverage_catalog_clauses, extraction_cost_ledger all aligned to spec v3, Chase Reserve clauses seeded
+ 
+What is specced but not yet built (Cursor queue)
+• M-36 through M-40: trip_draft_versions, route_segments, activity_candidates, unresolved_items, draft_narration_versions — RPCs called from frontend but tables not in formal migration chain
+• F-6.5.13 Deep Scan: 11-axis connectors need population; panel exists, axis logic is stub-level
+• F-6.5.14 Claim Packet Generator: ClaimBuilderScreen.jsx uses mock data; ReportLab PDF generation not connected to Next.js layer
+• F-6.5.2 Coverage Graph: overlap resolution algorithm unimplemented; computeCoverageGraphForTrip() is a scaffold
+• F-6.5.8 Active Disruption Options Engine: spec complete, no UI surface built yet
+• F-6.6.2 PSM: enter_protective_safety_mode() RPC live; no founder-facing UI surface for activation/status
+• STANDARD and PREMIUM subscription tiers: deleted by f1 migration, no replacement DB structure for frequent traveler path
+ 
+What needs a spec before build can begin
+• Pre-trip coverage gap identification + plan recommendation engine (most important unbuilt revenue feature)
+• Visa Window Intelligence: cultural/legal restrictions layer with date-aware events (Nyeji, Ramadan, Shabbat, dry days) + overlap detection vs route_segments
+• F-6.5.15 Notification Engine: no spec, not in feature registry
+ 
+Legal and compliance
+• Terms of Service: Draft v1.0 (Section 8 — Security & Account Protection only). Full ToS covering all platform behaviors not yet written. Requires legal review before commercial launch.
+• Privacy Policy: Exists as a marketing page (/privacy) and referenced in onboarding. Full GDPR-compliant policy document status unclear — needs verification against Section 8.9 erasure protocol.
+• Section 8.9 Data Erasure Protocol: Written and in zip (~878 words). EU/EEA launch no longer blocked by this section alone, but 8.2/8.3 encryption spec is still absent.
+• Section 8.3 Encryption Specification: Not yet written. raw_artifact_path storage, evidence files, and Contact PII fields lack a formal encryption spec. This is a production risk.
+ 
+ 
+ 
+Section 3.2 — Core Data Objects  |  Amendment v1.2  |  April 7, 2026  |  Binding Doctrine
+10 Narrative Questions Resolved  ·  23 Behavioral Invariants (I-46–I-68)  ·  5 Migrations Required (M-36–M-40)
+
+
