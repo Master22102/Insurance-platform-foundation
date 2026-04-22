@@ -159,6 +159,12 @@ export default function NewTripPage() {
 
   const [travelers, setTravelers] = useState<{ name: string; nationality: string }[]>([{ name: '', nationality: 'US' }]);
 
+  const [adults, setAdults] = useState(1);
+  const [children, setChildren] = useState(0);
+  const [infants, setInfants] = useState(0);
+  const [childAges, setChildAges] = useState<number[]>([]);
+  const [homeBase, setHomeBase] = useState('');
+
   const [error, setError] = useState('');
   const [createdTripId, setCreatedTripId] = useState('');
   const [isCreating, setIsCreating] = useState(false);
@@ -192,6 +198,16 @@ export default function NewTripPage() {
 
     const travelersMetadata = tripType === 'group' ? travelers.filter((t) => t.name || t.nationality) : undefined;
 
+    const metadata: any = {};
+    if (travelersMetadata && travelersMetadata.length > 0) metadata.travelers = travelersMetadata;
+    if (homeBase.trim()) metadata.home_base = homeBase.trim();
+    metadata.composition = {
+      adults,
+      children,
+      infants,
+      child_ages: childAges,
+    };
+
     const { data, error: rpcError } = await supabase.rpc('create_trip', {
       p_trip_name: name.trim(),
       p_account_id: user!.id,
@@ -202,7 +218,7 @@ export default function NewTripPage() {
       p_destination_summary: destination.trim() || null,
       p_departure_date: departureDate || null,
       p_return_date: returnDate || null,
-      p_metadata: travelersMetadata ? { travelers: travelersMetadata } : null,
+      p_metadata: Object.keys(metadata).length > 0 ? metadata : null,
     });
 
     if (rpcError || !data?.success) {
@@ -212,7 +228,38 @@ export default function NewTripPage() {
       return;
     }
 
-    setCreatedTripId(data.trip_id);
+    const newTripId = data.trip_id;
+
+    // Persist composition fields directly (create_trip RPC does not accept these as first-class parameters)
+    await supabase
+      .from('trips')
+      .update({
+        adults_count: adults,
+        children_count: children,
+        infant_count: infants,
+        child_ages: childAges.length > 0 ? childAges : null,
+      })
+      .eq('trip_id', newTripId)
+      .eq('account_id', user!.id);
+
+    // Mark anchor state as first_trip on first trip creation
+    try {
+      const { data: existing } = await supabase
+        .from('account_anchor_state')
+        .select('anchor_path')
+        .eq('account_id', user!.id)
+        .maybeSingle();
+      if (!existing) {
+        await supabase.rpc('upsert_anchor_state', {
+          p_account_id: user!.id,
+          p_anchor_path: 'first_trip',
+        });
+      }
+    } catch {
+      // non-fatal; anchor state is best-effort
+    }
+
+    setCreatedTripId(newTripId);
     setIsCreating(false);
     setPhase('done');
   }
@@ -388,6 +435,77 @@ export default function NewTripPage() {
                   <label style={labelStyle}>Return date</label>
                   <input type="date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} min={departureDate || undefined} style={inputStyle} />
                 </div>
+              </div>
+
+              <div>
+                <label style={labelStyle}>Home base</label>
+                <input
+                  type="text"
+                  value={homeBase}
+                  onChange={(e) => setHomeBase(e.target.value)}
+                  placeholder="City you're departing from"
+                  style={inputStyle}
+                />
+                <p style={{ fontSize: 11, color: '#aaa', margin: '6px 0 0', lineHeight: 1.5 }}>
+                  Used to calibrate statutory rights and connection intelligence.
+                </p>
+              </div>
+
+              <div>
+                <label style={labelStyle}>Travelers</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+                  {([
+                    { key: 'adults', label: 'Adults', value: adults, set: setAdults, min: 1 },
+                    { key: 'children', label: 'Children', value: children, set: setChildren, min: 0 },
+                    { key: 'infants', label: 'Infants', value: infants, set: setInfants, min: 0 },
+                  ] as const).map((c) => (
+                    <div key={c.key}>
+                      <p style={{ fontSize: 11, color: '#888', margin: '0 0 4px', fontWeight: 500 }}>{c.label}</p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, border: '1px solid #ddd', borderRadius: 8, padding: '4px 6px', background: 'white' }}>
+                        <button
+                          type="button"
+                          onClick={() => c.set(Math.max(c.min, c.value - 1))}
+                          style={{ width: 26, height: 26, border: 'none', background: '#f7f8fa', borderRadius: 6, cursor: 'pointer', color: '#555', fontSize: 14 }}
+                        >−</button>
+                        <span style={{ flex: 1, textAlign: 'center', fontSize: 14, fontWeight: 600, color: '#1A2B4A' }}>{c.value}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const nv = c.value + 1;
+                            c.set(nv);
+                            if (c.key === 'children') {
+                              setChildAges((prev) => [...prev, 0]);
+                            }
+                          }}
+                          style={{ width: 26, height: 26, border: 'none', background: '#f7f8fa', borderRadius: 6, cursor: 'pointer', color: '#555', fontSize: 14 }}
+                        >+</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {children > 0 && (
+                  <div style={{ marginTop: 10, padding: '10px 12px', background: '#f7f8fa', borderRadius: 8, border: '1px solid #eee' }}>
+                    <p style={{ fontSize: 11, color: '#888', margin: '0 0 6px', fontWeight: 500 }}>Child ages (optional)</p>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {Array.from({ length: children }).map((_, i) => (
+                        <input
+                          key={i}
+                          type="number"
+                          min={0}
+                          max={17}
+                          value={childAges[i] ?? ''}
+                          onChange={(e) => {
+                            const next = [...childAges];
+                            next[i] = parseInt(e.target.value || '0', 10) || 0;
+                            setChildAges(next);
+                          }}
+                          placeholder={`Child ${i + 1}`}
+                          style={{ width: 78, padding: '6px 8px', fontSize: 13, border: '1px solid #ddd', borderRadius: 6, background: 'white' }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>

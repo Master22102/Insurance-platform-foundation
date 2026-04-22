@@ -109,13 +109,22 @@ export default function ScanPage() {
 
   return (
     <div style={{ maxWidth: 580, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 20 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1A2B4A', margin: '0 0 6px', letterSpacing: '-0.3px' }}>
           Quick Scan
         </h1>
         <p style={{ fontSize: 14, color: '#888', margin: 0, lineHeight: 1.5 }}>
           Upload a travel insurance policy, credit card benefit guide, or airline contract. We'll show you what coverage rules we find.
         </p>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20, padding: 4, background: '#f7f8fa', border: '1px solid #eaeaea', borderRadius: 10, width: 'fit-content' }}>
+        <span style={{ padding: '6px 14px', background: 'white', color: '#1A2B4A', borderRadius: 7, fontSize: 13, fontWeight: 600, boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
+          Quick Scan
+        </span>
+        <Link href="/deep-scan" style={{ padding: '6px 14px', color: '#666', borderRadius: 7, fontSize: 13, fontWeight: 500, textDecoration: 'none' }}>
+          Deep Scan
+        </Link>
       </div>
 
       {!atCap && (

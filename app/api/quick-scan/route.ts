@@ -4,6 +4,7 @@ import { join } from 'path';
 import { randomUUID } from 'crypto';
 import { processDocument } from '@/lib/document-intelligence';
 import { createServerClient } from '@/lib/supabase/server';
+import { computeItineraryHash, fingerprintBuffer } from '@/lib/itinerary-hash';
 
 const FAMILY_CATEGORY_MAP: Record<string, string> = {
   'delay-threshold-pass':       'Trip Delay',
@@ -28,13 +29,53 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
+    const tripId = (formData.get('trip_id') as string | null) || null;
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
-
     if (file.size > 10 * 1024 * 1024) {
       return NextResponse.json({ error: 'File too large. Maximum size is 10MB.' }, { status: 400 });
+    }
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const docFingerprint = fingerprintBuffer(buffer);
+
+    let tripParts: any = {};
+    if (tripId) {
+      const { data: tripRow } = await supabase
+        .from('trips')
+        .select('destination_summary, departure_date, return_date, travel_mode_primary, adults_count, children_count, infant_count')
+        .eq('trip_id', tripId)
+        .maybeSingle();
+      tripParts = tripRow || {};
+    }
+
+    const itineraryHash = computeItineraryHash({
+      destination: tripParts.destination_summary,
+      departure_date: tripParts.departure_date,
+      return_date: tripParts.return_date,
+      travel_mode: tripParts.travel_mode_primary,
+      adults_count: tripParts.adults_count,
+      children_count: tripParts.children_count,
+      infant_count: tripParts.infant_count,
+      document_fingerprint: docFingerprint,
+    });
+
+    const hashKey = `${user.id}:${itineraryHash}`;
+    const { data: cached } = await supabase
+      .from('quick_scan_results')
+      .select('computed_payload, computed_at')
+      .eq('hash_key', hashKey)
+      .maybeSingle();
+
+    if (cached?.computed_payload) {
+      return NextResponse.json({
+        ...(cached.computed_payload as any),
+        cache_hit: true,
+        computed_at: cached.computed_at,
+        itinerary_hash: itineraryHash,
+      });
     }
 
     const { data: profile } = await supabase
@@ -42,7 +83,6 @@ export async function POST(req: NextRequest) {
       .select('scan_credits_remaining')
       .eq('id', user.id)
       .maybeSingle();
-
     const creditsRemaining = (profile as any)?.scan_credits_remaining ?? 0;
     if (creditsRemaining <= 0) {
       return NextResponse.json({ error: 'No scan credits remaining.' }, { status: 403 });
@@ -50,7 +90,6 @@ export async function POST(req: NextRequest) {
 
     const ext = file.name.split('.').pop()?.toLowerCase() || 'tmp';
     const tmpPath = join('/tmp', `${randomUUID()}.${ext}`);
-    const buffer = Buffer.from(await file.arrayBuffer());
     await writeFile(tmpPath, buffer);
 
     let result;
@@ -105,7 +144,7 @@ export async function POST(req: NextRequest) {
       promotedRules.length >= 5 ? 'high' :
       promotedRules.length >= 2 ? 'medium' : 'low';
 
-    return NextResponse.json({
+    const payload = {
       document_name: file.name,
       quality,
       coverage_categories: coverageCategories,
@@ -113,6 +152,19 @@ export async function POST(req: NextRequest) {
       documentation_hints: docHints.filter(Boolean),
       expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       raw_rule_count: promotedRules.length,
+    };
+
+    await supabase.rpc('upsert_quick_scan_result', {
+      p_account_id: user.id,
+      p_itinerary_hash: itineraryHash,
+      p_payload: payload,
+      p_trip_id: tripId,
+    });
+
+    return NextResponse.json({
+      ...payload,
+      cache_hit: false,
+      itinerary_hash: itineraryHash,
     });
   } catch (err) {
     console.error('[quick-scan]', err);

@@ -7,6 +7,16 @@ import { useAuth } from '@/lib/auth/auth-context';
 
 const NAV_LINKS = [
   {
+    label: 'Right Now',
+    href: '/dashboard',
+    icon: (active: boolean) => (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke={active ? '#2E5FA3' : '#888'} strokeWidth="1.7"/>
+        <path d="M12 7v5l3 2" stroke={active ? '#2E5FA3' : '#888'} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
     label: 'Trips',
     href: '/trips',
     icon: (active: boolean) => (
