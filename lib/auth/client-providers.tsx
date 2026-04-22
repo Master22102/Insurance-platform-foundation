@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import SplashGate from '@/components/SplashGate';
 
 const AuthProvider = dynamic(
   () => import('@/lib/auth/auth-context').then((mod) => mod.AuthProvider),
@@ -8,5 +9,9 @@ const AuthProvider = dynamic(
 );
 
 export default function ClientProviders({ children }: { children: React.ReactNode }) {
-  return <AuthProvider>{children}</AuthProvider>;
+  return (
+    <AuthProvider>
+      <SplashGate>{children}</SplashGate>
+    </AuthProvider>
+  );
 }

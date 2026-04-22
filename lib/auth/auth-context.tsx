@@ -88,7 +88,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase.from('user_profiles').select('*').eq('user_id', userId).maybeSingle();
-      if (data && !error) setProfile(data as UserProfile);
+      if (data && !error) {
+        setProfile(data as UserProfile);
+        // Shadow cookie for edge middleware (FOCL 404-hide). Not a security
+        // boundary — RPCs still enforce is_founder on every write.
+        if (typeof document !== 'undefined') {
+          document.cookie = `wf_tier=${(data as UserProfile).membership_tier}; path=/; SameSite=Lax; max-age=3600`;
+        }
+      }
     } catch {}
   };
 
@@ -139,6 +146,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setProfile(null);
+    if (typeof document !== 'undefined') {
+      document.cookie = 'wf_tier=; path=/; SameSite=Lax; max-age=0';
+    }
   };
   const refreshProfile = async () => { if (user) await fetchProfile(user.id); };
 
