@@ -1,0 +1,285 @@
+INTERPRETIVE TRACEABILITY, REPRODUCIBILITY & DRIFT GOVERNANCE
+(AI Strategy Layer — Deterministic Contract)
+
+9.4.0 Purpose & Scope
+This section defines the binding, deterministic contract governing:
+• Interpretive output reproducibility
+ • Clause lineage integrity
+ • Confidence enum binding (9.2)
+ • Structural order compliance (7.8)
+ • Dual-branch causality handling
+ • Ambiguity categorization
+ • Drift detection inputs (F-6.5.16)
+ • Founder audit replay capability
+ • Non-mutation guarantees
+This section does NOT redefine:
+• User-facing tone (7.2)
+ • Structural communication order (7.8)
+ • Confidence semantics (9.2)
+ • Permissioning and ledger immutability (8.4)
+ • Stress test definitions (15.0 / 15.1)
+It binds those layers into enforceable architecture.
+
+9.4.1 Core Determinism Doctrine
+Every interpretive output must be:
+Clause-bound
+ Policy-hash-bound
+ Model-version-bound
+ Constraints-profile-bound
+ Replayable
+ Indexable
+ Immutable
+Interpretive logic must never:
+• Collapse alternate branches silently
+ • Mutate historical outputs
+ • Drift structurally without detection
+ • Present probabilistic inference
+
+9.4.2 Interpretive Trace Record (ITR) — Required Schema
+Each interpretive output must generate a single immutable ITR.
+9.4.2.a Identity
+●interpretive_trace_id (UUID)
+
+●case_id (UUID)
+
+●created_at (UTC)
+
+9.4.2.b Model & Constraints Anchors
+●model_release_id
+
+●routing_profile_id
+
+●constraints_profile_id
+
+●clause_extraction_version
+
+9.4.2.c Deterministic Anchors
+●input_fingerprint (hash)
+
+●output_fingerprint (hash)
+
+●decision_fingerprint (hash of full decision payload + citations + constraints profile)
+
+Decision fingerprint MUST include:
+• Canonical output JSON
+ • clause_ids_referenced
+ • policy_hash_id
+ • confidence_label
+ • constraints_profile_id
+ • routing_profile_id
+ • structural_order_flag
+
+9.4.3 Structural Order Enforcement (Binding to 7.8)
+Each interpretive output must validate structural order defined in 7.8:
+Recorded Fact
+ Clause Reference
+ Structural Alignment
+ Next Step
+ Boundary Statement
+Fields:
+●structural_order_ok (boolean)
+
+●boundary_statement_present (boolean)
+
+If violation detected:
+Emit:
+ deterministic_structure_violation
+Release gating enforced by Section 15.
+
+9.4.4 Clause Lineage Integrity
+Each clause reference must include:
+●clause_id
+
+●policy_hash_id
+
+●canonical_text_hash
+
+●section_path
+
+●clause_type
+
+Clause catalog is append-only.
+If product version mismatch detected:
+Emit:
+ policy_version_mismatch_detected
+
+9.4.5 Causality Handling — Dual-Branch Doctrine
+When:
+causality_status = UNKNOWN
+System must:
+1.Evaluate at least two internal branches.
+
+2.Log both branches.
+
+3.Present neutral dependency framing externally.
+
+Required ITR Fields
+dual_branch_evaluation: boolean
+
+branch_A:
+   assumed_causality_type
+   structural_alignment_category
+   confidence_enum
+
+branch_B:
+   assumed_causality_type
+   structural_alignment_category
+   confidence_enum
+
+active_user_presented_path:
+   NEUTRAL_DEPENDENCY_PRESENTATION | BRANCH_A | BRANCH_B
+Rules:
+• dual_branch_evaluation must be true for UNKNOWN causality.
+ • active_user_presented_path defaults to NEUTRAL_DEPENDENCY_PRESENTATION.
+ • No silent collapse permitted.
+Stress validation required under Section 15 surge scenario.
+
+9.4.6 Ambiguity Taxonomy & Logging
+Each interpretive output must record ambiguity explicitly.
+Fields
+●ambiguity_flag (boolean)
+
+●ambiguity_category (array<enum>)
+
+●undefined_term_reference (optional string)
+
+ambiguity_category enum
+UNDEFINED_TERM
+ CROSS_REFERENCE_MISSING
+ SECONDARY_POSITIONING_CONFLICT
+ TRIGGER_DEPENDENCY_UNCLEAR
+ EXCLUSION_SCOPE_OVERBROAD
+ INTERNAL_POLICY_CONTRADICTION
+Purpose:
+• Enables IDDO correlation
+ • Enables parsing model drift detection
+ • Converts ambiguity into structured signal
+Ambiguity does NOT automatically trigger clarification.
+Escalation governed by 7.8 + eligibility impact logic.
+
+9.4.7 Confidence Enum Binding (9.2)
+Confidence enums must match 9.2 definitions exactly.
+No numeric probability exposure permitted.
+Each ITR must record:
+●confidence_label
+
+●confidence_version
+
+
+9.4.8 Confidence Reversal Guard
+If confidence transitions between:
+HIGH_STRUCTURAL_ALIGNMENT
+ or
+ CONDITIONAL_ALIGNMENT
+→ to:
+CONFLICT_PRESENT
+ or
+ INSUFFICIENT_DATA
+System must:
+1.Generate new ITR.
+
+2.Surface explicit explanation of change cause.
+
+3.Require soft acknowledgment before routing continues.
+
+Soft acknowledgment means:
+User taps “Continue” after reading update.
+No panic modal.
+ No hard block.
+ But no silent continuation.
+Event:
+confidence_structural_reversal_ack_required
+
+9.4.9 Indexability Requirements
+Interpretive outputs must expose structured indexable fields:
+• disruption_type
+ • causality_category
+ • benefit_type
+ • documentation_completeness_state
+ • confidence_label
+ • ambiguity_category
+ • dual_branch_evaluation
+ • region
+ • operational_mode
+Free-text only outputs prohibited.
+
+9.4.10 Drift Observatory Integration (F-6.5.16)
+Section 9.4 supplies IDDO with:
+• Confidence distribution snapshots
+ • Ambiguity category distribution
+ • Structural order violation rate
+ • Dual-branch frequency rate
+ • Confidence reversal rate
+Drift threshold:
+≥10% absolute deviation
+ ≥250 cases
+ ≥7 sustained days
+Baseline adaptation frozen during:
+• Declared surge periods
+ • Structural anomaly windows
+Baseline establishment requires:
+• Minimum 30 stable days
+ • Minimum case volume threshold
+ • Variance within acceptable range
+Surge periods excluded from baseline formation.
+
+9.4.11 Interpretive Drift Dossier (IDD)
+Upon Level 2 advisory:
+System must generate Drift Dossier including:
+• metric_key
+ • baseline_value
+ • rolling_value
+ • deviation
+ • duration
+ • case_volume
+ • correlated model release
+ • correlated policy version shifts
+ • ambiguity spike correlation
+ • dual-branch rate shifts
+Founder step-up required for:
+• Baseline reset
+ • Threshold modification
+All actions logged under 8.4.
+
+9.4.12 Replay & Audit Mode
+Founder may:
+• Select interpretive_trace_id
+ • Replay deterministically using stored fingerprints
+ • Compare output versions
+ • View clause lineage
+ • View dual-branch record
+ • View ambiguity categories
+Replay is read-only.
+ Historical ITR immutable.
+
+9.4.13 Survivability Principle
+Drift detection must never:
+• Halt interpretive output
+ • Modify confidence silently
+ • Collapse dual-branch logic
+ • Alter clause lineage
+System must degrade gracefully under surge.
+
+9.4.14 Event Emissions (Required)
+interpretive_output_emitted
+ dual_branch_evaluation_logged
+ confidence_structural_reversal_ack_required
+ interpretive_non_determinism_detected
+ deterministic_structure_violation
+ policy_version_mismatch_detected
+ interpretive_drift_detected
+ baseline_snapshot_created
+ baseline_locked
+ interpretive_replay_executed
+All must comply with 8.4 immutable ledger doctrine.
+
+9.4.15 Final Doctrine
+Section 9.4 ensures:
+• Deterministic interpretation
+ • Branch transparency
+ • Ambiguity categorization
+ • Confidence stability
+ • Structural integrity
+ • Drift supervision
+ • Audit defensibility
+ • Surge survivability

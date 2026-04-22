@@ -1,0 +1,156 @@
+INSURANCE COMPARISON PLATFORM
+SECTION 9.5
+AI Agent Tiering & Fallback Governance
+Amendment to Section 9.x AI Strategy | Version 1.0 | March 2026
+
+9.5.0 — Purpose
+This section defines the routing logic between internal (self-hosted) and external (API) LLM agents. The platform uses a tiered approach: start with cheapest capable agent, escalate only when necessary, always have fallback.
+Goals:
+1.Cost optimization: Use internal LLM for 80%+ of workloads (cheaper)
+2.Quality assurance: Escalate to external LLMs for complex tasks (higher quality)
+3.Reliability: Always have fallback if any tier fails
+4.User-invisible: Tiering happens behind the scenes (consistent UX)
+This section binds to:
+●Section 12.9 (Internal LLM Architecture) — Infrastructure specs
+●Section 10.2 (Pricing) — Cost governance
+●Section 12.5 (Observability) — Performance monitoring
+
+9.5.1 — Agent Tier Definitions
+Tier 1: Internal LLM (Primary — 80%+ Usage)
+Model: Qwen 2.5-14B (self-hosted on A100 GPU)
+Cost: ~$0.001 per 1M tokens (electricity + depreciation)
+Use Cases:
+●Activity suggestions (simple inference)
+●Basic narration parsing (structured extraction)
+●Route segment proposal (from voice input)
+●Coverage clause Q&A (fine-tuned on policy corpus)
+Strengths: Lowest cost, data sovereignty, GDPR compliant
+Limitations: Weaker reasoning than GPT-4o/Claude Opus
+
+Tier 2: External LLM (Cheap) — Fallback & Escalation
+Models:
+●Gemini Flash 2.0 (Google) — Free tier available, fast
+●GPT-4o-mini (OpenAI) — $0.15 per 1M input tokens
+Cost: ~$0.15-0.30 per 1M tokens
+Use Cases:
+●Complex narration parsing (ambiguity resolution)
+●Multi-step reasoning (claim sequencing logic)
+●Fallback when internal LLM unavailable
+Strengths: Better reasoning than Tier 1, still cheap
+Limitations: External API (data leaves platform), slower than internal
+
+Tier 3: External LLM (Premium) — Specialty Tasks
+Models:
+●GPT-4o (OpenAI) — $2.50 per 1M input tokens
+●Claude Sonnet 4 (Anthropic) — $3 per 1M input tokens
+Cost: ~$2.50-5 per 1M tokens
+Use Cases:
+●Claim packet generation (requires professional language)
+●Edge case handling (unusual policy clauses, complex incidents)
+●Human-in-the-loop review (Founder disputes low confidence)
+Strengths: Frontier reasoning, best quality
+Limitations: Expensive, external API
+
+9.5.2 — Routing Logic (Decision Tree)
+[User Request] → [Classify Task]
+    ↓
+Is task simple? (activity suggestion, basic parsing)
+    YES → Route to Tier 1 (Internal LLM)
+    NO → Continue
+    ↓
+Is task medium complexity? (ambiguity resolution, multi-step)
+    YES → Route to Tier 2 (Gemini Flash / GPT-4o-mini)
+    NO → Continue
+    ↓
+Is task high complexity? (claim packet, edge case)
+    YES → Route to Tier 3 (GPT-4o / Claude Sonnet)
+
+Task Classification (automatic):
+●Simple: Input <500 tokens, structured output, no reasoning required
+●Medium: Input 500-2K tokens, requires disambiguation, multi-turn conversation
+●Complex: Input >2K tokens, requires professional language, legal/insurance domain
+
+9.5.3 — Confidence-Based Escalation
+After Tier 1 response, check confidence score:
+if tier1_confidence < 0.70:
+    # Low confidence → escalate to Tier 2
+    tier2_response = call_external_llm(tier2_model, prompt)
+    if tier2_confidence < 0.85:
+        # Still low → escalate to Tier 3
+        tier3_response = call_external_llm(tier3_model, prompt)
+        return tier3_response
+    return tier2_response
+return tier1_response
+
+Confidence Thresholds (FOCL-configurable):
+●Tier 1 → Tier 2 escalation: <0.70
+●Tier 2 → Tier 3 escalation: <0.85
+Events:
+●ai_tier_escalated (logs: from_tier, to_tier, reason, confidence_score)
+
+9.5.4 — Fallback Logic (Failure Handling)
+Scenario 1: Tier 1 (Internal LLM) Down
+Internal LLM unavailable (GPU failure, timeout)
+    ↓
+Fallback to Tier 2 (Gemini Flash)
+    ↓
+If Tier 2 down → Fallback to Tier 3 (GPT-4o)
+    ↓
+If all down → Degrade gracefully:
+  - Save transcript (immutable)
+  - Defer parsing (retry in 1 hour)
+  - Show user: "Didn't quite get that. Want to try again?"
+
+Events:
+●ai_fallback_triggered (logs: failed_tier, fallback_tier, reason)
+
+Scenario 2: External API Rate Limited
+Tier 2/3 API returns 429 (rate limit exceeded)
+    ↓
+Try alternative model in same tier:
+  - Gemini Flash → GPT-4o-mini
+  - GPT-4o → Claude Sonnet
+    ↓
+If all models rate limited → Queue request (retry in 60 seconds)
+    ↓
+If user-facing request → Show: "High traffic right now. Please try again in a moment."
+
+
+9.5.5 — Surge Behavior (PROTECTIVE Mode)
+Under PROTECTIVE mode (Section 3.0):
+Goal: Minimize cost during surge
+Rules:
+●Force Tier 1 only (internal LLM)
+●Disable escalation (even if confidence < 0.70)
+●Block Tier 3 (no premium API calls)
+●Tier 2 fallback only (if Tier 1 completely down)
+Trade-off: Lower quality AI responses during surge, but cost controlled.
+User-facing: No change (quality may be slightly lower, but still functional)
+
+9.5.6 — Cost Governance
+Daily Spending Limits (FOCL-configured):
+Tier	Model	Daily Limit	Alert Threshold
+Tier 1	Internal LLM	N/A (fixed compute)	GPU utilization >90%
+Tier 2	Gemini Flash / GPT-4o-mini	$100/day	>$80/day
+Tier 3	GPT-4o / Claude Sonnet	$50/day	>$40/day
+Hard Limits:
+●If Tier 2 limit exceeded → Force Tier 1 (even for medium tasks)
+●If Tier 3 limit exceeded → Block Tier 3 escalation
+●Emit: ai_spending_limit_exceeded
+
+9.5.7 — Observability
+Key Metrics:
+Metric	Type	Purpose
+ai_requests_by_tier	Counter	Track Tier 1 vs Tier 2 vs Tier 3 usage
+ai_cost_by_tier	Gauge	Daily spend per tier
+ai_escalations_total	Counter	How often Tier 1 → Tier 2 → Tier 3
+ai_fallback_total	Counter	How often fallback triggered
+ai_confidence_score	Histogram	Confidence distribution per tier
+Target Distribution:
+●Tier 1: 80%+ of requests
+●Tier 2: 15% of requests
+●Tier 3: <5% of requests
+
+Section 9.5 — AI Agent Tiering & Fallback Governance | Version 1.0 | March 2026
+Binding: Section 12.9 (Internal LLM), Section 10.2 (Cost), Section 3.0 (Surge Modes)
+Routing: Simple → Tier 1 | Medium → Tier 2 | Complex → Tier 3 | Confidence < 0.70 → Escalate

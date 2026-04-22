@@ -1,0 +1,244 @@
+9.2 — Confidence Labels & Uncertainty Language
+(AI Strategy Layer — Deterministic Output Governance)
+
+9.2.0 Purpose & Scope
+This section defines how the AI layer expresses certainty, uncertainty, ambiguity, and structural alignment strength when generating interpretive outputs.
+It governs:
+• How confidence levels are computed
+• How they are labeled
+• How they are displayed
+• When they are required
+• What they may not imply
+• How they interact with clause-bound logic
+This section does not govern:
+• Emotional tone (see 7.2 Calm Mode Language System)
+Insurance Comparison Platform P…
+
+• Output structural order (see 7.8 Deterministic Decision Communication Layer)
+SECTION 7.8 — DETERMINISTIC DEC…
+
+• Decision logic itself (see Sections 3.4 and 6.5.x)
+Section 3.4 Causality Model (Dr…
+
+• Logging or override governance (see 8.4)
+8.4 — Permissioning & Audit Logs
+This section ensures that AI-generated interpretations are:
+Deterministic
+Indexable
+Audit-safe
+Clause-bound
+Non-predictive
+Non-coercive
+
+9.2.1 Core Principle
+Confidence describes interpretive clarity, not outcome probability.
+Confidence must never imply:
+• Likelihood of payout
+• Likelihood of approval
+• Probability of denial
+• Legal enforceability
+• Administrative behavior
+Confidence reflects only:
+• Clause alignment clarity
+• Documentation completeness
+• Causality clarity
+• Structural conflict presence
+
+9.2.2 Confidence Label Set (Canonical Enum)
+All interpretive outputs must include one of the following structured labels:
+HIGH_STRUCTURAL_ALIGNMENT
+CONDITIONAL_ALIGNMENT
+AMBIGUOUS_INTERPRETATION
+DOCUMENTATION_INCOMPLETE
+CONFLICT_PRESENT
+INSUFFICIENT_DATA
+Enum list must be versioned under 9.2.
+No ad-hoc labels permitted.
+
+9.2.3 Label Definitions
+HIGH_STRUCTURAL_ALIGNMENT
+Used when:
+• Clause language clearly matches recorded facts
+• No exclusion detected in reviewed sections
+• Causality classification aligns
+• No structural conflict identified
+Plain-language rendering (UI-level formatting handled by 7.2):
+“This aligns with the stated criteria under the reviewed sections.”
+Must still include boundary statement (7.8.3).
+SECTION 7.8 — DETERMINISTIC DEC…
+
+CONDITIONAL_ALIGNMENT
+Used when:
+• Alignment exists
+• Additional conditions must be met
+• External review required
+• Dependency clause present
+Plain-language rendering:
+“This aligns with the stated criteria, subject to the conditions described in the policy.”
+No predictive framing permitted.
+
+AMBIGUOUS_INTERPRETATION
+Used when:
+• Term undefined
+• Clause historically interpreted inconsistently
+• Secondary positioning conflict exists
+• Language depends on administrative interpretation
+Rendering:
+“The relevant language is not defined in detail. Prior interpretations have varied.”
+Must not say “unclear” or “we’re not sure.”
+
+DOCUMENTATION_INCOMPLETE
+Used when:
+• Required timestamp missing
+• CCO evidence classification insufficient
+Section 3.4 Causality Model (Dr…
+
+• Trigger threshold comparison cannot be computed
+• Acceptance checkpoint incomplete
+Rendering:
+“Additional documentation may clarify this evaluation.”
+Must not imply denial risk.
+
+CONFLICT_PRESENT
+Used when:
+• Carrier statement conflicts with timeline
+• Policy clauses conflict
+• Multiple secondary clauses conflict
+• Causality mismatch exists
+Rendering:
+“Carrier documentation and the recorded timeline are in conflict.”
+No speculation permitted.
+
+INSUFFICIENT_DATA
+Used when:
+• No clause located
+• No relevant coverage found
+• No policy uploaded
+• No benefit guide parsed
+Rendering:
+“No relevant coverage language has been identified based on the current information.”
+Must not imply absence of coverage with certainty.
+
+9.2.4 Confidence Computation Rules
+Confidence labels are derived from:
+• Clause extraction output (6.5.1)
+• Coverage Graph results (6.5.2)
+Feature ID_ F-6.5.2
+
+• Causality Classification Object state (3.4)
+Section 3.4 Causality Model (Dr…
+
+• Claim Routing sequencing context (6.5.5)
+Feature ID F-6.5.5
+
+• Evidence completeness signals (6.5.6)
+Feature ID F-6.5.6
+AI must not:
+• Infer causality not present in CCO
+• Override clause extraction
+• Fill missing fields probabilistically in MVP
+Phase 1 prohibits predictive inference.
+
+9.2.5 Mandatory Display Rules
+Confidence label must appear:
+• On Coverage Understanding Screen (7.3)
+Section 7.3 — Screen Surface Re…
+
+• On Credit Card Benefit Screen (7.3)
+Section 7.3 — Screen Surface Re…
+
+• On Claim Routing Screen (7.3)
+Section 7.3 — Screen Surface Re…
+
+• In Claim Packet Generator summary
+Confidence must:
+• Appear after clause comparison
+• Appear before boundary statement
+• Not appear as visual alarm
+• Not use color to imply risk
+Color system governed by 7.7.
+Section 7.7 — Visual Design Sys…
+
+9.2.6 Prohibited Expressions
+Confidence layer must never generate:
+“You qualify.”
+“You will be reimbursed.”
+“Highly likely.”
+“Very strong case.”
+“You should win.”
+“Guaranteed.”
+These are predictive outcome claims and are disallowed.
+
+9.2.7 Escalation Interaction (DCEL Compatibility)
+Confidence labels influence pacing but not permission.
+Example:
+HIGH_STRUCTURAL_ALIGNMENT
+→ May progress to “User-Directed Action” state (6.6.1)
+Feature ID F-6.6.1 (Draft)
+DOCUMENTATION_INCOMPLETE
+→ Remains in Clarify & Prepare state
+Confidence never:
+• Forces submission
+• Blocks manual action
+• Changes eligibility
+
+9.2.8 Elevated & Protective Mode Interaction
+During Elevated Load or Protective Mode (6.7.1)
+Feature ID F-6.7.1
+Confidence labels:
+• Must still compute
+• Must not degrade
+• Must not default to lower clarity
+AI throttling (8.4)
+8.4 — Permissioning & Audit Logs
+May reduce explanation depth
+Must not alter confidence classification logic
+
+9.2.9 Logging Requirements
+Each interpretive output must log:
+• confidence_label
+• confidence_version
+• clause_ids_referenced
+• cco_reference_id
+• timestamp
+Logged under event_ledger (8.4)
+8.4 — Permissioning & Audit Logs
+No mutation permitted.
+
+9.2.10 Regression & Release Gating
+Any modification to:
+• Label definitions
+• Computation logic
+• Rendering placement
+Requires regression under 12.6.
+Section 12.6 — QA Approach (edg…
+Release blocked if:
+• Predictive language appears
+• Label missing
+• Label conflicts with clause comparison
+• Enum not versioned
+
+9.2.11 Phase Boundaries
+Phase 1 excludes:
+• Probability scoring
+• Numeric likelihood percentages
+• Machine learning confidence weighting
+• Cross-user outcome modeling
+Phase 2+ may introduce:
+Structured interpretive strength metadata
+Statistical annotation
+Jurisdictional variation mapping
+But must not convert into predictive payout scoring.
+
+9.2.12 Final Design Doctrine
+Confidence is:
+Structural clarity
+Not prediction
+Not advice
+Not outcome modeling
+It exists to:
+Reduce ambiguity
+Reduce hallucination
+Increase auditability
+Improve AI indexability
+Preserve trust
