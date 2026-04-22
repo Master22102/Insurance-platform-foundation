@@ -26,22 +26,52 @@ export default function DisruptionOptionsPage() {
   const { user } = useAuth();
   const [incident, setIncident] = useState<any>(null);
   const [options, setOptions] = useState<OptionRow[]>(DEFAULT_OPTIONS);
+  const [connectorSource, setConnectorSource] = useState<string | null>(null);
+  const [disclaimer, setDisclaimer] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [loadingMock, setLoadingMock] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState('');
+
+  const applyIncident = (data: any) => {
+    setIncident(data);
+    if (data?.live_options_result?.options?.length) {
+      setOptions(data.live_options_result.options);
+      setConnectorSource(data.live_options_result.connector_source || null);
+      setDisclaimer(data.live_options_result.disclaimer || null);
+    } else {
+      setOptions(DEFAULT_OPTIONS);
+      setConnectorSource(null);
+      setDisclaimer(null);
+    }
+    if (data?.selected_option_id) setSelected(data.selected_option_id);
+  };
 
   useEffect(() => {
     if (!user || !incident_id) return;
     (async () => {
       const { data } = await supabase.from('incidents').select('*').eq('id', incident_id).maybeSingle();
-      setIncident(data);
-      if (data?.live_options_result?.options?.length) {
-        setOptions(data.live_options_result.options);
-      }
-      if (data?.selected_option_id) setSelected(data.selected_option_id);
+      applyIncident(data);
     })();
   }, [user, incident_id]);
+
+  const loadMock = async () => {
+    if (!user) return;
+    setLoadingMock(true);
+    setError('');
+    const { error: rpcErr } = await supabase.rpc('populate_mock_disruption_options', {
+      p_incident_id: incident_id,
+    });
+    if (rpcErr) {
+      setError(rpcErr.message || 'Could not load mock options.');
+      setLoadingMock(false);
+      return;
+    }
+    const { data } = await supabase.from('incidents').select('*').eq('id', incident_id).maybeSingle();
+    applyIncident(data);
+    setLoadingMock(false);
+  };
 
   const confirm = async () => {
     if (!selected || !user) return;
@@ -70,6 +100,45 @@ export default function DisruptionOptionsPage() {
       <p style={{ fontSize: 13, color: '#888', margin: '0 0 18px', lineHeight: 1.55 }}>
         Pick the path you want to pursue. We record your choice on the incident ledger so your claim packet reflects it.
       </p>
+
+      {connectorSource === 'mock' && disclaimer && (
+        <div style={{
+          background: '#fef9f0', border: '1px solid #fde68a',
+          borderRadius: 10, padding: '12px 14px', marginBottom: 14,
+        }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#92400e', letterSpacing: '0.06em', margin: 0, textTransform: 'uppercase' }}>
+            Mock connector
+          </p>
+          <p style={{ fontSize: 12, color: '#78350f', margin: '4px 0 0', lineHeight: 1.55 }}>
+            {disclaimer} A real carrier API connector has not been wired yet.
+          </p>
+        </div>
+      )}
+
+      {!connectorSource && (
+        <div style={{
+          background: '#f7f9fc', border: '1px solid #e0e8f4',
+          borderRadius: 10, padding: '12px 14px', marginBottom: 14,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap',
+        }}>
+          <p style={{ fontSize: 12, color: '#555', margin: 0, lineHeight: 1.5 }}>
+            Showing default option categories. Load mock carrier options to preview the live-options UI — labeled as mock, not for filing.
+          </p>
+          <button
+            onClick={loadMock}
+            disabled={loadingMock}
+            style={{
+              padding: '7px 14px',
+              background: loadingMock ? '#e5e7eb' : 'white',
+              color: '#1e40af', border: '1px solid #bfdbfe',
+              borderRadius: 7, fontSize: 12, fontWeight: 600,
+              cursor: loadingMock ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {loadingMock ? 'Loading...' : 'Load mock options'}
+          </button>
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {options.map((opt) => {

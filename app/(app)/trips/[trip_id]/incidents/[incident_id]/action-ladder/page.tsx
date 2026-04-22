@@ -80,6 +80,15 @@ export default function ActionLadderPage() {
   });
 
   ladder.push({
+    key: 'rights',
+    title: 'Check statutory rights',
+    body: 'Evaluate EU261, UK261, US DOT tarmac, and US DOT refund rules against this incident. Each run stores a reasoning trace.',
+    urgency: 'soon',
+    cta: 'Open rights evaluator',
+    href: `/trips/${trip_id}/incidents/${incident_id}/rights`,
+  });
+
+  ladder.push({
     key: 'packet',
     title: hasPacket ? `Packet ready (${packet.packet_status})` : 'Build your claim packet',
     body: hasPacket
