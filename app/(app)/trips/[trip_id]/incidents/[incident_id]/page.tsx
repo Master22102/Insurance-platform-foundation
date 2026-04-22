@@ -384,6 +384,19 @@ export default function IncidentDetailPage() {
           Actions
         </p>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <Link
+            href={`/trips/${tripId}/incidents/${incidentId}/action-ladder`}
+            style={{
+              padding: '10px 20px',
+              background: 'white', color: '#1A2B4A',
+              border: '1px solid #dbeafe',
+              borderRadius: 8, fontSize: 13, fontWeight: 600,
+              cursor: 'pointer', textDecoration: 'none',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+            }}
+          >
+            Open action ladder
+          </Link>
           <button
             onClick={() => setShowOptionsSheet(true)}
             style={{
