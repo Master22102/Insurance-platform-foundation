@@ -23,8 +23,11 @@ const MEDS = [
 export default function SafetyCardScreen() {
   return (
     <MobileShell title="Safety card" subtitle="Show to medical or border staff">
-      <div className="rounded-[16px] overflow-hidden border-2" style={{ background: "#ffffff", borderColor: "#1A2B4A" }}>
-        <div className="px-4 py-3 flex justify-between items-center" style={{ background: "#1A2B4A" }}>
+      <div
+        className="rounded-[16px] overflow-hidden border-2"
+        style={{ background: "var(--color-background-primary)", borderColor: "var(--color-brand-navy)" }}
+      >
+        <div className="px-4 py-3 flex justify-between items-center" style={{ background: "var(--color-brand-navy)" }}>
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-white/60">
               Traveler safety card
@@ -32,42 +35,58 @@ export default function SafetyCardScreen() {
             <p className="text-[9px] text-white/40 mt-0.5">\u65C5\u884C\u8005\u5B89\u5168\u30AB\u30FC\u30C9</p>
           </div>
           <div className="w-10 h-10 bg-white rounded-[4px] flex items-center justify-center">
-            <QrCode className="w-6 h-6" style={{ color: "#1A2B4A" }} />
+            <QrCode className="w-6 h-6" style={{ color: "var(--color-brand-navy)" }} />
           </div>
         </div>
 
-        <div className="px-4 py-3 border-b" style={{ borderColor: "#f1f5f9" }}>
+        <div className="px-4 py-3 border-b" style={{ borderColor: "var(--color-border-tertiary)" }}>
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-semibold" style={{ background: "#eef4ff", color: "#1A2B4A" }}>
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-semibold"
+              style={{ background: "var(--color-background-info)", color: "var(--color-brand-navy)" }}
+            >
               CR
             </div>
             <div>
-              <p className="text-[13px] font-semibold" style={{ color: "#1A2B4A" }}>
+              <p className="text-[13px] font-semibold" style={{ color: "var(--color-brand-navy)" }}>
                 Christian Rayford
               </p>
-              <p className="text-[10px]" style={{ color: "#64748b" }}>
+              <p className="text-[10px]" style={{ color: "var(--color-text-secondary)" }}>
                 US &middot; \u30A2\u30E1\u30EA\u30AB
               </p>
             </div>
           </div>
         </div>
 
-        <div className="px-4 py-3 border-b" style={{ borderColor: "#f1f5f9" }}>
-          <p className="text-[9px] font-semibold uppercase tracking-wider mb-2 inline-block px-2 py-0.5 rounded" style={{ background: "#fffbeb", color: "#92400e" }}>
+        <div className="px-4 py-3 border-b" style={{ borderColor: "var(--color-border-tertiary)" }}>
+          <p
+            className="text-[9px] font-semibold uppercase tracking-wider mb-2 inline-block px-2 py-0.5 rounded"
+            style={{ background: "var(--color-background-warning)", color: "var(--color-text-warning)" }}
+          >
             Allergies &middot; \u30A2\u30EC\u30EB\u30AE\u30FC
           </p>
           <div className="space-y-1.5">
             {ALLERGIES.map((a) => (
-              <div key={a.en} className="rounded-[8px] px-2.5 py-1.5 flex justify-between items-center" style={{ background: "#fffbeb", border: "0.5px solid #fde68a" }}>
+              <div
+                key={a.en}
+                className="rounded-[8px] px-2.5 py-1.5 flex justify-between items-center"
+                style={{
+                  background: "var(--color-background-warning)",
+                  border: "0.5px solid var(--color-border-warning)",
+                }}
+              >
                 <div>
-                  <p className="text-[12px] font-semibold" style={{ color: "#92400e" }}>
+                  <p className="text-[12px] font-semibold" style={{ color: "var(--color-text-warning)" }}>
                     {a.en}
                   </p>
-                  <p className="text-[10px]" style={{ color: "#b45309" }}>
+                  <p className="text-[10px]" style={{ color: "var(--color-text-warning)", opacity: 0.8 }}>
                     {a.local}
                   </p>
                 </div>
-                <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold" style={{ background: "#fef3c7", color: "#92400e" }}>
+                <span
+                  className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold"
+                  style={{ background: "var(--color-border-warning)", color: "var(--color-text-warning)" }}
+                >
                   {a.tag}
                 </span>
               </div>
@@ -75,8 +94,11 @@ export default function SafetyCardScreen() {
           </div>
         </div>
 
-        <div className="px-4 py-3 border-b" style={{ borderColor: "#f1f5f9" }}>
-          <p className="text-[9px] font-semibold uppercase tracking-wider mb-2" style={{ color: "#0369a1" }}>
+        <div className="px-4 py-3 border-b" style={{ borderColor: "var(--color-border-tertiary)" }}>
+          <p
+            className="text-[9px] font-semibold uppercase tracking-wider mb-2 inline-block px-2 py-0.5 rounded"
+            style={{ background: "var(--color-background-info)", color: "var(--color-text-info)" }}
+          >
             Medications &middot; \u51E6\u65B9\u85AC
           </p>
           <div className="space-y-1.5">
@@ -85,22 +107,33 @@ export default function SafetyCardScreen() {
                 key={m.en}
                 className="rounded-[8px] px-2.5 py-1.5"
                 style={{
-                  background: m.flag ? "#fef2f2" : "#f8fafc",
-                  border: m.flag ? "1px solid #fecaca" : "0.5px solid #e5e7eb",
+                  background: m.flag ? "var(--color-background-danger)" : "var(--color-background-secondary)",
+                  border: m.flag
+                    ? "1px solid var(--color-border-danger)"
+                    : "0.5px solid var(--color-border-tertiary)",
                 }}
               >
-                <p className="text-[12px] font-semibold" style={{ color: m.flag ? "#991b1b" : "#0f172a" }}>
+                <p
+                  className="text-[12px] font-semibold"
+                  style={{ color: m.flag ? "var(--color-text-danger)" : "var(--color-text-primary)" }}
+                >
                   {m.en}
                 </p>
-                <p className="text-[10px]" style={{ color: m.flag ? "#b45309" : "#64748b" }}>
+                <p
+                  className="text-[10px]"
+                  style={{ color: m.flag ? "var(--color-text-warning)" : "var(--color-text-secondary)" }}
+                >
                   {m.local}
                 </p>
-                <p className="text-[9px] mt-0.5" style={{ color: "#94a3b8" }}>
+                <p className="text-[9px] mt-0.5" style={{ color: "var(--color-text-tertiary)" }}>
                   For: {m.purpose}
                 </p>
                 {m.flag && (
-                  <div className="mt-1 rounded-[6px] px-2 py-1.5" style={{ background: "#fee2e2" }}>
-                    <p className="text-[10px] font-semibold" style={{ color: "#991b1b" }}>
+                  <div
+                    className="mt-1 rounded-[6px] px-2 py-1.5"
+                    style={{ background: "var(--color-border-danger)" }}
+                  >
+                    <p className="text-[10px] font-semibold" style={{ color: "var(--color-text-danger)" }}>
                       {m.flag}
                     </p>
                   </div>
@@ -110,44 +143,69 @@ export default function SafetyCardScreen() {
           </div>
         </div>
 
-        <div className="px-4 py-3 border-b" style={{ borderColor: "#f1f5f9" }}>
-          <p className="text-[9px] font-semibold uppercase tracking-wider mb-1 inline-block px-2 py-0.5 rounded" style={{ background: "#fffbeb", color: "#92400e" }}>
+        <div className="px-4 py-3 border-b" style={{ borderColor: "var(--color-border-tertiary)" }}>
+          <p
+            className="text-[9px] font-semibold uppercase tracking-wider mb-1 inline-block px-2 py-0.5 rounded"
+            style={{ background: "var(--color-background-warning)", color: "var(--color-text-warning)" }}
+          >
             Accommodation &middot; \u5BBF\u6CCA\u5148
           </p>
-          <p className="text-[12px] font-semibold mt-1" style={{ color: "#1A2B4A" }}>
+          <p className="text-[12px] font-semibold mt-1" style={{ color: "var(--color-brand-navy)" }}>
             Park Hyatt Tokyo
           </p>
           <div className="flex items-center gap-2 mt-1">
-            <p className="text-[11px] flex-1" style={{ color: "#475569" }}>
+            <p className="text-[11px] flex-1" style={{ color: "var(--color-text-secondary)" }}>
               \u65B0\u5BBF\u533A\u897F\u65B0\u5BBF3-7-1-2
             </p>
-            <button className="w-6 h-6 rounded-[6px] flex items-center justify-center" style={{ background: "#f0f9ff", border: "0.5px solid #bae6fd" }}>
-              <MapPin className="w-3 h-3" style={{ color: "#0369a1" }} />
+            <button
+              className="w-6 h-6 rounded-[6px] flex items-center justify-center"
+              style={{ background: "var(--color-background-info)", border: "0.5px solid var(--color-border-info)" }}
+            >
+              <MapPin className="w-3 h-3" style={{ color: "var(--color-text-info)" }} />
             </button>
-            <button className="w-6 h-6 rounded-[6px] flex items-center justify-center" style={{ background: "#f8fafc", border: "0.5px solid #e5e7eb" }}>
-              <Copy className="w-3 h-3" style={{ color: "#64748b" }} />
+            <button
+              className="w-6 h-6 rounded-[6px] flex items-center justify-center"
+              style={{
+                background: "var(--color-background-secondary)",
+                border: "0.5px solid var(--color-border-tertiary)",
+              }}
+            >
+              <Copy className="w-3 h-3" style={{ color: "var(--color-text-secondary)" }} />
             </button>
           </div>
         </div>
 
-        <div className="px-4 py-3 text-center" style={{ background: "#f9fafb" }}>
-          <p className="text-[9px] mb-2" style={{ color: "#94a3b8" }}>
+        <div className="px-4 py-3 text-center" style={{ background: "var(--color-background-secondary)" }}>
+          <p className="text-[9px] mb-2" style={{ color: "var(--color-text-tertiary)" }}>
             Scan to view on any device
           </p>
-          <div className="w-20 h-20 mx-auto rounded-[6px] flex items-center justify-center" style={{ background: "#1A2B4A" }}>
+          <div
+            className="w-20 h-20 mx-auto rounded-[6px] flex items-center justify-center"
+            style={{ background: "var(--color-brand-navy)" }}
+          >
             <QrCode className="w-14 h-14 text-white" />
           </div>
-          <p className="text-[9px] font-mono mt-2" style={{ color: "#94a3b8" }}>
+          <p className="text-[9px] font-mono mt-2" style={{ color: "var(--color-text-tertiary)" }}>
             wayfarer.app/safety/c8b5f\u2026
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <button className="rounded-[10px] py-2.5 text-[12px] font-semibold flex items-center justify-center gap-1.5" style={{ background: "#ffffff", color: "#1A2B4A", border: "0.5px solid #e5e7eb" }}>
+        <button
+          className="rounded-[10px] py-2.5 text-[12px] font-semibold flex items-center justify-center gap-1.5"
+          style={{
+            background: "var(--color-background-primary)",
+            color: "var(--color-brand-navy)",
+            border: "0.5px solid var(--color-border-tertiary)",
+          }}
+        >
           <Download className="w-3.5 h-3.5" /> Save as image
         </button>
-        <button className="rounded-[10px] py-2.5 text-[12px] font-semibold flex items-center justify-center gap-1.5" style={{ background: "#1A2B4A", color: "#ffffff" }}>
+        <button
+          className="rounded-[10px] py-2.5 text-[12px] font-semibold flex items-center justify-center gap-1.5"
+          style={{ background: "var(--color-brand-navy)", color: "#ffffff" }}
+        >
           <Share2 className="w-3.5 h-3.5" /> Share
         </button>
       </div>

@@ -260,6 +260,7 @@ export default function PreviewScreensPage() {
   const [category, setCategory] = useState("All");
   const [surface, setSurface] = useState<Surface | "all">("all");
   const [activeId, setActiveId] = useState<string>(ENTRIES[0].id);
+  const [darkMode, setDarkMode] = useState(false);
 
   const visible = useMemo(() => {
     return ENTRIES.filter((e) => (category === "All" || e.category === category) && (surface === "all" || e.surface === surface));
@@ -289,6 +290,12 @@ export default function PreviewScreensPage() {
                 </button>
               ))}
             </div>
+            <button
+              onClick={() => setDarkMode((v) => !v)}
+              className="text-[11px] px-3 py-1.5 rounded border border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"
+            >
+              {darkMode ? "Light mode" : "Dark mode"}
+            </button>
             <a href="/preview" className="text-[11px] text-neutral-500 hover:text-neutral-900 underline-offset-2 hover:underline">
               FOCL preview &rarr;
             </a>
@@ -367,7 +374,7 @@ export default function PreviewScreensPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-neutral-200 p-8">
+          <div className={`bg-white rounded-2xl border border-neutral-200 p-8 ${darkMode ? "dark" : ""}`}>
             <div className="flex items-start justify-center gap-10 flex-wrap">
               <DeviceFrame platform="ios" label={active.name}>{active.render()}</DeviceFrame>
               <DeviceFrame platform="android" label={active.name}>{active.render()}</DeviceFrame>

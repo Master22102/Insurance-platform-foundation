@@ -277,7 +277,7 @@ export default function LockScreen() {
         {modePickerOpen && (
           <div
             onClick={() => setModePickerOpen(false)}
-            style={{ position: "fixed", inset: 0, zIndex: 19 }}
+            style={{ position: "absolute", inset: 0, zIndex: 19 }}
           />
         )}
       </div>

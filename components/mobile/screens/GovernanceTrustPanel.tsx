@@ -25,7 +25,7 @@ const LEDGER = [
 export default function GovernanceTrustPanel() {
   return (
     <MobileShell title="Trust &amp; governance" subtitle="How Wayfarer handles your data">
-      <div className="rounded-[14px] p-4" style={{ background: "linear-gradient(135deg, #0f172a, #1A2B4A)" }}>
+      <div className="rounded-[14px] p-4" style={{ background: "linear-gradient(135deg, #0f172a, var(--color-brand-navy))" }}>
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-white/80" />
           <span className="text-[10px] uppercase tracking-wider text-white/60">Governance posture</span>
@@ -38,29 +38,39 @@ export default function GovernanceTrustPanel() {
 
       <div className="grid grid-cols-3 gap-2">
         {POSTURE.map((p) => (
-          <div key={p.label} className="rounded-[12px] border p-3" style={{ background: "#ffffff", borderColor: "#e5e7eb" }}>
-            <p className="text-[9px] uppercase tracking-wider" style={{ color: "#94a3b8" }}>
+          <div
+            key={p.label}
+            className="rounded-[12px] border p-3"
+            style={{ background: "var(--color-background-primary)", borderColor: "var(--color-border-tertiary)" }}
+          >
+            <p className="text-[9px] uppercase tracking-wider" style={{ color: "var(--color-text-tertiary)" }}>
               {p.label}
             </p>
-            <p className="text-[14px] font-semibold mt-1" style={{ color: "#0f172a" }}>
+            <p className="text-[14px] font-semibold mt-1" style={{ color: "var(--color-text-primary)" }}>
               {p.value}
             </p>
-            <p className="text-[10px] mt-1 leading-tight" style={{ color: "#64748b" }}>
+            <p className="text-[10px] mt-1 leading-tight" style={{ color: "var(--color-text-secondary)" }}>
               {p.sub}
             </p>
           </div>
         ))}
       </div>
 
-      <div className="rounded-[14px] border overflow-hidden" style={{ background: "#ffffff", borderColor: "#e5e7eb" }}>
-        <div className="px-4 py-3 flex items-center justify-between border-b" style={{ borderColor: "#f1f5f9" }}>
+      <div
+        className="rounded-[14px] border overflow-hidden"
+        style={{ background: "var(--color-background-primary)", borderColor: "var(--color-border-tertiary)" }}
+      >
+        <div
+          className="px-4 py-3 flex items-center justify-between border-b"
+          style={{ borderColor: "var(--color-border-tertiary)" }}
+        >
           <div className="flex items-center gap-2">
-            <FileCheck className="w-4 h-4" style={{ color: "#1A2B4A" }} />
-            <span className="text-[12px] font-semibold" style={{ color: "#0f172a" }}>
+            <FileCheck className="w-4 h-4" style={{ color: "var(--color-brand-navy)" }} />
+            <span className="text-[12px] font-semibold" style={{ color: "var(--color-text-primary)" }}>
               Consents
             </span>
           </div>
-          <span className="text-[10px]" style={{ color: "#64748b" }}>
+          <span className="text-[10px]" style={{ color: "var(--color-text-secondary)" }}>
             Manage
           </span>
         </div>
@@ -68,21 +78,21 @@ export default function GovernanceTrustPanel() {
           <div
             key={c.label}
             className="px-4 py-3 flex items-center justify-between"
-            style={{ borderTop: i === 0 ? "none" : "0.5px solid #f1f5f9" }}
+            style={{ borderTop: i === 0 ? "none" : "0.5px solid var(--color-border-tertiary)" }}
           >
             <div>
-              <p className="text-[13px]" style={{ color: "#0f172a" }}>
+              <p className="text-[13px]" style={{ color: "var(--color-text-primary)" }}>
                 {c.label}
               </p>
-              <p className="text-[10px] mt-0.5" style={{ color: "#64748b" }}>
+              <p className="text-[10px] mt-0.5" style={{ color: "var(--color-text-secondary)" }}>
                 {c.scope}
               </p>
             </div>
             <span
               className="text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1"
               style={{
-                background: c.granted ? "#ecfdf5" : "#f1f5f9",
-                color: c.granted ? "#059669" : "#64748b",
+                background: c.granted ? "var(--color-background-success)" : "var(--color-background-secondary)",
+                color: c.granted ? "var(--color-text-success)" : "var(--color-text-secondary)",
               }}
             >
               {c.granted ? <Check className="w-3 h-3" /> : null}
@@ -92,15 +102,21 @@ export default function GovernanceTrustPanel() {
         ))}
       </div>
 
-      <div className="rounded-[14px] border overflow-hidden" style={{ background: "#ffffff", borderColor: "#e5e7eb" }}>
-        <div className="px-4 py-3 flex items-center justify-between border-b" style={{ borderColor: "#f1f5f9" }}>
+      <div
+        className="rounded-[14px] border overflow-hidden"
+        style={{ background: "var(--color-background-primary)", borderColor: "var(--color-border-tertiary)" }}
+      >
+        <div
+          className="px-4 py-3 flex items-center justify-between border-b"
+          style={{ borderColor: "var(--color-border-tertiary)" }}
+        >
           <div className="flex items-center gap-2">
-            <Flag className="w-4 h-4" style={{ color: "#1A2B4A" }} />
-            <span className="text-[12px] font-semibold" style={{ color: "#0f172a" }}>
+            <Flag className="w-4 h-4" style={{ color: "var(--color-brand-navy)" }} />
+            <span className="text-[12px] font-semibold" style={{ color: "var(--color-text-primary)" }}>
               Recent ledger
             </span>
           </div>
-          <span className="text-[10px] flex items-center gap-0.5" style={{ color: "#1d4ed8" }}>
+          <span className="text-[10px] flex items-center gap-0.5" style={{ color: "var(--color-brand-blue)" }}>
             Export <ExternalLink className="w-3 h-3" />
           </span>
         </div>
@@ -108,17 +124,17 @@ export default function GovernanceTrustPanel() {
           <div
             key={l.ref}
             className="px-4 py-3 flex items-center justify-between"
-            style={{ borderTop: i === 0 ? "none" : "0.5px solid #f1f5f9" }}
+            style={{ borderTop: i === 0 ? "none" : "0.5px solid var(--color-border-tertiary)" }}
           >
             <div>
-              <p className="text-[12px]" style={{ color: "#0f172a" }}>
+              <p className="text-[12px]" style={{ color: "var(--color-text-primary)" }}>
                 {l.event}
               </p>
-              <p className="text-[10px] mt-0.5 font-mono" style={{ color: "#94a3b8" }}>
+              <p className="text-[10px] mt-0.5 font-mono" style={{ color: "var(--color-text-tertiary)" }}>
                 {l.ref}
               </p>
             </div>
-            <span className="text-[10px]" style={{ color: "#64748b" }}>
+            <span className="text-[10px]" style={{ color: "var(--color-text-secondary)" }}>
               {l.when}
             </span>
           </div>
@@ -126,10 +142,24 @@ export default function GovernanceTrustPanel() {
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <button className="rounded-[12px] py-3 text-[12px] font-semibold flex items-center justify-center gap-1" style={{ background: "#ffffff", color: "#0f172a", border: "0.5px solid #e5e7eb" }}>
+        <button
+          className="rounded-[12px] py-3 text-[12px] font-semibold flex items-center justify-center gap-1"
+          style={{
+            background: "var(--color-background-primary)",
+            color: "var(--color-text-primary)",
+            border: "0.5px solid var(--color-border-tertiary)",
+          }}
+        >
           <Archive className="w-3.5 h-3.5" /> Data export
         </button>
-        <button className="rounded-[12px] py-3 text-[12px] font-semibold flex items-center justify-center gap-1" style={{ background: "#ffffff", color: "#dc2626", border: "0.5px solid #fecaca" }}>
+        <button
+          className="rounded-[12px] py-3 text-[12px] font-semibold flex items-center justify-center gap-1"
+          style={{
+            background: "var(--color-background-danger)",
+            color: "var(--color-text-danger)",
+            border: "0.5px solid var(--color-border-danger)",
+          }}
+        >
           <Wrench className="w-3.5 h-3.5" /> Erasure request
         </button>
       </div>

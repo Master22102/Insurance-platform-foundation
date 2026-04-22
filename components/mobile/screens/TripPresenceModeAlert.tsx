@@ -235,6 +235,3 @@ export default function TripPresenceModeAlert() {
     </div>
   );
 }
-
-
-export default TripPresenceModeAlert

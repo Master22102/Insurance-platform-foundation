@@ -154,3 +154,12 @@
 @keyframes aurora2 { 0%, 100% { transform: translateX(5%) scaleY(1.1); opacity: 0.35; } 50% { transform: translateX(-6%) scaleY(0.9); opacity: 0.6; } }
 @keyframes northGold { 0%, 100% { opacity: 0.8; filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.5)); } 50% { opacity: 1; filter: drop-shadow(0 0 6px rgba(251, 191, 36, 1)); } }
 @keyframes scanSweep { 0% { top: -40px; opacity: 0; } 8% { opacity: 1; } 85% { opacity: 0.6; } 100% { top: 100%; opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

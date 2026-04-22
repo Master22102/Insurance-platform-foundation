@@ -36,7 +36,9 @@ export function DeviceFrame({
           }}
         >
           {isIOS ? <IOSNotch /> : <AndroidPunchHole />}
-          <div className="absolute inset-0 overflow-hidden">{children}</div>
+          <div className="absolute inset-0 overflow-hidden flex flex-col" data-preview-frame="true">
+            {children}
+          </div>
         </div>
       </div>
       <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.14em] text-neutral-500">
