@@ -80,3 +80,34 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Mobile screen design tokens — shared across all mobile preview surfaces.
+   Defined so inline-styled screens (imported from ZIP/HTML mockups) no
+   longer fall back to white/transparent backgrounds in Chrome. */
+:root {
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f5f5f7;
+  --color-background-tertiary: #eef0f3;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #94a3b8;
+  --color-border-tertiary: #e5e7eb;
+  --color-brand-navy: #1A2B4A;
+  --color-brand-blue: #1d4ed8;
+  --color-brand-emerald: #059669;
+  --color-brand-amber: #d97706;
+  --color-brand-red: #dc2626;
+  --border-radius-lg: 14px;
+  --border-radius-md: 10px;
+  --border-radius-sm: 6px;
+}
+
+.dark {
+  --color-background-primary: #0b1220;
+  --color-background-secondary: #111827;
+  --color-background-tertiary: #1f2937;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-tertiary: #64748b;
+  --color-border-tertiary: #1f2937;
+}
