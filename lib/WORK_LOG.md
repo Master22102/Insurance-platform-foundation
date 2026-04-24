@@ -110,3 +110,72 @@ Outstanding:
     Interpretive Drift Observatory, Allocation Capacity.
   - Trip Overview mock translation (pending user HTML drop).
   - Tier A feature build: Right Now dashboard, Deep Scan UI, Scenarios 1/2/5.
+
+---
+
+## 2026-04-24 — Session 3: Restoration + Missing Screens
+Tier: A (experience layer)
+Scope:
+  - Restored middleware.ts from middleware copy.ts (security headers, login throttling, session validation, FOCL gating).
+  - Restored next.config.js from next.config copy.js (CSP headers, security headers, react-pdf external package).
+  - Merged missing dependencies from package copy.json into package.json (@supabase/ssr, bcryptjs, leaflet, qrcode, jszip, web-push, playwright, react-leaflet).
+  - Merged missing npm scripts (e2e, verify:migration-chain, verify:csp-config, etc.).
+  - Created voice parse API route (app/api/voice/parse/route.ts) — 7 context types, Sonnet for signal_capture, Haiku for rest.
+  - Created notification preferences API route (app/api/notifications/preferences/route.ts).
+  - Created onboarding flow (app/(app)/onboarding/page.tsx) — 4-round wizard.
+  - Created trip requirements checklist (app/(app)/trips/[trip_id]/checklist/page.tsx) — S-CHECKLIST-001a surface.
+  - Created checklist item detail (app/(app)/trips/[trip_id]/checklist/[item_id]/page.tsx) — S-CHECKLIST-001b surface.
+  - Created route segment builder (app/(app)/trips/[trip_id]/routes/page.tsx).
+  - Created notification center (app/(app)/notifications/page.tsx).
+  - Created policy detail view (app/(app)/policies/[policy_id]/page.tsx).
+  - Created evidence capture flow (app/(app)/trips/[trip_id]/incidents/[incident_id]/evidence/page.tsx).
+  - Created trip history timeline (app/(app)/trips/[trip_id]/history/page.tsx).
+  - Verified and fixed imports on 9 existing pages.
+  - Updated app layout nav with missing links.
+
+Deliverables:
+  - middleware.ts — restored full production middleware
+  - next.config.js — restored CSP + security headers
+  - package.json — merged missing deps and scripts
+  - lib/rate-limit/simple-memory.ts — IP extraction helper
+  - app/api/voice/parse/route.ts — voice narration parse endpoint
+  - app/api/notifications/preferences/route.ts — notification prefs CRUD
+  - app/(app)/onboarding/page.tsx — 4-round onboarding wizard
+  - app/(app)/trips/[trip_id]/checklist/page.tsx — requirements checklist
+  - app/(app)/trips/[trip_id]/checklist/[item_id]/page.tsx — checklist detail
+  - app/(app)/trips/[trip_id]/routes/page.tsx — route segment builder
+  - app/(app)/notifications/page.tsx — notification center
+  - app/(app)/policies/[policy_id]/page.tsx — policy detail + coverage
+  - app/(app)/trips/[trip_id]/incidents/[incident_id]/evidence/page.tsx — structured evidence capture
+  - app/(app)/trips/[trip_id]/history/page.tsx — trip change timeline
+
+Migrations:
+  - add_notification_preferences_column — adds notification_preferences JSONB to user_profiles
+
+Gap Register rows touched:
+  - G-RESTORE-01 middleware security headers — RESOLVED
+  - G-RESTORE-02 CSP headers in next.config — RESOLVED
+  - G-RESTORE-03 missing package deps — RESOLVED
+  - G-SCREEN-01 onboarding flow — RESOLVED
+  - G-SCREEN-02 checklist screens (S-CHECKLIST-001a/b) — RESOLVED
+  - G-SCREEN-03 route segment builder — RESOLVED
+  - G-SCREEN-04 notification center — RESOLVED
+  - G-SCREEN-05 policy detail view — RESOLVED
+  - G-SCREEN-06 evidence capture flow — RESOLVED
+  - G-SCREEN-07 trip history timeline — RESOLVED
+  - G-API-01 voice parse route — RESOLVED
+  - G-API-02 notification preferences route — RESOLVED
+
+Verification:
+  - npm run build — must PASS with 0 errors
+  - npm run typecheck — must PASS
+  - All new pages render without runtime errors
+
+Outstanding:
+  - Voice parse AI routing (needs OpenRouter API key configured)
+  - Stripe integration for credit purchases
+  - Real disruption options connector (mock in place)
+  - Checklist item detail → document upload wiring
+  - Route segment drag-to-reorder interaction
+  - Push notification infrastructure (web-push)
+  - E2e tests for new screens
