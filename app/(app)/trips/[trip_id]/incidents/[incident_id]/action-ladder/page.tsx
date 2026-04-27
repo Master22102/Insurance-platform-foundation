@@ -69,15 +69,6 @@ export default function ActionLadderPage() {
   }
 
   ladder.push({
-    key: 'evidence',
-    title: 'Capture evidence',
-    body: 'Document what happened now — even if you are unsure about filing. Preserving evidence early keeps your options open.',
-    urgency: 'now',
-    cta: 'Add evidence',
-    href: `/trips/${trip_id}/incidents/${incident_id}/evidence`,
-  });
-
-  ladder.push({
     key: 'options',
     title: hasSelection ? 'Your option is recorded' : 'Pick your path',
     body: hasSelection

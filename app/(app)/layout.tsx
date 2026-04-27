@@ -71,26 +71,6 @@ const NAV_LINKS = [
     ),
   },
   {
-    label: 'Scan',
-    href: '/scan',
-    icon: (active: boolean) => (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <circle cx="11" cy="11" r="7" stroke={active ? '#2E5FA3' : '#888'} strokeWidth="1.7"/>
-        <path d="M21 21l-4.35-4.35" stroke={active ? '#2E5FA3' : '#888'} strokeWidth="1.7" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
-  {
-    label: 'Notifications',
-    href: '/notifications',
-    icon: (active: boolean) => (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <path d="M18 8A6 6 0 106 8c0 7-3 9-3 9h18s-3-2-3-9" stroke={active ? '#2E5FA3' : '#888'} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M13.73 21a2 2 0 01-3.46 0" stroke={active ? '#2E5FA3' : '#888'} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-  },
-  {
     label: 'Account',
     href: '/account',
     icon: (active: boolean) => (
