@@ -38,6 +38,7 @@ async function requireFounder(
 type IngestBody = {
   creator: {
     creator_name: string;
+    platform: string;
     platform_handle?: string | null;
     platform_url?: string | null;
     avatar_url?: string | null;
