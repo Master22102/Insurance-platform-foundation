@@ -48,10 +48,12 @@ export default function CoverageMatrixPanel({
   tripId,
   policyCount,
   onIntelligenceMeta,
+  profilePreferences,
 }: {
   tripId: string;
   policyCount: number;
   onIntelligenceMeta?: (meta: { gapWarningCritical: number; hasSnapshot: boolean }) => void;
+  profilePreferences?: unknown;
 }) {
   const [data, setData] = useState<IntelResponse | null>(null);
   const [loading, setLoading] = useState(true);

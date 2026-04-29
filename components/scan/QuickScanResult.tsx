@@ -42,7 +42,7 @@ interface ScanResult {
   expires_at?: string;
 }
 
-export default function QuickScanResult({ result }: { result: ScanResult }) {
+export default function QuickScanResult({ result, contextTripId }: { result: ScanResult; contextTripId?: string | null }) {
   const router = useRouter();
   const fallbackQuality = QUALITY_DOT[result.quality || 'medium'];
   const canonicalConfidence = result.confidence?.confidence_label

@@ -37,6 +37,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  transpilePackages: ['@radix-ui/react-progress'],
   experimental: {
     serverComponentsExternalPackages: ['@react-pdf/renderer'],
   },

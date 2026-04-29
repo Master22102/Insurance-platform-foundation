@@ -17,6 +17,7 @@ interface DeepScanPanelProps {
   trip: any;
   onUnlock: () => void;
   onScanComplete?: () => void;
+  attachedPolicyCount?: number;
 }
 
 const SCAN_MESSAGES = [
@@ -262,7 +263,7 @@ function ScanResultCard({ result, axisResults }: { result: any; axisResults: Axi
   );
 }
 
-export default function DeepScanPanel({ trip, onUnlock, onScanComplete }: DeepScanPanelProps) {
+export default function DeepScanPanel({ trip, onUnlock, onScanComplete, attachedPolicyCount }: DeepScanPanelProps) {
   const router = useRouter();
   const { user } = useAuth();
   const [confirmed, setConfirmed] = useState(false);
