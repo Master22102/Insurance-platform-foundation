@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
+import { useIsMobile, useIsTablet } from '@/lib/hooks/useIsMobile';
+import { mobileStyles, tabletStyles } from '@/lib/styles/responsive';
 
 const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }> = {
   OPEN:                  { bg: '#eff4fc', border: '#bfdbfe', text: '#2E5FA3' },
@@ -47,6 +49,8 @@ interface TripGroup {
 
 export default function IncidentsPage() {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
   const [grouped, setGrouped] = useState<TripGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'active' | 'closed'>('all');
@@ -97,7 +101,15 @@ export default function IncidentsPage() {
     .filter((t) => t.incidents.length > 0);
 
   return (
-    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div
+      style={{
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        ...(isMobile ? mobileStyles.appContentMobile : isTablet ? tabletStyles.appContent : { padding: '0 0 32px' }),
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+        overflowX: 'hidden',
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#1A2B4A', margin: '0 0 4px', letterSpacing: '-0.4px' }}>
@@ -114,18 +126,23 @@ export default function IncidentsPage() {
       </div>
 
       {!loading && totalIncidents > 0 && (
-        <div style={{ display: 'flex', gap: 6, marginBottom: 24 }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
           {(['all', 'active', 'closed'] as const).map((f) => (
             <button
               key={f}
+              type="button"
               onClick={() => setFilter(f)}
               style={{
-                padding: '6px 14px',
+                padding: '10px 16px',
+                minHeight: 44,
                 background: filter === f ? '#1A2B4A' : 'white',
                 color: filter === f ? 'white' : '#555',
                 border: `1px solid ${filter === f ? '#1A2B4A' : '#e5e7eb'}`,
-                borderRadius: 20, fontSize: 12, fontWeight: 500,
-                cursor: 'pointer', textTransform: 'capitalize',
+                borderRadius: 20,
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: 'pointer',
+                textTransform: 'capitalize',
                 fontFamily: 'system-ui, -apple-system, sans-serif',
               }}
             >
@@ -162,10 +179,23 @@ export default function IncidentsPage() {
           <p style={{ fontSize: 14, color: '#888', margin: '0 0 28px', lineHeight: 1.6, maxWidth: 360 }}>
             If something goes wrong on a trip, report it from the trip page. Your full incident history across all trips will appear here.
           </p>
-          <Link href="/trips" style={{
-            padding: '10px 22px', background: '#1A2B4A', color: 'white',
-            borderRadius: 8, textDecoration: 'none', fontSize: 14, fontWeight: 600,
-          }}>
+          <Link
+            href="/trips"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 48,
+              padding: '12px 22px',
+              background: '#1A2B4A',
+              color: 'white',
+              borderRadius: 10,
+              textDecoration: 'none',
+              fontSize: 14,
+              fontWeight: 600,
+              boxSizing: 'border-box',
+            }}
+          >
             View your trips
           </Link>
         </div>
@@ -200,7 +230,8 @@ export default function IncidentsPage() {
                     <div
                       style={{
                         background: 'white', border: '0.5px solid #e8e8e8',
-                        borderRadius: 10, padding: '14px 18px',
+                        borderRadius: 10, padding: '16px 18px',
+                        minHeight: 56,
                         display: 'flex', alignItems: 'center', gap: 12,
                       }}
                       onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)')}

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import AppPageRoot from '@/components/layout/AppPageRoot';
 
 type Slug = 'insurance-options' | 'post-purchase-policy' | 'policy-alignment' | 'trip-end-reminder' | 'trip-extension';
 const UUID_RX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
@@ -141,7 +142,8 @@ export default function Section5StagedSlugPage({
   const tripHref = `/trips/${tripId}`;
 
   return (
-    <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 20px 48px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <AppPageRoot>
+    <div style={{ maxWidth: 640, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <Link href={tripHref} style={{ fontSize: 13, color: '#888', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 20 }}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
           <path d="M19 12H5M12 19l-7-7 7-7" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -186,5 +188,6 @@ export default function Section5StagedSlugPage({
         </p>
       </div>
     </div>
+    </AppPageRoot>
   );
 }

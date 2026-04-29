@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
-import { hasStorageState, STORAGE_STATE_PATH } from './utils/authState';
+import { getStorageStatePath, hasStorageState } from './utils/authState';
 import {
+  E2E_AUTH_SKIP_REASON,
   hasSupabaseEnv,
   readAccessTokenFromStorageState,
   supabaseRestSelect,
@@ -10,11 +11,11 @@ import {
 test.describe('Pass 9 idempotency + replay (RPC contracts)', () => {
   test.skip(!hasStorageState(), 'Missing .playwright/storageState.json; run npm run e2e:auth first.');
   test.skip(!hasSupabaseEnv(), 'Missing NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY.');
-  test.use({ storageState: STORAGE_STATE_PATH });
+  test.use({ storageState: getStorageStatePath() });
 
   test('quick scan retry is idempotent for identical itinerary snapshot', async ({ request }) => {
     const accessToken = readAccessTokenFromStorageState();
-    test.skip(!accessToken, 'Could not read access token from storage state.');
+    test.skip(!accessToken, E2E_AUTH_SKIP_REASON);
     if (!accessToken) return;
 
     const me = await supabaseRestSelect<Array<{ user_id: string }>>(request, accessToken, 'user_profiles', 'select=user_id&limit=1');
@@ -58,7 +59,7 @@ test.describe('Pass 9 idempotency + replay (RPC contracts)', () => {
 
   test('unlock replay returns idempotent after trip already unlocked', async ({ request }) => {
     const accessToken = readAccessTokenFromStorageState();
-    test.skip(!accessToken, 'Could not read access token from storage state.');
+    test.skip(!accessToken, E2E_AUTH_SKIP_REASON);
     if (!accessToken) return;
 
     const me = await supabaseRestSelect<Array<{ user_id: string }>>(request, accessToken, 'user_profiles', 'select=user_id&limit=1');
@@ -117,7 +118,7 @@ test.describe('Pass 9 idempotency + replay (RPC contracts)', () => {
 
   test('deep scan retry is idempotent for identical itinerary on unlocked trip', async ({ request }) => {
     const accessToken = readAccessTokenFromStorageState();
-    test.skip(!accessToken, 'Could not read access token from storage state.');
+    test.skip(!accessToken, E2E_AUTH_SKIP_REASON);
     if (!accessToken) return;
 
     const me = await supabaseRestSelect<Array<{ user_id: string }>>(request, accessToken, 'user_profiles', 'select=user_id&limit=1');

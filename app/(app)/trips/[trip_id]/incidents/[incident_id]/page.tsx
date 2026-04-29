@@ -7,6 +7,9 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
 import EvidenceUpload from '@/components/evidence/EvidenceUpload';
 import VoiceNarrationPanel from '@/components/voice/VoiceNarrationPanel';
+import ResolutionTracker from '@/components/disruption/ResolutionTracker';
+import DisruptionOptionsPanel from '@/components/disruption/DisruptionOptionsPanel';
+import AppPageRoot from '@/components/layout/AppPageRoot';
 
 const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }> = {
   OPEN:                  { bg: '#eff4fc', border: '#bfdbfe', text: '#2E5FA3' },
@@ -411,7 +414,7 @@ export default function IncidentDetailPage() {
   };
 
   return (
-    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', maxWidth: 900 }}>
+    <AppPageRoot style={{ fontFamily: 'system-ui, -apple-system, sans-serif', maxWidth: 900 }}>
       <Link href={`/trips/${tripId}`} style={{
         fontSize: 13, color: '#888', textDecoration: 'none',
         display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 20,
@@ -421,6 +424,48 @@ export default function IncidentDetailPage() {
         </svg>
         Back to trip
       </Link>
+
+      {!canRoute && status !== 'CLOSED' && status !== 'SUBMITTED' && status !== 'DISPUTED' ? (
+        <div
+          style={{
+            marginBottom: 16,
+            padding: '14px 16px',
+            background: evidence.length === 0 ? '#fffbeb' : '#eff6ff',
+            border: `1px solid ${evidence.length === 0 ? '#fde68a' : '#bfdbfe'}`,
+            borderRadius: 12,
+            fontSize: 13,
+            color: '#334155',
+            lineHeight: 1.55,
+          }}
+        >
+          <strong style={{ color: '#1A2B4A', display: 'block', marginBottom: 6 }}>
+            {evidence.length === 0 ? 'Evidence needed before claim routing' : 'Ready to move toward routing?'}
+          </strong>
+          {evidence.length === 0
+            ? 'Upload a document or add a narrated note in the sections below. At least one evidence item is required before you can advance this incident toward structured claim routing.'
+            : canAdvance
+              ? 'You have evidence on file. Scroll to Actions and tap “Mark as ready to review” when you want to advance status toward routing.'
+              : 'Keep building your record with carrier actions and documentation, then use Actions when routing becomes available.'}
+        </div>
+      ) : null}
+
+      <ResolutionTracker
+        tripId={tripId}
+        incidentId={incidentId}
+        disruptionType={incident.disruption_type}
+        incidentCreatedAt={incident.created_at}
+        evidence={evidence}
+        carrierResponses={carrierResponses}
+        onOpenEvidenceUpload={() => { setShowUpload(true); setShowNarration(false); }}
+        onOpenCarrierForm={() => { setShowCarrierForm(true); setCarrierError(''); }}
+        onOpenClaimRouting={() => router.push(`/trips/${tripId}/incidents/${incidentId}/route`)}
+        onOpenCoverageTab={() => router.push(`/trips/${tripId}?tab=Coverage`)}
+      />
+
+      <DisruptionOptionsPanel
+        tripId={tripId}
+        disruptionType={incident.disruption_type}
+      />
 
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
@@ -959,6 +1004,6 @@ export default function IncidentDetailPage() {
           .incident-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
-    </div>
+    </AppPageRoot>
   );
 }

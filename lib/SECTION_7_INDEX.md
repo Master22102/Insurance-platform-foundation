@@ -11,8 +11,9 @@
 | File | Contents |
 |------|-----------|
 | `SECTION_7.2_OAUTH_OPTIONAL_EMAIL_IMPORT.md` | Optional inbox connection — transparency microcopy, scope, UX rules, prohibited language, 7.6 cross-ref |
-| `SECTION_7.3_SCREEN_SURFACE_REGISTRY.md` | 7.3.0 governance binding through stress mapping; traveler/founder surfaces; amendments v1.1 (draft/creator/weather) + v1.2 (emergency, disruption, checklist, FOCL extensions) |
-| `SECTION_7.4_VOICE_FIRST_INTERACTION_AUTHORITY.md` | Voice proposal-only model; incident scope; trip draft narration extension (7.4.13) |
+| `SECTION_7.3_SCREEN_SURFACE_REGISTRY.md` | 7.3.0 governance binding through stress mapping; traveler/founder surfaces; amendments v1.1–v1.2 + **v1.3** onboarding / get-started surfaces (S-ONBOARD-001/002, S-GETSTARTED-001) |
+| `SECTION_7.4_VOICE_FIRST_INTERACTION_AUTHORITY.md` | Voice proposal-only model; incident scope; trip draft narration (7.4.13); **Amendment v1.2** onboarding `signal_capture` / §7.4.14 |
+| `SECTION_7.7_VISUAL_DESIGN_SYSTEM.md` | Visual design tokens, AMOLED-first dark language, **Amendment v1.1** (April 2026); cross-ref 7.3 surfaces |
 | `SECTION_7.8_DETERMINISTIC_DECISION_COMMUNICATION.md` | Structural formula, vocabulary, boundary statement, causality/ambiguity |
 | `SECTION_7.9_PLATFORM_DELIVERY.md` | Breakpoints, traveler/FOCL/web, native deployment, public site inventory, invariants |
 

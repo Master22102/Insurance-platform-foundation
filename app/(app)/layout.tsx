@@ -37,6 +37,32 @@ const NAV_LINKS = [
     ),
   },
   {
+    label: 'Safety',
+    href: '/safety',
+    icon: (active: boolean) => (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M12 2L4 6v6c0 5 3.6 9.7 8 11 4.4-1.3 8-6 8-11V6L12 2z"
+          stroke={active ? '#2E5FA3' : '#888'}
+          strokeWidth="1.7"
+          strokeLinejoin="round"
+        />
+        <path d="M12 8v5" stroke={active ? '#2E5FA3' : '#888'} strokeWidth="1.7" strokeLinecap="round" />
+        <circle cx="12" cy="16.5" r="1" fill={active ? '#2E5FA3' : '#888'} />
+      </svg>
+    ),
+  },
+  {
+    label: 'Rights',
+    href: '/rights',
+    icon: (active: boolean) => (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <rect x="4" y="3" width="16" height="18" rx="2" stroke={active ? '#2E5FA3' : '#888'} strokeWidth="1.7" />
+        <path d="M8 8h8M8 12h8M8 16h5" stroke={active ? '#2E5FA3' : '#888'} strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
     label: 'Coverage',
     href: '/coverage',
     icon: (active: boolean) => (

@@ -2,6 +2,32 @@
 
 This log tracks **observable mismatches** between the documented product flows/specs and the **current** implementation.
 
+## 2026-04-09
+
+- **DEEP-SCAN-AXIS-5-001 — Axis 5 doctrine vs Product Bible (resolved in doc + types comment):**
+  - **Issue:** `docs/DEEP_SCAN_AXIS_DOCTRINE.md` described **Axis 5** (`hidden_opportunity`) as “Missed reimbursements / protections,” which contradicts the **Product Bible** meaning: **experiential / hidden opportunity intelligence** (astronomical events, natural phenomena, local cultural events not on mainstream tour packages, season-specific experiences).
+  - **Resolution:** Doctrine table row 5 and §1 output bullet 2 updated so **benefit/coverage opportunities** are explicitly tied to **policy text / Axis 2**; Axis 5 scoped to experiential intelligence only. **`lib/intelligence/connectors/types.ts`** JSDoc on `IntelligenceAxis` encodes the same boundary for implementers. **Axis 2** semantics unchanged.
+  - **Residual:** No dedicated `hidden_opportunity` provider yet — registry still uses static fallback; future providers must conform to the reconciled doctrine.
+
+- **DEEP-SCAN-FR-CONNECTOR-001 — `feature_registry.requires_connector` vs full axis sourcing (deferred):**
+  - **Issue:** F-6.5.13 row text names **Axis 1 / Axis 4–class** connectors only; **§2a** in `docs/DEEP_SCAN_AXIS_DOCTRINE.md` now records **per-axis sourcing intent** for all connector axes. Until product locks vendor strings, updating SQL risks drift from the doctrine table.
+  - **Resolution (P0-1c):** Doctrine is **contract of record** for sourcing; **no forward migration** in this slice. Revisit **only after** sourcing rows stabilize and a single string (or structured field) is agreed for `requires_connector` / release notes.
+  - **Residual:** DB string may still under-represent axes 2–3, 5–8, 11 — acceptable until explicit migration; UI + registry fallback clarify Axis 5 boundary.
+
+- **Cursor always-on rules + binding template expansion (no product code in this slice):**
+  - **Files:** `.cursor/rules/system-truth-and-platform-gates.mdc` (new, `alwaysApply: true`), `.cursor/rules/doctrine-1.9-structural-truth.mdc` (pointer to gates), `lib/FEATURE_FULLSTACK_BINDING_TEMPLATE.md` (§0a, §0b, §7a, §8b, §10b, §11; §5 new-table RLS row).
+  - **Doctrine alignment:** No contradiction found between SYSTEM_TRUTH hierarchy, SHIP_BAR, DEEP_SCAN_AXIS_DOCTRINE, §7.3 registry, and the new agent rules — rules are **additive** operational gates.
+  - **Residual risk (not a doc-vs-doc mismatch):** `CORE_FLOW_GOVERNANCE_IMPLEMENTATION_MATRIX.md` §**8.3** / **8.3.7** remain **Partial** in-repo; new work declaring **T1** must either use an approved encryption pattern or log a **MISMATCH** / waiver — agents must not treat “partial legacy upload path” as blanket exemption.
+
+- **Surface pass (signup / onboarding bridge / Quick Scan entry / filing coach / conflicts / Right Now strip)** aligned `docs/SYSTEM_TRUTH_HIERARCHY_AND_SECTION5_RECONCILIATION.md` with repo behavior.
+  - **Signup:** `app/(auth)/signup/page.tsx` — 3-step framing, resend via Supabase `auth.resend({ type: 'signup' })`, clearer recovery copy.
+  - **Onboarding:** `app/(app)/onboarding/page.tsx` — post-save completion bridge → `/get-started?from=onboarding`; `app/(app)/get-started/page.tsx` — skip auto-redirect to `/trips` when that query is present once.
+  - **Quick Scan:** `app/(app)/trips/[trip_id]/page.tsx` — workspace + Coverage tab CTAs to `/scan?trip_id=…` (entitlement-aware where applicable).
+  - **Claim routing:** `.../incidents/[id]/route/page.tsx` — filing coach block after packet success.
+  - **Conflicts:** `components/coverage/ItineraryConflictSummaryStrip.tsx` on trip Overview; intro copy on `ItineraryConflictAlerts` (same API as before).
+  - **Right Now:** `components/context/RightNowCrossTabStrip.tsx` under non-Overview tabs on trip detail.
+  - **Note:** Onboarding completion still sets default `anchor_selection` in DB; bridge intentionally lands on get-started for explicit next choice when using `?from=onboarding`.
+
 ## 2026-03-20
 
 - **Quick Scan entitlement enforcement violated strict emit-or-rollback doctrine (8.4)**: The API deducted credits via separate profile update + ledger write with non-canonical fields, allowing mutation/event drift risk.
@@ -279,4 +305,88 @@ This log tracks **observable mismatches** between the documented product flows/s
 - **Section 5 matrix drift vs implementation (Steps 1 / 1.5 / 2 / Quick Scan evidence)**: Matrix rows still described older signup/onboarding gaps; Quick Scan determinism was test-only without a supported automation path when `scan_credits_remaining` was exhausted.
   - **Fix**: Refreshed `lib/SECTION_5_PARITY_AUDIT_MATRIX.md` (microcopy ledger, step rows, tests table, P0 plan). Added server-only `E2E_QUICK_SCAN_SKIP_CREDIT` gate in `app/api/quick-scan/route.ts` (disabled in production) so CI/local can assert structural determinism without seeding credits. Documented usage in `tests/e2e/README.md`; `playwright.config.ts` starts `npm run dev` with the flag when Playwright owns the web server; added `npm run e2e:quick-scan-determinism`. Onboarding: **Edit** on the signal summary now keeps draft text and focuses the textarea (was incorrectly clearing). Signal step subtitle + triad label line retained.
   - **Files**: `lib/SECTION_5_PARITY_AUDIT_MATRIX.md`, `app/api/quick-scan/route.ts`, `tests/e2e/README.md`, `playwright.config.ts`, `package.json`, `app/(app)/onboarding/page.tsx`
+
+## 2026-04-08
+
+Doctrine vs implementation gaps recorded for the corpus + onboarding + security pass. Verify against `app/api` before closing an item (e.g. any remaining `/api/debug` routes).
+
+- **MISMATCH-ONBOARD-001 — Onboarding model vs code default:**
+  - **Doctrine (§7.4.14):** Onboarding uses `claude-sonnet-4-6` via a dedicated `OPENROUTER_ONBOARDING_MODEL` env var.
+  - **Current code:** `OPENROUTER_VOICE_PARSE_MODEL` defaults to `claude-haiku-4-5`; onboarding parse calls may still share that var.
+  - **Resolution needed:** Add `OPENROUTER_ONBOARDING_MODEL` (default `claude-sonnet-4-6`) and use it only for onboarding parse paths, not incident/trip-draft voice parse.
+
+- **MISMATCH-ONBOARD-002 — signal_capture prompt missing fields:**
+  - **Doctrine (§7.4.14):** `signal_capture` extracts `venue_intents`, `pet_travel`, `pet_type`, `pet_destination_type`, `catch_bucket`, `ambiguity_question`, `wayfarer_response`.
+  - **Current code:** `app/api/voice/parse/route.ts` (when present) must implement the full `signal_capture` schema; align `buildParsingPrompt` + Zod output with doctrine.
+  - **Resolution needed:** Implement or extend the voice parse route per backlog Prompt 3; remove `detail_preference` from onboarding signal capture.
+
+- **MISMATCH-ONBOARD-003 — detail_preference in wrong surface:** **RESOLVED (2026-04-09).** Removed from onboarding signal review; persisted under **Account → Contextual intelligence** (`signal_profile.detail_preference`).
+
+- **MISMATCH-SEC-001 — debug / OpenRouter route unauthenticated:**
+  - **Doctrine (§8.1):** No route may call AI or platform keys without authentication (and appropriate role where applicable).
+  - **Current code:** Any unauthenticated debug route that calls OpenRouter (e.g. `/api/debug` if present) is a production risk.
+  - **Resolution needed:** Delete or hard-gate behind Supabase session + founder (or dev-only) checks.
+
+- **MISMATCH-SEC-002 — /api/coverage-catalog/search has no auth:**
+  - **Doctrine (§8.4):** Coverage intelligence requires authentication.
+  - **Current code:** IP rate limiting alone does not satisfy traveler/session scope.
+  - **Resolution needed:** Require Supabase session at the top of the handler; keep rate limits as defense in depth.
+
+- **MISMATCH-CSP-001 — CSP in report-only mode:**
+  - **Doctrine (§8.1):** CSP must be enforced in production, not report-only.
+  - **Current code:** `CSP_MODE` report-only logs violations but does not block XSS.
+  - **Resolution needed:** Set `CSP_MODE=enforce` in production (e.g. Netlify) once violations are cleared.
+
+## 2026-04-09
+
+- **MISMATCH-SEC-001 (partial) — `/api/debug-openrouter` removed:** Unauthenticated OpenRouter probe route deleted per security backlog; any remaining `/api/debug` routes should still be audited separately.
+  - **Files:** removed `app/api/debug-openrouter/route.ts`
+
+- **Pet signal → surfaces wiring (connectivity pass):** `pet_travel` + `pet_destination_type` from `user_profiles.preferences.signal_profile` now feed trip context (`pet_international` rule), Deep Scan connectors (`international_regulatory`, `cultural_legal`), readiness pins (`#pet` section + USDA APHIS official link), and a synthetic coverage gap when no pet benefit is detected. **Net-new corpus rows** belong in migration `20260409000000_register_corpus_pass3.sql` (manual Supabase apply). FOCL corpus queue uses `20260409010000_corpus_acquisition_job_queue.sql` + `scripts/corpus/acquire_worker.py` (optional RPC `claim_corpus_acquisition_job`).
+
+## 2026-04-09 — Flow audit (dominant lived-flow truth)
+
+**Source of truth document:** `docs/SYSTEM_TRUTH_HIERARCHY_AND_SECTION5_RECONCILIATION.md` (Sections A–D). Repo-first audit; classifications below match that file.
+
+- **FLOW-GAP-001 — Signup email wall:** After signup, “Check your email” state has no resend, no skip, no progress indicator. **Class:** `PARTIAL_TRUE_GAP`.
+
+- **FLOW-GAP-002 — Onboarding handoff:** After signal confirm, no bridge explaining what happens next; preferences merge silently. **Class:** `PARTIAL_TRUE_GAP`.
+
+- **FLOW-GAP-003 — `detail_preference` in onboarding review:** UI shows detail preference in signal review; doctrine places it on `/account/preferences`. Aligns with **MISMATCH-ONBOARD-003**. **Class:** `IMPLEMENTED_AWAITING_DOCTRINE_CLOSURE`.
+
+- **FLOW-GAP-004 — Duplicate terms gates:** `/terms-consent` then onboarding step 1 repeats Terms + Privacy with same disabled “Read later” pattern. **Class:** `PARTIAL_TRUE_GAP`.
+
+- **FLOW-GAP-005 — Get-started trip CTA:** “Add a trip itinerary” and “I’m still planning” route to `/trips` instead of deep-linking to `/trips/new` where the CTA implies creation. **Class:** `IMPLEMENTED_AWAITING_FLOW_PLACEMENT`.
+
+- **FLOW-GAP-006 — Trip done → draft permanence:** Only the trip-created “done” screen reliably hands off to `/trips/[id]/draft`; leaving early loses that path. **Class:** `PARTIAL_TRUE_GAP`.
+
+- **FLOW-GAP-007 — Trip detail ↔ draft:** No Plan/Draft tab and no Overview link to `/draft`; draft reachable via DRAFT maturity auto-redirect or typing URL; post-unlock `/draft` often orphaned. **Class:** `PARTIAL_TRUE_GAP`.
+
+- **FLOW-GAP-008 — Readiness → Coverage mismatch:** Readiness confirmed copy references Deep Scan on Coverage tab; navigation lands on trip Overview without CTA to Coverage. **Class:** `PARTIAL_TRUE_GAP`.
+
+- **FLOW-GAP-009 — Deep Scan post-result:** No next-step CTA after scan completes. **Class:** `PARTIAL_TRUE_GAP`.
+
+- **FLOW-GAP-010 — Quick Scan post-result buttons:** “Run Deep Scan” and “See insurance options” both route to `/trips`, losing trip context; labels are misleading. **Class:** `PARTIAL_TRUE_GAP`.
+
+- **FLOW-GAP-011 — Policy upload “View policy”:** Completes to global `/coverage` even when trip context (`preTripId`) exists. **Class:** `IMPLEMENTED_AWAITING_FLOW_PLACEMENT`.
+
+- **FLOW-GAP-012 — Incident routing CTA placement:** Gating is correct; routing instructions sit low on incident detail. **Class:** `IMPLEMENTED_AWAITING_SURFACE_FINALIZATION`.
+
+- **FLOW-GAP-013 — Post-packet filing:** After “Download PDF” on route flow, no carrier contact / filing instruction surface. **Class:** `PARTIAL_TRUE_GAP`.
+
+- **FLOW-GAP-014 — RightNow tab scope:** RightNow panel only on Overview; no persistent contextual strip across Route/Coverage/Incidents/Claims. **Class:** `IMPLEMENTED_AWAITING_SURFACE_FINALIZATION`.
+
+- **FLOW-GAP-015 — Quick Scan discoverability:** `/scan` not in primary nav; reach via trip list affordance or direct URL. **Class:** `IMPLEMENTED_AWAITING_FLOW_PLACEMENT`.
+
+## 2026-04-09 — Flow fix pass (resolved items)
+
+- **FLOW-GAP-005 RESOLVED:** `get-started` “Add a trip itinerary” → `/trips/new` (`app/(app)/get-started/page.tsx`).
+- **FLOW-GAP-008 RESOLVED:** Readiness confirm → `/trips/[id]?tab=Coverage` (`draft/readiness/page.tsx`).
+- **FLOW-GAP-010 MITIGATED:** Quick Scan CTAs trip-scoped when **`/scan?trip_id=`** is used (`QuickScanResult.tsx`, `scan/page.tsx`); no `trip_id` still routes to `/trips`.
+- **FLOW-GAP-011 RESOLVED:** Policy upload “View policy” → `/trips/[id]?tab=Coverage` when `preTripId` set.
+- **FLOW-GAP-009 RESOLVED:** Deep Scan result **Suggested next steps** (`DeepScanPanel.tsx` + `attachedPolicyCount` from Coverage tab).
+- **FLOW-GAP-007 MITIGATED:** Trip Overview workspace **Draft Home (planning)** for non-DRAFT trips (`trips/[trip_id]/page.tsx`).
+- **FLOW-GAP-012 IMPROVED:** Incident detail top **evidence / routing** banner (`incidents/[incident_id]/page.tsx`).
+- **MISMATCH-ONBOARD-003 / FLOW-GAP-003 RESOLVED:** Detail preference removed from onboarding review; **Account → Contextual intelligence** persists `signal_profile.detail_preference` (`onboarding/page.tsx`, `account/preferences/contextual-intelligence/page.tsx`).
+- **FLOW-GAP-004 MITIGATED:** Onboarding skips terms step when `localStorage` **`wayfarer_terms_consent_v1`** is set (`terms-consent` + `onboarding/page.tsx`).
 

@@ -88,6 +88,18 @@ function devServerPortFromBaseUrl(base: string): number {
 }
 const playwrightDevPort = devServerPortFromBaseUrl(playwrightBaseUrl);
 
+/**
+ * Only known CI flags disable `reuseExistingServer`. A stray `CI` value in a dev shell (e.g. inherited
+ * from another tool) would otherwise make Playwright refuse to reuse `npm run dev` on :3000 and throw
+ * “localhost:3000 is already used”.
+ */
+function isPlaywrightCiEnvironment(): boolean {
+  const ci = (process.env.CI ?? '').trim().toLowerCase();
+  if (ci === 'true' || ci === '1' || ci === 'yes') return true;
+  const gha = (process.env.GITHUB_ACTIONS ?? '').trim().toLowerCase();
+  return gha === 'true' || gha === '1';
+}
+
 export default defineConfig({
   ...(process.env.E2E_REQUIRE_CONTRACTS === '1'
     ? { globalSetup: './tests/e2e/global-require-contracts-setup.ts' }
@@ -117,7 +129,7 @@ export default defineConfig({
         /*
           Pin port 3000 so baseURL matches. Without `-p 3000`, Next may bind to 3001 when 3000 is busy —
           Playwright would still probe localhost:3000 and tests would hit a different app or stall.
-          With `-p 3000`, reuseExistingServer (!CI) reuses whatever already answers on 3000; otherwise
+          With `-p 3000`, reuseExistingServer (non-CI) reuses whatever already answers on 3000; otherwise
           Next fails fast if the port is truly unavailable (free the port or use PLAYWRIGHT_NO_WEB_SERVER=1).
         */
         command: `npm run dev -- --hostname 127.0.0.1 -p ${playwrightDevPort}`,
@@ -134,7 +146,7 @@ export default defineConfig({
             set PLAYWRIGHT_REUSE_EXISTING_SERVER=0
         */
         reuseExistingServer:
-          !process.env.CI && process.env.PLAYWRIGHT_REUSE_EXISTING_SERVER !== '0',
+          !isPlaywrightCiEnvironment() && process.env.PLAYWRIGHT_REUSE_EXISTING_SERVER !== '0',
         timeout: 180_000,
         stdout: 'pipe',
         stderr: 'pipe',
@@ -159,19 +171,34 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium-desktop',
+      testIgnore: '**/creator-discovery.spec.ts',
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'firefox-desktop',
+      testIgnore: '**/creator-discovery.spec.ts',
       use: { ...devices['Desktop Firefox'] },
     },
     {
       name: 'webkit-desktop',
+      testIgnore: '**/creator-discovery.spec.ts',
       use: { ...devices['Desktop Safari'] },
     },
     {
       name: 'webkit-mobile',
+      testIgnore: '**/creator-discovery.spec.ts',
       use: { ...devices['iPhone 12'] },
+    },
+    /*
+      Creator discovery uses a shared Supabase account, search-rate limits (100/day), and DB seeding.
+      Running it once under a single worker avoids parallel browsers exhausting the same quota mid-run.
+    */
+    {
+      name: 'creator-discovery',
+      testMatch: '**/creator-discovery.spec.ts',
+      fullyParallel: false,
+      workers: 1,
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
 });

@@ -84,7 +84,7 @@ export default function ReadinessPanelPage() {
   useEffect(() => {
     if (!confirmed || !tripId) return;
     const t = window.setTimeout(() => {
-      router.push(`/trips/${tripId}`);
+      router.push(`/trips/${tripId}?tab=Coverage`);
     }, 2200);
     return () => window.clearTimeout(t);
   }, [confirmed, tripId, router]);
@@ -201,6 +201,7 @@ export default function ReadinessPanelPage() {
             disabled={loadingEval || !user}
             style={{
               padding: '10px 16px',
+              minHeight: 44,
               borderRadius: 10,
               border: '1px solid #e5e7eb',
               background: 'white',
@@ -227,6 +228,7 @@ export default function ReadinessPanelPage() {
                     style={{
                       marginTop: 10,
                       padding: '10px 14px',
+                      minHeight: 44,
                       borderRadius: 10,
                       border: '1px solid #bfdbfe',
                       background: '#eff6ff',
@@ -258,6 +260,7 @@ export default function ReadinessPanelPage() {
                     style={{
                       marginTop: 10,
                       padding: '10px 14px',
+                      minHeight: 44,
                       borderRadius: 10,
                       border: '1px solid #e5e7eb',
                       background: 'white',
@@ -282,6 +285,7 @@ export default function ReadinessPanelPage() {
             style={{
               flex: 1,
               padding: '12px 0',
+              minHeight: 48,
               background: !user || loadingEval || !isReady || confirming || confirmed || notDraft ? '#93afd4' : '#1A2B4A',
               color: 'white',
               border: 'none',
@@ -298,6 +302,7 @@ export default function ReadinessPanelPage() {
             onClick={() => router.push(`/trips/${tripId}`)}
             style={{
               padding: '12px 16px',
+              minHeight: 44,
               background: 'white',
               border: '1px solid #e5e7eb',
               color: '#555',

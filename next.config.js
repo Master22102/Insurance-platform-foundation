@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 /**
- * Content-Security-Policy — default Report-Only (audit without blocking).
- * Set CSP_MODE=enforce at build time to send blocking Content-Security-Policy
- * with the *same* directive set (only after triage; see docs/SECURITY_BROWSER_HARDENING.md).
+ * Content-Security-Policy — default enforce (block violations). Set CSP_MODE=report-only
+ * to send Content-Security-Policy-Report-Only for triage (see docs/SECURITY_BROWSER_HARDENING.md).
  * Relaxed for Next 13 + inline styles; connect-src allows HTTPS/WSS (Supabase + APIs).
  */
 const cspDirectives = [
@@ -20,14 +19,15 @@ const cspDirectives = [
   "object-src 'none'",
 ].join('; ');
 
-const cspMode = process.env.CSP_MODE === 'enforce' ? 'enforce' : 'report-only';
+const cspMode = process.env.CSP_MODE === 'report-only' ? 'report-only' : 'enforce';
 
 const securityHeaders = [
   { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   /* Scan + narrate flows need camera/microphone; keep geolocation off by default. */
-  { key: 'Permissions-Policy', value: 'camera=(self), microphone=(self), geolocation=()' },
+  /* TravelShield (F-6.6.13) opt-in live location uses Geolocation API in-app only. */
+  { key: 'Permissions-Policy', value: 'camera=(self), microphone=(self), geolocation=(self)' },
   cspMode === 'enforce'
     ? { key: 'Content-Security-Policy', value: cspDirectives }
     : { key: 'Content-Security-Policy-Report-Only', value: cspDirectives },

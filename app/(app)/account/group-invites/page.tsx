@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/auth/supabase-client';
 import { useAuth } from '@/lib/auth/auth-context';
+import AppPageRoot from '@/components/layout/AppPageRoot';
 
 type InviteRow = {
   request_id: string;
@@ -85,7 +86,7 @@ export default function GroupInvitesInboxPage() {
   const done = rows.filter((r) => r.status !== 'pending');
 
   return (
-    <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <AppPageRoot style={{ maxWidth: 640, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <Link href="/account" style={{ fontSize: 13, color: '#64748b', textDecoration: 'none' }}>
         ← Back to account
       </Link>
@@ -212,6 +213,6 @@ export default function GroupInvitesInboxPage() {
           </section>
         </>
       )}
-    </div>
+    </AppPageRoot>
   );
 }

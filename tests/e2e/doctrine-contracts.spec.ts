@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { hasStorageState, STORAGE_STATE_PATH } from './utils/authState';
+import { getStorageStatePath, hasStorageState } from './utils/authState';
 import { ensureOnboarded } from './utils/ensureOnboarded';
 
 const CANONICAL_CONFIDENCE_LABELS = [
@@ -11,7 +11,7 @@ const CANONICAL_CONFIDENCE_LABELS = [
 
 test.describe('Doctrine contract gates', () => {
   test.skip(!hasStorageState(), 'Missing .playwright/storageState.json; run npm run e2e:auth first.');
-  test.use({ storageState: STORAGE_STATE_PATH });
+  test.use({ storageState: getStorageStatePath() });
 
   test('policy extraction and quick scan enforce doctrine contracts', async ({ page }) => {
     await ensureOnboarded(page);

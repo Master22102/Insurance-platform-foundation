@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
+import { useIsMobile, useIsTablet } from '@/lib/hooks/useIsMobile';
+import { mobileStyles, tabletStyles } from '@/lib/styles/responsive';
 
 const TRAVEL_MODE_ICONS: Record<string, React.ReactNode> = {
   air: (
@@ -66,6 +68,8 @@ function isTripActive(trip: TripCoverage) {
 
 export default function CoveragePage() {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
   const [trips, setTrips] = useState<TripCoverage[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -117,8 +121,26 @@ export default function CoveragePage() {
   const hasTripsButNoPolicies = trips.length > 0 && trips.every((t) => t.policy_count === 0);
 
   return (
-    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+    <div
+      style={{
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        ...(isMobile ? mobileStyles.appContentMobile : isTablet ? tabletStyles.appContent : { padding: '0 0 32px' }),
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+        overflowX: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'stretch' : 'flex-start',
+          justifyContent: 'space-between',
+          marginBottom: 24,
+          flexWrap: 'wrap',
+          gap: 12,
+        }}
+      >
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#1A2B4A', margin: '0 0 4px', letterSpacing: '-0.4px' }}>
             Coverage
@@ -127,10 +149,23 @@ export default function CoveragePage() {
             Your travel coverage, organized by trip
           </p>
         </div>
-        <Link href="/policies/upload" style={{
-          padding: '9px 18px', background: '#1A2B4A', color: 'white',
-          borderRadius: 8, textDecoration: 'none', fontSize: 13, fontWeight: 600,
-        }}>
+        <Link
+          href="/policies/upload"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: 48,
+            padding: '12px 18px',
+            background: '#1A2B4A',
+            color: 'white',
+            borderRadius: 10,
+            textDecoration: 'none',
+            fontSize: 14,
+            fontWeight: 600,
+            boxSizing: 'border-box',
+          }}
+        >
           Upload a policy
         </Link>
       </div>
@@ -161,18 +196,46 @@ export default function CoveragePage() {
           <p style={{ fontSize: 14, color: '#888', margin: '0 0 28px', lineHeight: 1.6, maxWidth: 360 }}>
             Add a trip and upload your insurance policies to see your coverage analysis here.
           </p>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <Link href="/trips/new" style={{
-              padding: '10px 22px', background: '#1A2B4A', color: 'white',
-              borderRadius: 8, textDecoration: 'none', fontSize: 14, fontWeight: 600,
-            }}>
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 12, width: isMobile ? '100%' : undefined }}>
+            <Link
+              href="/trips/new"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 48,
+                padding: '12px 22px',
+                background: '#1A2B4A',
+                color: 'white',
+                borderRadius: 10,
+                textDecoration: 'none',
+                fontSize: 14,
+                fontWeight: 600,
+                boxSizing: 'border-box',
+                width: isMobile ? '100%' : undefined,
+              }}
+            >
               Plan a trip
             </Link>
-            <Link href="/policies/upload" style={{
-              padding: '10px 22px', background: 'white', color: '#1A2B4A',
-              border: '1px solid #e5e7eb',
-              borderRadius: 8, textDecoration: 'none', fontSize: 14, fontWeight: 600,
-            }}>
+            <Link
+              href="/policies/upload"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 48,
+                padding: '12px 22px',
+                background: 'white',
+                color: '#1A2B4A',
+                border: '1px solid #e5e7eb',
+                borderRadius: 10,
+                textDecoration: 'none',
+                fontSize: 14,
+                fontWeight: 600,
+                boxSizing: 'border-box',
+                width: isMobile ? '100%' : undefined,
+              }}
+            >
               Upload a policy
             </Link>
           </div>
@@ -230,6 +293,7 @@ export default function CoveragePage() {
 }
 
 function TripCoverageCard({ trip, isPast }: { trip: TripCoverage; isPast?: boolean }) {
+  const isMobile = useIsMobile();
   const dateRange = formatDateRange(trip.departure_date, trip.return_date);
   const mode = trip.travel_mode_primary || 'air';
 
@@ -239,7 +303,10 @@ function TripCoverageCard({ trip, isPast }: { trip: TripCoverage; isPast?: boole
         style={{
           background: 'white', border: '0.5px solid #e8e8e8',
           borderRadius: 12, padding: '16px 20px',
-          display: 'flex', alignItems: 'center', gap: 16,
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'stretch' : 'center',
+          gap: 16,
           opacity: isPast ? 0.75 : 1,
         }}
         onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)')}
@@ -268,7 +335,16 @@ function TripCoverageCard({ trip, isPast }: { trip: TripCoverage; isPast?: boole
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            flexShrink: 0,
+            justifyContent: isMobile ? 'space-between' : 'flex-end',
+            width: isMobile ? '100%' : undefined,
+          }}
+        >
           {trip.open_incident_count > 0 && (
             <span style={{
               fontSize: 11, fontWeight: 600, color: '#c2410c',

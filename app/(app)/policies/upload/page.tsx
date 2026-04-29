@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
+import { useIsMobile, useIsTablet } from '@/lib/hooks/useIsMobile';
+import { mobileStyles, tabletStyles } from '@/lib/styles/responsive';
 
 const PROCESSING_MESSAGES = [
   'Processing your document…',
@@ -24,6 +26,8 @@ const SOURCE_TYPES = [
 const SAFE_UPLOAD_ERROR = 'We could not finish this upload right now. Please try again.';
 
 export default function PolicyUploadPage() {
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -204,7 +208,13 @@ export default function PolicyUploadPage() {
   const isProcessing = uploading || extractionStatus === 'processing';
 
   return (
-    <div style={{ maxWidth: 560, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div
+      style={{
+        ...(isMobile ? mobileStyles.appContentMobile : isTablet ? tabletStyles.appContent : { padding: '24px 16px 40px' }),
+        maxWidth: 560,
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+      }}
+    >
       <Link href={preTripId ? `/trips/${preTripId}` : '/coverage'} style={{
         fontSize: 13, color: '#888', textDecoration: 'none',
         display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 20,
@@ -245,11 +255,14 @@ export default function PolicyUploadPage() {
               {rulesFound} coverage {rulesFound === 1 ? 'rule' : 'rules'} found.
             </p>
           )}
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-            <Link href={`/coverage`} style={{
-              padding: '10px 20px', background: '#1A2B4A', color: 'white',
-              borderRadius: 8, textDecoration: 'none', fontSize: 13, fontWeight: 600,
-            }}>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link
+              href={preTripId ? `/trips/${preTripId}?tab=Coverage` : '/coverage'}
+              style={{
+                padding: '10px 20px', background: '#1A2B4A', color: 'white',
+                borderRadius: 8, textDecoration: 'none', fontSize: 13, fontWeight: 600,
+              }}
+            >
               View policy
             </Link>
             {preTripId && (

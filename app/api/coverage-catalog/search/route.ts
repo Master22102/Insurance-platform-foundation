@@ -18,10 +18,6 @@ export async function GET(request: NextRequest) {
   const q = (request.nextUrl.searchParams.get('q') || '').trim();
   const catalogType = request.nextUrl.searchParams.get('type') || '';
 
-  const ip = clientIpFromRequest(request);
-  const catLimited = rateLimitedJsonResponse(`coverage-catalog-search:${ip}`, 100, 15 * 60 * 1000);
-  if (catLimited) return catLimited;
-
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!supabaseUrl || !supabaseKey) {
@@ -40,6 +36,17 @@ export async function GET(request: NextRequest) {
       },
     },
   });
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const ip = clientIpFromRequest(request);
+  const catLimited = rateLimitedJsonResponse(`coverage-catalog-search:${ip}`, 100, 15 * 60 * 1000);
+  if (catLimited) return catLimited;
 
   const typeFilter =
     catalogType && (CATALOG_TYPES as readonly string[]).includes(catalogType) ? catalogType : null;

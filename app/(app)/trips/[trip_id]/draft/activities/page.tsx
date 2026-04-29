@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import DraftHomeStepShell from '@/components/draft-home/DraftHomeStepShell';
 import { supabase } from '@/lib/auth/supabase-client';
 import { useAuth } from '@/lib/auth/auth-context';
+import CreatorDiscoveryModal from '@/components/creators/CreatorDiscoveryModal';
 
 type Row = {
   candidate_id: string;
@@ -32,6 +33,7 @@ export default function ActivitySuggestionsPanelPage() {
   const [savingId, setSavingId] = useState<string | null>(null);
 
   const [showAdd, setShowAdd] = useState(false);
+  const [showDiscover, setShowDiscover] = useState(false);
   const [form, setForm] = useState({
     activity_name: '',
     city: '',
@@ -180,6 +182,23 @@ export default function ActivitySuggestionsPanelPage() {
           <p style={{ margin: '6px 0 0', fontSize: 13, color: '#666', lineHeight: 1.6 }}>
             Accept, reject, or defer suggestions. User-added activities can be removed. (AI OpenRouter suggestions are a future enhancement.)
           </p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
+            <button
+              onClick={() => setShowDiscover(true)}
+              style={{
+                border: '1px solid #111827',
+                background: '#111827',
+                color: 'white',
+                borderRadius: 10,
+                padding: '10px 12px',
+                minHeight: 44,
+                fontWeight: 950,
+                fontSize: 12,
+              }}
+            >
+              Discover activities (creators)
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -223,6 +242,7 @@ export default function ActivitySuggestionsPanelPage() {
                     onClick={() => setStatus(s.candidate_id, 'accepted')}
                     style={{
                       padding: '10px 14px',
+                      minHeight: 44,
                       borderRadius: 10,
                       border: `1px solid ${accepted ? '#bbf7d0' : '#e5e7eb'}`,
                       background: accepted ? '#f0fdf4' : 'white',
@@ -239,6 +259,7 @@ export default function ActivitySuggestionsPanelPage() {
                     onClick={() => setStatus(s.candidate_id, 'rejected')}
                     style={{
                       padding: '10px 14px',
+                      minHeight: 44,
                       borderRadius: 10,
                       border: `1px solid ${rejected ? '#fee2e2' : '#e5e7eb'}`,
                       background: rejected ? '#fef2f2' : 'white',
@@ -255,6 +276,7 @@ export default function ActivitySuggestionsPanelPage() {
                     onClick={() => setStatus(s.candidate_id, 'deferred')}
                     style={{
                       padding: '10px 14px',
+                      minHeight: 44,
                       borderRadius: 10,
                       border: '1px solid #e5e7eb',
                       background: deferred ? '#f9fafb' : 'white',
@@ -269,7 +291,7 @@ export default function ActivitySuggestionsPanelPage() {
                     <button
                       type="button"
                       onClick={() => removeRow(s.candidate_id, s.source)}
-                      style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #fecaca', background: '#fff', color: '#b91c1c' }}
+                      style={{ padding: '10px 14px', minHeight: 44, borderRadius: 10, border: '1px solid #fecaca', background: '#fff', color: '#b91c1c' }}
                     >
                       Remove
                     </button>
@@ -283,7 +305,7 @@ export default function ActivitySuggestionsPanelPage() {
         <button
           type="button"
           onClick={() => setShowAdd((x) => !x)}
-          style={{ padding: '10px 14px', borderRadius: 10, border: '1px dashed #cbd5e1', background: 'white', fontWeight: 900 }}
+          style={{ padding: '10px 14px', minHeight: 44, borderRadius: 10, border: '1px dashed #cbd5e1', background: 'white', fontWeight: 900 }}
         >
           + Add activity
         </button>
@@ -294,18 +316,18 @@ export default function ActivitySuggestionsPanelPage() {
               placeholder="Activity name *"
               value={form.activity_name}
               onChange={(e) => setForm((f) => ({ ...f, activity_name: e.target.value }))}
-              style={{ padding: 10, borderRadius: 8, border: '1px solid #ddd' }}
+              style={{ padding: 10, minHeight: 48, borderRadius: 8, border: '1px solid #ddd' }}
             />
             <input
               placeholder="City"
               value={form.city}
               onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-              style={{ padding: 10, borderRadius: 8, border: '1px solid #ddd' }}
+              style={{ padding: 10, minHeight: 48, borderRadius: 8, border: '1px solid #ddd' }}
             />
             <select
               value={form.activity_type}
               onChange={(e) => setForm((f) => ({ ...f, activity_type: e.target.value }))}
-              style={{ padding: 10 }}
+              style={{ padding: 10, minHeight: 48 }}
             >
               {['dining', 'sightseeing', 'adventure', 'cultural', 'wellness', 'transport', 'other'].map((x) => (
                 <option key={x} value={x}>
@@ -317,32 +339,32 @@ export default function ActivitySuggestionsPanelPage() {
               placeholder="Estimated cost (optional)"
               value={form.estimated_cost}
               onChange={(e) => setForm((f) => ({ ...f, estimated_cost: e.target.value }))}
-              style={{ padding: 10, borderRadius: 8, border: '1px solid #ddd' }}
+              style={{ padding: 10, minHeight: 48, borderRadius: 8, border: '1px solid #ddd' }}
             />
             <input
               placeholder="Date hint (e.g. Day 3)"
               value={form.date_hint}
               onChange={(e) => setForm((f) => ({ ...f, date_hint: e.target.value }))}
-              style={{ padding: 10, borderRadius: 8, border: '1px solid #ddd' }}
+              style={{ padding: 10, minHeight: 48, borderRadius: 8, border: '1px solid #ddd' }}
             />
             <input
               placeholder="Booking URL"
               value={form.booking_url}
               onChange={(e) => setForm((f) => ({ ...f, booking_url: e.target.value }))}
-              style={{ padding: 10, borderRadius: 8, border: '1px solid #ddd' }}
+              style={{ padding: 10, minHeight: 48, borderRadius: 8, border: '1px solid #ddd' }}
             />
             <textarea
               placeholder="Notes"
               value={form.notes}
               onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
               rows={2}
-              style={{ padding: 10, borderRadius: 8, border: '1px solid #ddd' }}
+              style={{ padding: 10, minHeight: 48, borderRadius: 8, border: '1px solid #ddd' }}
             />
             <button
               type="button"
               disabled={savingId === 'new' || !form.activity_name.trim()}
               onClick={() => addManual()}
-              style={{ padding: 12, background: '#1A2B4A', color: 'white', border: 'none', borderRadius: 10, fontWeight: 900 }}
+              style={{ padding: 12, minHeight: 48, background: '#1A2B4A', color: 'white', border: 'none', borderRadius: 10, fontWeight: 900 }}
             >
               Save activity
             </button>
@@ -356,6 +378,7 @@ export default function ActivitySuggestionsPanelPage() {
             style={{
               flex: 1,
               padding: '12px 0',
+              minHeight: 48,
               background: '#1A2B4A',
               color: 'white',
               border: 'none',
@@ -369,6 +392,8 @@ export default function ActivitySuggestionsPanelPage() {
           </button>
         </div>
       </div>
+
+      <CreatorDiscoveryModal open={showDiscover} onClose={() => setShowDiscover(false)} tripId={tripId} />
     </DraftHomeStepShell>
   );
 }

@@ -1,7 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { hasStorageState, STORAGE_STATE_PATH } from './utils/authState';
+import { getStorageStatePath, hasStorageState } from './utils/authState';
 import { ensureOnboarded } from './utils/ensureOnboarded';
-import { hasSupabaseEnv, readAccessTokenFromStorageState, supabaseRestSelect } from './utils/supabaseRest';
+import {
+  E2E_AUTH_SKIP_REASON,
+  hasSupabaseEnv,
+  readAccessTokenFromStorageState,
+  supabaseRestSelect,
+} from './utils/supabaseRest';
 import { setupRoutingReadyIncident } from './utils/routingReadyIncident';
 
 /**
@@ -11,12 +16,12 @@ import { setupRoutingReadyIncident } from './utils/routingReadyIncident';
 test.describe('Claim route page (browser happy path)', () => {
   test.skip(!hasStorageState(), 'Missing .playwright/storageState.json; run npm run e2e:auth first.');
   test.skip(!hasSupabaseEnv(), 'Missing Supabase public env vars.');
-  test.use({ storageState: STORAGE_STATE_PATH });
+  test.use({ storageState: getStorageStatePath() });
 
   test('shows Route this claim after RPC seeds routing-ready incident', async ({ page, request }) => {
     test.setTimeout(120_000);
     const accessToken = readAccessTokenFromStorageState();
-    test.skip(!accessToken, 'Could not read access token from storage state.');
+    test.skip(!accessToken, E2E_AUTH_SKIP_REASON);
     if (!accessToken) return;
 
     await ensureOnboarded(page);
@@ -36,7 +41,7 @@ test.describe('Claim route page (browser happy path)', () => {
   test('submits routing form and shows success state with packet', async ({ page, request }) => {
     test.setTimeout(180_000);
     const accessToken = readAccessTokenFromStorageState();
-    test.skip(!accessToken, 'Could not read access token from storage state.');
+    test.skip(!accessToken, E2E_AUTH_SKIP_REASON);
     if (!accessToken) return;
 
     await ensureOnboarded(page);
@@ -66,9 +71,8 @@ test.describe('Claim route page (browser happy path)', () => {
 
     await page.getByRole('button', { name: /save routing details/i }).click();
 
-    await expect(page.getByRole('heading', { name: /routing details saved/i })).toBeVisible({ timeout: 90_000 });
+    await expect(page.getByRole('heading', { name: /claim packet prepared/i })).toBeVisible({ timeout: 90_000 });
     await expect(page.getByText(recipient, { exact: true })).toBeVisible();
-    await expect(page.getByText(/claim packet prepared/i)).toBeVisible({ timeout: 30_000 });
 
     const incidentRows = await supabaseRestSelect<Array<{ canonical_status: string }>>(
       request,

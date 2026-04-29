@@ -75,3 +75,72 @@ Same authority as incident:
 **Rate limits (§10.2):** e.g. free 10 narration parses per trip; paid unlimited; transcript capture without LLM unlimited.
 
 **Cross-refs:** §3.5 trip maturity, §9.4 traceability, §10.2 pricing.
+
+---
+
+## Amendment v1.2 — Onboarding signal capture narration (April 2026)
+
+**Third voice context.** Incident (7.4.0–7.4.12) and trip draft (7.4.13) unchanged.
+
+### 7.4.14 Onboarding signal capture narration
+
+**Context type:** `signal_capture`
+**Surface:** S-ONBOARD-001
+**Model:** claude-sonnet-4-6 via OPENROUTER_ONBOARDING_MODEL env var — not Haiku. Quality over cost for onboarding; ~$0.025 total for all three rounds.
+
+**Hard constraints:**
+
+- Three rounds maximum. Non-negotiable. No fourth round under any condition.
+- One Sonnet call per round. Parse and response voice layer in a single call.
+- One clarifying question maximum per round. Highest-value ambiguous item only.
+- No background API calls during onboarding. No Google Places, no validation, no enrichment.
+- No credit deduction. Onboarding narration is free and always available.
+- Budget ceiling: three Sonnet calls total for entire onboarding flow. Hard limit. No exceptions.
+
+**Four ambiguity states:**
+
+| State | Description | Action |
+|-------|-------------|--------|
+| Confident | Certain of category | Assign silently. No question. |
+| Probable | Mostly sure | Assign to most likely bucket. User corrects via chip edit if wrong. |
+| Ambiguous-high | Uncertain + high downstream value | One clarifying question in response voice layer. |
+| Ambiguous-low | Uncertain + low downstream value | Silent catch bucket. Raw text. Zero processing. |
+
+If multiple Ambiguous-high items in one round: ask about highest-value only. Catch-bucket the rest.
+
+**Response voice layer:**
+
+After each parse, a second output field `wayfarer_response` returns one natural sentence delivered above the chip grid. Session context passed in: accumulated `narrationParts` array. Makes the system feel conversational. Round 3 adopts final-round tone — invites last addition rather than implying more rounds available.
+
+**Venue intent detection:**
+
+Sonnet flags proper nouns as `venue_intent: true` based on context clues in the narration only. No background search. All venue_intent items stored with `resolved: false`. Resolution fires at trip creation via Google Places — not during onboarding.
+
+**Catch bucket:**
+
+Items that cannot be confidently categorized stored as raw text with `resolved: false`. Never processed during onboarding. Never displayed to user as an error. Surfaced at trip creation when relevant.
+
+**Chip categories (five):** Places · My Thing · Food · Companions · Avoid
+
+**Pet signal extraction:**
+- `pet_travel: boolean`
+- `pet_type: string | null`
+- `pet_destination_type: "domestic" | "international" | null`
+
+**Draft persistence:** Signal profile saved to `localStorage` under key `wayfarer_onboarding_draft` after each round. On re-entry before confirmation: "Pick up where you left off?" with chip preview and timestamp. Options: "Continue" or "Start fresh."
+
+**Authority comparison:**
+
+| Rule | Incident | Trip draft | Onboarding |
+|------|----------|------------|------------|
+| Proposal-only | Yes | Yes | Yes — chips are proposals until confirmed |
+| Confirmation required | Yes | Yes | Yes — "Confirm my profile" |
+| Transcript immutable | Yes | Yes | Yes |
+| Parse attempt immutable | Yes | Yes | Yes |
+| Max rounds | N/A | 1 per session | 3 total, hard ceiling |
+| Model | Haiku | Haiku | claude-sonnet-4-6 |
+| Background API calls | Permitted | Permitted | Prohibited |
+
+**Cross-refs:** §5.0 Step 2 onboarding flow, §7.3 S-ONBOARD-001/002, §9.4 traceability, `lib/SECTION_7.3_SCREEN_SURFACE_REGISTRY.md`.
+
+---

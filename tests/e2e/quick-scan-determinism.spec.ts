@@ -5,12 +5,12 @@
  * (see tests/e2e/README.md).
  */
 import { expect, test } from '@playwright/test';
-import { hasStorageState, STORAGE_STATE_PATH } from './utils/authState';
+import { getStorageStatePath, hasStorageState } from './utils/authState';
 import { ensureOnboarded } from './utils/ensureOnboarded';
 
 test.describe('Quick Scan determinism', () => {
   test.skip(!hasStorageState(), 'Missing .playwright/storageState.json; run npm run e2e:auth first.');
-  test.use({ storageState: STORAGE_STATE_PATH });
+  test.use({ storageState: getStorageStatePath() });
 
   test('same input returns same structural quick scan output', async ({ page }) => {
     await ensureOnboarded(page);

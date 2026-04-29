@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import QuickScanResult from '@/components/scan/QuickScanResult';
 import Link from 'next/link';
 import { formatUsd, PRICING } from '@/lib/config/pricing';
+import { useIsMobile, useIsTablet } from '@/lib/hooks/useIsMobile';
+import { mobileStyles, tabletStyles } from '@/lib/styles/responsive';
 
 const STATUS_MESSAGES = [
   'Reading your document…',
@@ -15,7 +18,11 @@ const STATUS_MESSAGES = [
 const LIFETIME_SCAN_CAP = 2;
 
 export default function ScanPage() {
+  const searchParams = useSearchParams();
+  const contextTripId = (searchParams.get('trip_id') || '').trim() || null;
   const { user, getLifetimeScansRemaining, isAtLifetimeCap } = useAuth();
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -82,7 +89,14 @@ export default function ScanPage() {
 
   if (atCap && !result) {
     return (
-      <div style={{ maxWidth: 560, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <div
+        style={{
+          maxWidth: 560,
+          fontFamily: 'system-ui, -apple-system, sans-serif',
+          ...(isMobile ? mobileStyles.appContentMobile : isTablet ? tabletStyles.appContent : {}),
+          boxSizing: 'border-box',
+        }}
+      >
         <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1A2B4A', margin: '0 0 8px', letterSpacing: '-0.3px' }}>
           Quick Scan
         </h1>
@@ -99,11 +113,23 @@ export default function ScanPage() {
           <p style={{ fontSize: 13, color: '#666', margin: '0 0 18px', lineHeight: 1.6 }}>
             Coverage overlap analysis, claim routing guidance, and a ready-to-file packet.
           </p>
-          <Link href="/trips" style={{
-            display: 'inline-block', padding: '10px 20px',
-            background: '#1A2B4A', color: 'white',
-            borderRadius: 8, textDecoration: 'none', fontSize: 13, fontWeight: 600,
-          }}>
+          <Link
+            href="/trips"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 48,
+              padding: '12px 20px',
+              background: '#1A2B4A',
+              color: 'white',
+              borderRadius: 10,
+              textDecoration: 'none',
+              fontSize: 14,
+              fontWeight: 600,
+              boxSizing: 'border-box',
+            }}
+          >
             Unlock a trip — {formatUsd(PRICING.tripUnlockUsd)}
           </Link>
         </div>
@@ -112,7 +138,14 @@ export default function ScanPage() {
   }
 
   return (
-    <div style={{ maxWidth: 580, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div
+      style={{
+        maxWidth: 580,
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        ...(isMobile ? mobileStyles.appContentMobile : isTablet ? tabletStyles.appContent : {}),
+        boxSizing: 'border-box',
+      }}
+    >
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1A2B4A', margin: '0 0 6px', letterSpacing: '-0.3px' }}>
           Quick Scan
@@ -186,13 +219,42 @@ export default function ScanPage() {
                       <path d="M8 8h8M8 12h5" stroke="#888" strokeWidth="1.3" strokeLinecap="round"/>
                     </svg>
                     <span style={{ fontSize: 13, color: '#333', flex: 1 }}>{file.name}</span>
-                    <button onClick={() => setFile(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ccc', fontSize: 16 }}>×</button>
+                    <button
+                      type="button"
+                      onClick={() => setFile(null)}
+                      aria-label="Remove file"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: '#ccc',
+                        fontSize: 20,
+                        minWidth: 44,
+                        minHeight: 44,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      ×
+                    </button>
                   </div>
-                  <button onClick={runScan} style={{
-                    width: '100%', padding: '11px 0',
-                    background: '#1A2B4A', color: 'white',
-                    border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                  }}>
+                  <button
+                    type="button"
+                    onClick={runScan}
+                    style={{
+                      width: '100%',
+                      minHeight: 48,
+                      padding: '12px 0',
+                      background: '#1A2B4A',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 10,
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
                     Scan this document
                   </button>
                 </div>
@@ -225,7 +287,7 @@ export default function ScanPage() {
         </div>
       )}
 
-      {result && <QuickScanResult result={result} />}
+      {result && <QuickScanResult result={result} contextTripId={contextTripId} />}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
 import VoiceNarrationPanel from '@/components/voice/VoiceNarrationPanel';
+import AppPageRoot from '@/components/layout/AppPageRoot';
 
 function mapVoiceDisruptionToKey(v: unknown): string {
   if (typeof v !== 'string') return '';
@@ -151,6 +152,7 @@ export default function NewIncidentPage() {
   };
 
   return (
+    <AppPageRoot>
     <div style={{ maxWidth: 580, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <Link href={`/trips/${tripId}`} style={{
         fontSize: 13, color: '#888', textDecoration: 'none',
@@ -293,6 +295,7 @@ export default function NewIncidentPage() {
           {loading ? 'Creating…' : 'Start documenting'}
         </button>
       </form>
+    </div>
 
       {voiceOpen && user && (
         <>
@@ -328,6 +331,6 @@ export default function NewIncidentPage() {
           />
         </>
       )}
-    </div>
+    </AppPageRoot>
   );
 }

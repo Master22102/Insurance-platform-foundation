@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import AppPageRoot from '@/components/layout/AppPageRoot';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
 import { deriveDecisionGuidance, postureLabel } from '@/lib/decision-language';
@@ -328,14 +329,16 @@ export default function ClaimRoutingPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '48px 0', textAlign: 'center' }}>
-        <div style={{
-          width: 28, height: 28, border: '2.5px solid #e5e5e5',
-          borderTopColor: '#1A2B4A', borderRadius: '50%',
-          margin: '0 auto', animation: 'spin 0.8s linear infinite',
-        }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      </div>
+      <AppPageRoot>
+        <div style={{ padding: '48px 0', textAlign: 'center' }}>
+          <div style={{
+            width: 28, height: 28, border: '2.5px solid #e5e5e5',
+            borderTopColor: '#1A2B4A', borderRadius: '50%',
+            margin: '0 auto', animation: 'spin 0.8s linear infinite',
+          }} />
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      </AppPageRoot>
     );
   }
 
@@ -356,6 +359,7 @@ export default function ClaimRoutingPage() {
             : null;
 
     return (
+      <AppPageRoot>
       <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', maxWidth: 640 }}>
         <div style={{
           background: 'white', border: '0.5px solid #e8e8e8', borderRadius: 16,
@@ -375,6 +379,39 @@ export default function ClaimRoutingPage() {
           <h2 style={{ fontSize: 22, fontWeight: 700, color: '#1A2B4A', margin: '0 0 8px', letterSpacing: '-0.3px' }}>
             Claim packet prepared
           </h2>
+          <div
+            style={{
+              textAlign: 'left',
+              margin: '0 auto 18px',
+              maxWidth: 520,
+              padding: '14px 16px',
+              borderRadius: 12,
+              border: '1px solid #c7d2fe',
+              background: '#eef2ff',
+            }}
+          >
+            <p style={{ fontSize: 12, fontWeight: 800, color: '#312e81', margin: '0 0 10px', letterSpacing: '0.04em' }}>
+              FILING COACH · WHAT TO DO NOW
+            </p>
+            <ol style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: '#3730a3', lineHeight: 1.55 }}>
+              <li style={{ marginBottom: 8 }}>
+                <strong>File with the recipient you named</strong> ({recipientName || 'your carrier or benefit provider'}) using{' '}
+                <em>their</em> portal, app, email, or phone line — Wayfarer does not submit on your behalf.
+              </li>
+              <li style={{ marginBottom: 8 }}>
+                <strong>Attach or upload your packet</strong> when they ask for documentation. Use &quot;Download PDF&quot; below, or
+                &quot;Copy claim summary&quot; if you are pasting into a form or email.
+              </li>
+              <li style={{ marginBottom: 8 }}>
+                <strong>Include anything else they require</strong> (receipts, boarding passes, carrier notices). Your checklist on this
+                page mirrors what Wayfarer has on file — it may not match every carrier&apos;s full list.
+              </li>
+              <li style={{ marginBottom: 0 }}>
+                <strong>Keep records and follow up</strong>: save confirmation numbers, who you spoke with, and dates. If a policy gives a
+                response window, note it — this is general organization guidance, not a legal deadline for your situation.
+              </li>
+            </ol>
+          </div>
           <p style={{ fontSize: 14, color: '#666', margin: '0 0 6px', lineHeight: 1.6 }}>
             Saved in your incident record for <strong>{recipientName}</strong>. No claim was sent automatically.
           </p>
@@ -551,10 +588,12 @@ export default function ClaimRoutingPage() {
           </div>
         </div>
       </div>
+      </AppPageRoot>
     );
   }
 
   return (
+    <AppPageRoot>
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', maxWidth: 700 }}>
       <Link href={`/trips/${tripId}/incidents/${incidentId}`} style={{
         fontSize: 13, color: '#888', textDecoration: 'none',
@@ -941,5 +980,6 @@ export default function ClaimRoutingPage() {
         </p>
       </div>
     </div>
+    </AppPageRoot>
   );
 }

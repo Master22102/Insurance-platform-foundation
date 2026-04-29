@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
 import { MFAEnrollment } from '@/components/auth/mfa-enrollment';
+import AppPageRoot from '@/components/layout/AppPageRoot';
 
 const CLIENT_SESSION_KEY = 'wayfarer_client_session_id_v1';
 
@@ -123,17 +124,17 @@ export default function AccountSecurityPage() {
 
   if (loading || !user) {
     return (
-      <div style={{ padding: 40, textAlign: 'center', fontFamily: 'system-ui, sans-serif' }}>
+      <AppPageRoot style={{ padding: 40, textAlign: 'center', fontFamily: 'system-ui, sans-serif' }}>
         <p style={{ color: '#666' }}>Loading…</p>
-      </div>
+      </AppPageRoot>
     );
   }
 
   const mfaOn = Boolean(profile?.mfa_enabled);
 
   return (
-    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', padding: '20px 16px 48px', maxWidth: 560, margin: '0 auto' }}>
-      <Link href="/account" style={{ fontSize: 13, color: '#2E5FA3', textDecoration: 'none', fontWeight: 600 }}>
+    <AppPageRoot style={{ fontFamily: 'system-ui, -apple-system, sans-serif', maxWidth: 560, margin: '0 auto' }}>
+      <Link href="/account" style={{ fontSize: 13, color: '#2E5FA3', textDecoration: 'none', fontWeight: 600, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>
         ← Account
       </Link>
       <h1 style={{ fontSize: 22, fontWeight: 800, color: '#1A2B4A', margin: '16px 0 8px' }}>Security</h1>
@@ -288,6 +289,6 @@ export default function AccountSecurityPage() {
           )}
         </div>
       </section>
-    </div>
+    </AppPageRoot>
   );
 }

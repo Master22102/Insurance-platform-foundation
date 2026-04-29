@@ -8,6 +8,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ensureTripDraftVersion, syncTripDraftRouteSegments } from '@/lib/draft-home/draft-home-api';
 import { validateRouteSegments } from '@/lib/route-validation';
 import RouteValidationBanner from '@/components/trips/RouteValidationBanner';
+import { useIsMobile } from '@/lib/hooks/useIsMobile';
 
 const SEGMENT_TYPES = [
   { value: 'flight', label: 'Flight', icon: '✈' },
@@ -38,6 +39,7 @@ export default function RouteEditorDraftStepPage() {
   const tripId = params?.trip_id as string;
   const router = useRouter();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
 
   const [trip, setTrip] = useState<any>(null);
   const [segments, setSegments] = useState<RouteSegment[]>([]);
@@ -65,6 +67,9 @@ export default function RouteEditorDraftStepPage() {
   });
   const [tripSaveError, setTripSaveError] = useState('');
   const [tripSaving, setTripSaving] = useState(false);
+  const [currentMedications, setCurrentMedications] = useState<string>('');
+  const [medicationAlerts, setMedicationAlerts] = useState<Array<{ medication: string; country_code: string; restriction_level: string }>>([]);
+  const [checklistMsg, setChecklistMsg] = useState('');
 
   const readinessHints = useMemo(() => {
     const hasSegments = segments.length > 0;
@@ -106,6 +111,8 @@ export default function RouteEditorDraftStepPage() {
           return_date: data?.return_date ? new Date(data.return_date).toISOString().slice(0, 10) : '',
           travel_mode_primary: data?.travel_mode_primary || 'air',
         });
+        const meds = Array.isArray(data?.metadata?.current_medications) ? data.metadata.current_medications : [];
+        setCurrentMedications(meds.join('\n'));
       } catch {
         if (cancelled) return;
         setTrip(null);
@@ -243,17 +250,27 @@ export default function RouteEditorDraftStepPage() {
   function SegmentForm({ onSave, onCancel }: { onSave: () => void; onCancel: () => void }) {
     return (
       <div style={{ background: '#f7f9fc', border: '1px solid #dbeafe', borderRadius: 12, padding: '16px 18px' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 8,
+            marginBottom: 14,
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
           {SEGMENT_TYPES.map((t) => (
             <button
               key={t.value}
+              type="button"
               onClick={() => setForm((f) => ({ ...f, type: t.value }))}
               style={{
-                padding: '5px 12px',
+                padding: '8px 12px',
+                minHeight: 44,
                 fontSize: 12,
                 fontWeight: form.type === t.value ? 600 : 400,
                 border: `1px solid ${form.type === t.value ? '#2E5FA3' : '#ddd'}`,
-                borderRadius: 6,
+                borderRadius: 8,
                 background: form.type === t.value ? '#eff4fc' : 'white',
                 color: form.type === t.value ? '#2E5FA3' : '#555',
                 cursor: 'pointer',
@@ -265,7 +282,7 @@ export default function RouteEditorDraftStepPage() {
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, marginBottom: 10 }}>
           <div>
             <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#666', marginBottom: 4 }}>
               {['hotel', 'car'].includes(form.type) ? 'Location' : 'From'}
@@ -277,10 +294,11 @@ export default function RouteEditorDraftStepPage() {
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
-                padding: '8px 10px',
+                minHeight: 48,
+                padding: '12px 14px',
                 fontSize: 13,
                 border: '1px solid #ddd',
-                borderRadius: 7,
+                borderRadius: 10,
                 outline: 'none',
                 fontFamily: 'system-ui, -apple-system, sans-serif',
               }}
@@ -299,10 +317,11 @@ export default function RouteEditorDraftStepPage() {
                 style={{
                   width: '100%',
                   boxSizing: 'border-box',
-                  padding: '8px 10px',
+                  minHeight: 48,
+                  padding: '12px 14px',
                   fontSize: 13,
                   border: '1px solid #ddd',
-                  borderRadius: 7,
+                  borderRadius: 10,
                   outline: 'none',
                   fontFamily: 'system-ui, -apple-system, sans-serif',
                 }}
@@ -311,7 +330,7 @@ export default function RouteEditorDraftStepPage() {
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, marginBottom: 10 }}>
           <div>
             <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#666', marginBottom: 4 }}>
               {['hotel', 'car'].includes(form.type) ? 'Check-in / Start' : 'Date'}
@@ -323,10 +342,11 @@ export default function RouteEditorDraftStepPage() {
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
-                padding: '8px 10px',
+                minHeight: 48,
+                padding: '12px 14px',
                 fontSize: 13,
                 border: '1px solid #ddd',
-                borderRadius: 7,
+                borderRadius: 10,
                 outline: 'none',
                 fontFamily: 'system-ui, -apple-system, sans-serif',
               }}
@@ -346,10 +366,11 @@ export default function RouteEditorDraftStepPage() {
                 style={{
                   width: '100%',
                   boxSizing: 'border-box',
-                  padding: '8px 10px',
+                  minHeight: 48,
+                  padding: '12px 14px',
                   fontSize: 13,
                   border: '1px solid #ddd',
-                  borderRadius: 7,
+                  borderRadius: 10,
                   outline: 'none',
                   fontFamily: 'system-ui, -apple-system, sans-serif',
                 }}
@@ -368,10 +389,11 @@ export default function RouteEditorDraftStepPage() {
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
-                padding: '8px 10px',
+                minHeight: 48,
+                padding: '12px 14px',
                 fontSize: 13,
                 border: '1px solid #ddd',
-                borderRadius: 7,
+                borderRadius: 10,
                 outline: 'none',
                 fontFamily: 'system-ui, -apple-system, sans-serif',
               }}
@@ -386,26 +408,29 @@ export default function RouteEditorDraftStepPage() {
           style={{
             width: '100%',
             boxSizing: 'border-box',
-            padding: '8px 10px',
+            minHeight: 48,
+            padding: '12px 14px',
             fontSize: 13,
             border: '1px solid #ddd',
-            borderRadius: 7,
+            borderRadius: 10,
             outline: 'none',
             marginBottom: 12,
             fontFamily: 'system-ui, -apple-system, sans-serif',
           }}
         />
 
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
           <button
+            type="button"
             onClick={onSave}
             style={{
-              flex: 1,
-              padding: '9px 0',
+              flex: isMobile ? '1 1 100%' : 1,
+              minHeight: 48,
+              padding: '12px 16px',
               background: '#1A2B4A',
               color: 'white',
               border: 'none',
-              borderRadius: 7,
+              borderRadius: 10,
               fontSize: 13,
               fontWeight: 600,
               cursor: 'pointer',
@@ -415,12 +440,15 @@ export default function RouteEditorDraftStepPage() {
             {saving ? 'Saving…' : 'Save segment'}
           </button>
           <button
+            type="button"
             onClick={onCancel}
             style={{
-              padding: '9px 14px',
+              flex: isMobile ? '1 1 auto' : undefined,
+              minHeight: 48,
+              padding: '12px 16px',
               background: 'white',
               border: '1px solid #e5e7eb',
-              borderRadius: 7,
+              borderRadius: 10,
               fontSize: 13,
               color: '#666',
               cursor: 'pointer',
@@ -477,10 +505,37 @@ export default function RouteEditorDraftStepPage() {
         return_date: tripForm.return_date || null,
         travel_mode_primary: tripForm.travel_mode_primary,
       }));
+      const meds = currentMedications
+        .split('\n')
+        .map((x) => x.trim())
+        .filter(Boolean);
+      await supabase
+        .from('trips')
+        .update({
+          metadata: { ...(trip?.metadata && typeof trip.metadata === 'object' ? trip.metadata : {}), current_medications: meds },
+          updated_at: new Date().toISOString(),
+        })
+        .eq('trip_id', tripId);
       await syncDraftSegments();
     } finally {
       setTripSaving(false);
     }
+  }
+
+  async function runMedicationCheck() {
+    const meds = currentMedications.split('\n').map((x) => x.trim()).filter(Boolean);
+    if (!meds.length) {
+      setMedicationAlerts([]);
+      return;
+    }
+    const res = await fetch('/api/medication/check', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trip_id: tripId, medications: meds }),
+    });
+    const j = await res.json().catch(() => ({}));
+    setMedicationAlerts(Array.isArray(j.alerts) ? j.alerts : []);
   }
 
   return (
@@ -492,7 +547,14 @@ export default function RouteEditorDraftStepPage() {
       total={6}
       backHref={`/trips/${tripId}/draft`}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+          ...(isMobile ? { paddingLeft: 0, paddingRight: 0, paddingBottom: 8 } : {}),
+        }}
+      >
         <RouteValidationBanner issues={routeValidation.issues} tripId={tripId} />
         <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 12, padding: '18px 16px' }}>
           <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#1A2B4A' }}>Trip basics</p>
@@ -500,7 +562,7 @@ export default function RouteEditorDraftStepPage() {
             Add missing dates here so readiness can succeed.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
             <div>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#444', marginBottom: 6 }}>Trip name</label>
               <input
@@ -508,7 +570,8 @@ export default function RouteEditorDraftStepPage() {
                 onChange={(e) => setTripForm((f) => ({ ...f, trip_name: e.target.value }))}
                 style={{
                   width: '100%',
-                  padding: '10px 12px',
+                  minHeight: 48,
+                  padding: '12px 14px',
                   border: '1px solid #ddd',
                   borderRadius: 10,
                   outline: 'none',
@@ -526,7 +589,8 @@ export default function RouteEditorDraftStepPage() {
                 onChange={(e) => setTripForm((f) => ({ ...f, destination_summary: e.target.value }))}
                 style={{
                   width: '100%',
-                  padding: '10px 12px',
+                  minHeight: 48,
+                  padding: '12px 14px',
                   border: '1px solid #ddd',
                   borderRadius: 10,
                   outline: 'none',
@@ -538,7 +602,7 @@ export default function RouteEditorDraftStepPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, marginTop: 10 }}>
             <div>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#444', marginBottom: 6 }}>
                 Departure date
@@ -549,7 +613,8 @@ export default function RouteEditorDraftStepPage() {
                 onChange={(e) => setTripForm((f) => ({ ...f, departure_date: e.target.value }))}
                 style={{
                   width: '100%',
-                  padding: '10px 12px',
+                  minHeight: 48,
+                  padding: '12px 14px',
                   border: '1px solid #ddd',
                   borderRadius: 10,
                   outline: 'none',
@@ -567,7 +632,8 @@ export default function RouteEditorDraftStepPage() {
                 min={tripForm.departure_date || undefined}
                 style={{
                   width: '100%',
-                  padding: '10px 12px',
+                  minHeight: 48,
+                  padding: '12px 14px',
                   border: '1px solid #ddd',
                   borderRadius: 10,
                   outline: 'none',
@@ -578,34 +644,48 @@ export default function RouteEditorDraftStepPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
-            {['air', 'rail', 'sea', 'road', 'mixed'].map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setTripForm((f) => ({ ...f, travel_mode_primary: m }))}
-                style={{
-                  padding: '7px 12px',
-                  borderRadius: 10,
-                  border: `1px solid ${tripForm.travel_mode_primary === m ? '#2E5FA3' : '#e5e7eb'}`,
-                  background: tripForm.travel_mode_primary === m ? '#eff4fc' : 'white',
-                  color: tripForm.travel_mode_primary === m ? '#2E5FA3' : '#555',
-                  fontSize: 12,
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  fontFamily: 'system-ui, -apple-system, sans-serif',
-                }}
-              >
-                {m}
-              </button>
-            ))}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: isMobile ? 'column' : 'row',
+              alignItems: isMobile ? 'stretch' : 'center',
+              gap: 10,
+              marginTop: 12,
+              flexWrap: isMobile ? 'nowrap' : 'wrap',
+            }}
+          >
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', flex: isMobile ? undefined : 1 }}>
+              {['air', 'rail', 'sea', 'road', 'mixed'].map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setTripForm((f) => ({ ...f, travel_mode_primary: m }))}
+                  style={{
+                    padding: '10px 14px',
+                    minHeight: 44,
+                    borderRadius: 10,
+                    border: `1px solid ${tripForm.travel_mode_primary === m ? '#2E5FA3' : '#e5e7eb'}`,
+                    background: tripForm.travel_mode_primary === m ? '#eff4fc' : 'white',
+                    color: tripForm.travel_mode_primary === m ? '#2E5FA3' : '#555',
+                    fontSize: 12,
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    fontFamily: 'system-ui, -apple-system, sans-serif',
+                  }}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
             <button
               type="button"
               onClick={handleTripSave}
               disabled={!user || tripSaving}
               style={{
-                marginLeft: 'auto',
-                padding: '10px 16px',
+                marginLeft: isMobile ? 0 : 'auto',
+                width: isMobile ? '100%' : undefined,
+                minHeight: 48,
+                padding: '12px 16px',
                 borderRadius: 10,
                 border: 'none',
                 background: !user || tripSaving ? '#93afd4' : '#1A2B4A',
@@ -623,10 +703,104 @@ export default function RouteEditorDraftStepPage() {
           {tripSaveError ? (
             <p style={{ margin: '10px 0 0', fontSize: 12, color: '#dc2626' }}>{tripSaveError}</p>
           ) : null}
+          <div style={{ marginTop: 12 }}>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#444', marginBottom: 6 }}>
+              Current medications (one per line)
+            </label>
+            <textarea
+              rows={4}
+              value={currentMedications}
+              onChange={(e) => setCurrentMedications(e.target.value)}
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                minHeight: isMobile ? 100 : 88,
+                padding: 12,
+                borderRadius: 10,
+                border: '1px solid #ddd',
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                fontSize: 13,
+              }}
+              placeholder="e.g. Adderall 10mg"
+            />
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <button
+                type="button"
+                onClick={() => void runMedicationCheck()}
+                style={{
+                  padding: '12px 14px',
+                  minHeight: 44,
+                  borderRadius: 10,
+                  border: '1px solid #fdba74',
+                  background: '#fff7ed',
+                  color: '#9a3412',
+                  fontWeight: 800,
+                  fontSize: 13,
+                  width: isMobile ? '100%' : undefined,
+                }}
+              >
+                Check restrictions
+              </button>
+            </div>
+            {medicationAlerts.length > 0 ? (
+              <div style={{ marginTop: 8, border: '1px solid #fdba74', background: '#fff7ed', borderRadius: 8, padding: 8 }}>
+                {medicationAlerts.slice(0, 5).map((a, idx) => (
+                  <p key={`${a.medication}-${a.country_code}-${idx}`} style={{ margin: '2px 0', fontSize: 12, color: '#9a3412' }}>
+                    {a.medication} in {a.country_code}: {a.restriction_level}
+                  </p>
+                ))}
+                <div style={{ marginTop: 8 }}>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      for (const a of medicationAlerts.slice(0, 5)) {
+                        await fetch('/api/medication/checklist', {
+                          method: 'POST',
+                          credentials: 'include',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            trip_id: tripId,
+                            medication: a.medication,
+                            country_code: a.country_code,
+                            notes: `Auto-created from route med restriction (${a.restriction_level}).`,
+                          }),
+                        }).catch(() => null);
+                      }
+                      setChecklistMsg('Checklist entries created in trip metadata.');
+                    }}
+                    style={{
+                      padding: '10px 12px',
+                      minHeight: 44,
+                      borderRadius: 8,
+                      border: '1px solid #c2410c',
+                      background: '#fff',
+                      color: '#c2410c',
+                      fontWeight: 800,
+                      fontSize: 12,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    Create medication checklists
+                  </button>
+                </div>
+              </div>
+            ) : null}
+            {checklistMsg ? <p style={{ margin: '8px 0 0', fontSize: 12, color: '#166534' }}>{checklistMsg}</p> : null}
+          </div>
         </div>
 
         <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 12, padding: '18px 16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: isMobile ? 'column' : 'row',
+              alignItems: isMobile ? 'stretch' : 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+            }}
+          >
             <div>
               <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#1A2B4A' }}>Route segments</p>
               <p style={{ margin: '6px 0 0', fontSize: 13, color: '#666' }}>
@@ -642,15 +816,21 @@ export default function RouteEditorDraftStepPage() {
                   setForm({ type: 'flight', from: '', to: '', date: '', endDate: '', reference: '', notes: '' });
                 }}
                 style={{
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: 900,
                   color: '#2E5FA3',
                   background: '#eff4fc',
                   border: '1px solid #bfdbfe',
                   borderRadius: 10,
-                  padding: '8px 12px',
+                  padding: '12px 16px',
+                  minHeight: 48,
+                  width: isMobile ? '100%' : undefined,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   cursor: 'pointer',
                   fontFamily: 'system-ui, -apple-system, sans-serif',
+                  boxSizing: 'border-box',
                 }}
               >
                 + Add segment
@@ -677,7 +857,9 @@ export default function RouteEditorDraftStepPage() {
                       type="button"
                       onClick={() => setAdding(true)}
                       style={{
-                        padding: '10px 22px',
+                        padding: '12px 22px',
+                        width: isMobile ? '100%' : undefined,
+                        maxWidth: isMobile ? 360 : undefined,
                         background: '#1A2B4A',
                         color: 'white',
                         border: 'none',
@@ -686,6 +868,8 @@ export default function RouteEditorDraftStepPage() {
                         fontWeight: 800,
                         cursor: 'pointer',
                         fontFamily: 'system-ui, -apple-system, sans-serif',
+                        minHeight: 48,
+                        boxSizing: 'border-box',
                       }}
                     >
                       Add first segment
@@ -703,7 +887,15 @@ export default function RouteEditorDraftStepPage() {
                           <SegmentForm onSave={() => handleUpdate(seg.id)} onCancel={() => setEditingId(null)} />
                         </div>
                       ) : (
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 18px' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: isMobile ? 'column' : 'row',
+                            alignItems: isMobile ? 'stretch' : 'flex-start',
+                            gap: 12,
+                            padding: '14px 18px',
+                          }}
+                        >
                           <div style={{ width: 36, height: 36, borderRadius: 9, background: '#f7f8fa', border: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             <span style={{ fontSize: 16 }}>{cfg.icon}</span>
                           </div>
@@ -730,20 +922,23 @@ export default function RouteEditorDraftStepPage() {
                               {seg.notes ? <span style={{ fontSize: 11, color: '#999' }}>{seg.notes}</span> : null}
                             </div>
                           </div>
-                          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                          <div style={{ display: 'flex', gap: 8, flexShrink: 0, width: isMobile ? '100%' : undefined }}>
                             <button
                               type="button"
                               onClick={() => startEdit(seg)}
                               style={{
                                 background: 'none',
                                 border: '1px solid #e5e7eb',
-                                borderRadius: 8,
-                                padding: '6px 12px',
-                                fontSize: 11,
+                                borderRadius: 10,
+                                padding: '12px 14px',
+                                fontSize: 13,
                                 color: '#555',
                                 cursor: 'pointer',
                                 fontFamily: 'system-ui, -apple-system, sans-serif',
                                 fontWeight: 800,
+                                minHeight: 48,
+                                flex: isMobile ? 1 : undefined,
+                                minWidth: isMobile ? 0 : 88,
                               }}
                             >
                               Edit
@@ -754,13 +949,16 @@ export default function RouteEditorDraftStepPage() {
                               style={{
                                 background: 'none',
                                 border: '1px solid #fee2e2',
-                                borderRadius: 8,
-                                padding: '6px 12px',
-                                fontSize: 11,
+                                borderRadius: 10,
+                                padding: '12px 14px',
+                                fontSize: 13,
                                 color: '#dc2626',
                                 cursor: 'pointer',
                                 fontFamily: 'system-ui, -apple-system, sans-serif',
                                 fontWeight: 800,
+                                minHeight: 48,
+                                flex: isMobile ? 1 : undefined,
+                                minWidth: isMobile ? 0 : 96,
                               }}
                             >
                               Remove
@@ -782,13 +980,15 @@ export default function RouteEditorDraftStepPage() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 10, marginTop: 6 }}>
           <button
             type="button"
             onClick={() => router.push(`/trips/${tripId}/draft/activities`)}
             style={{
-              flex: 1,
+              flex: isMobile ? undefined : 1,
+              width: isMobile ? '100%' : undefined,
               padding: '12px 0',
+              minHeight: 48,
               background: '#1A2B4A',
               color: 'white',
               border: 'none',
@@ -806,6 +1006,7 @@ export default function RouteEditorDraftStepPage() {
             onClick={() => router.push(`/trips/${tripId}/draft/unresolved`)}
             style={{
               padding: '12px 16px',
+              minHeight: 48,
               background: 'white',
               border: '1px solid #e5e7eb',
               color: '#555',
@@ -814,6 +1015,8 @@ export default function RouteEditorDraftStepPage() {
               fontWeight: 800,
               cursor: 'pointer',
               fontFamily: 'system-ui, -apple-system, sans-serif',
+              width: isMobile ? '100%' : undefined,
+              boxSizing: 'border-box',
             }}
           >
             Skip

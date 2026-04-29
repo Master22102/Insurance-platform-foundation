@@ -1,5 +1,106 @@
 import { expect, type Page } from '@playwright/test';
 
+/**
+ * Client auth sometimes never leaves "Still loading your session" (storage / cookie timing in CI).
+ * Prefer **Retry loading** (web-first) instead of assuming the next screen is already there.
+ */
+export async function recoverSessionLoadingIfPresent(page: Page, maxAttempts = 4) {
+  const stillLoading = page.getByRole('heading', { name: /still loading your session/i });
+  const retry = page.getByRole('button', { name: /retry loading/i });
+  for (let i = 0; i < maxAttempts; i++) {
+    if (!(await stillLoading.isVisible().catch(() => false))) return;
+    await retry.click({ force: true, timeout: 10_000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
+    await expect(stillLoading).toBeHidden({ timeout: 30_000 }).catch(() => {});
+  }
+}
+
+function pathnameNoTrailing(u: string): string {
+  try {
+    const p = new URL(u).pathname.replace(/\/$/, '') || '/';
+    return p;
+  } catch {
+    return '/';
+  }
+}
+
+/**
+ * Dismiss a Terms / Privacy gate (onboarding shell or account overlay).
+ * Mirrors the stable pattern in onboarding E2Es: label clicks + checkbox fallback + web-first enabled check.
+ */
+export async function acceptTermsGateIfPresent(page: Page) {
+  const termsHeading = page.getByRole('heading', { name: /terms and conditions/i });
+  const acceptBtn = page.getByRole('button', { name: /accept and continue/i }).first();
+
+  const gateLikely =
+    (await termsHeading.isVisible({ timeout: 2_000 }).catch(() => false)) ||
+    (await acceptBtn.isVisible({ timeout: 2_000 }).catch(() => false));
+  if (!gateLikely) return;
+
+  await page.locator('label').filter({ hasText: /Terms and Conditions/i }).first().click().catch(() => {});
+  await page.locator('label').filter({ hasText: /Privacy Policy/i }).first().click().catch(() => {});
+
+  const termsCb = page.getByRole('checkbox', { name: /terms/i }).first();
+  const privacyCb = page.getByRole('checkbox', { name: /privacy/i }).first();
+  if (await termsCb.isVisible().catch(() => false)) {
+    if (!(await termsCb.isChecked().catch(() => false))) {
+      await termsCb.check({ force: true, timeout: 8_000 });
+    }
+  }
+  if (await privacyCb.isVisible().catch(() => false)) {
+    if (!(await privacyCb.isChecked().catch(() => false))) {
+      await privacyCb.check({ force: true, timeout: 8_000 });
+    }
+  }
+
+  await expect(acceptBtn).toBeEnabled({ timeout: 20_000 });
+  await acceptBtn.click({ timeout: 12_000 });
+  await expect(acceptBtn).toBeHidden({ timeout: 25_000 }).catch(() => {});
+  await page.waitForLoadState('domcontentloaded').catch(() => {});
+}
+
+export type GotoAuthPathOptions = {
+  /** Default: skip dismissing terms when navigating to `/onboarding` (specs assert that screen). */
+  dismissTermsGate?: boolean;
+};
+
+/**
+ * `page.goto` plus recovery for aborted navigations (Firefox) and shared-user races where
+ * `reopenOnboarding` redirects to `/onboarding` while another spec navigates to a protected path.
+ */
+export async function gotoAuthPathWithRecovery(page: Page, path: string, options?: GotoAuthPathOptions) {
+  const want = pathnameNoTrailing(
+    path.startsWith('http') ? path : `http://local.invalid${path.startsWith('/') ? path : `/${path}`}`,
+  );
+  const onOnboardingUrl = want === '/onboarding' || want.startsWith('/onboarding/');
+  const dismissTerms = options?.dismissTermsGate ?? !onOnboardingUrl;
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      await page.goto(path, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+    } catch {
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
+    }
+
+    await recoverSessionLoadingIfPresent(page);
+    if (dismissTerms) {
+      await acceptTermsGateIfPresent(page);
+    }
+
+    const cur = pathnameNoTrailing(page.url());
+    if (cur.includes('/onboarding') && !onOnboardingUrl) {
+      await ensureOnboarded(page);
+      continue;
+    }
+
+    if (cur === want || cur.startsWith(`${want}/`)) {
+      return;
+    }
+  }
+
+  await page.goto(path, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+}
+
 export async function ensureOnboarded(page: Page) {
   const letsGetStartedHeading = page.getByRole('heading', { name: /let's get started/i });
   const addTripItineraryAction = page.getByRole('button', { name: /add a trip itinerary/i });
@@ -7,7 +108,6 @@ export async function ensureOnboarded(page: Page) {
   const tripsNavLink = page.getByRole('link', { name: /^trips$/i }).first();
 
   const stillLoadingHeading = page.getByRole('heading', { name: /still loading your session/i }).first();
-  const retryLoadingBtn = page.getByRole('button', { name: /retry loading/i }).first();
 
   const completeOnboardingIfVisible = async () => {
     const acceptBtn = page.getByRole('button', { name: /accept and continue/i }).first();
@@ -15,33 +115,20 @@ export async function ensureOnboarded(page: Page) {
     const skipBtn = page.getByRole('button', { name: /skip for now/i }).first();
     const expectationsHeading = page.getByRole('heading', { name: /what are your expectations\??/i }).first();
 
-    // Terms step
+    // Terms step (label clicks + enabled — matches onboarding E2Es)
     if (await acceptBtn.isVisible().catch(() => false)) {
-      const terms = page.getByLabel(/i agree to terms/i).first();
-      const privacy = page.getByLabel(/i agree to privacy/i).first();
+      await page.locator('label').filter({ hasText: /Terms and Conditions/i }).first().click().catch(() => {});
+      await page.locator('label').filter({ hasText: /Privacy Policy/i }).first().click().catch(() => {});
       const termsByRole = page.getByRole('checkbox', { name: /terms/i }).first();
       const privacyByRole = page.getByRole('checkbox', { name: /privacy/i }).first();
-
-      if (await terms.isVisible().catch(() => false)) {
-        if (!(await terms.isChecked().catch(() => false))) {
-          await terms.check({ force: true, timeout: 5_000 }).catch(() => {});
-        }
-      } else if (await termsByRole.isVisible().catch(() => false)) {
-        if (!(await termsByRole.isChecked().catch(() => false))) {
-          await termsByRole.check({ force: true, timeout: 5_000 }).catch(() => {});
-        }
+      if (await termsByRole.isVisible().catch(() => false) && !(await termsByRole.isChecked().catch(() => false))) {
+        await termsByRole.check({ force: true, timeout: 6_000 }).catch(() => {});
       }
-      if (await privacy.isVisible().catch(() => false)) {
-        if (!(await privacy.isChecked().catch(() => false))) {
-          await privacy.check({ force: true, timeout: 5_000 }).catch(() => {});
-        }
-      } else if (await privacyByRole.isVisible().catch(() => false)) {
-        if (!(await privacyByRole.isChecked().catch(() => false))) {
-          await privacyByRole.check({ force: true, timeout: 5_000 }).catch(() => {});
-        }
+      if (await privacyByRole.isVisible().catch(() => false) && !(await privacyByRole.isChecked().catch(() => false))) {
+        await privacyByRole.check({ force: true, timeout: 6_000 }).catch(() => {});
       }
-
-      await acceptBtn.click({ force: true, timeout: 5_000 }).catch(() => {});
+      await expect(acceptBtn).toBeEnabled({ timeout: 15_000 });
+      await acceptBtn.click({ force: true, timeout: 8_000 }).catch(() => {});
       await page
         .waitForURL(/\/(onboarding|get-started|trips)/, { timeout: 10_000 })
         .catch(() => {});
@@ -57,8 +144,7 @@ export async function ensureOnboarded(page: Page) {
 
   const recoverFromLoadingTimeout = async () => {
     if (await stillLoadingHeading.isVisible().catch(() => false)) {
-      await retryLoadingBtn.click({ force: true, timeout: 5_000 }).catch(() => {});
-      await page.waitForLoadState('domcontentloaded').catch(() => {});
+      await recoverSessionLoadingIfPresent(page, 2);
       return true;
     }
     return false;

@@ -1,0 +1,64 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
+import { getRouteUser } from '@/lib/travelshield/supabase-route';
+import { isTravelShieldLocationEnabled } from '@/lib/travelshield/feature-gates';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+function isUuid(s: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
+}
+
+export async function GET(request: NextRequest, { params }: { params: { group_id: string } }) {
+  const groupId = params.group_id;
+  if (!isUuid(groupId)) {
+    return NextResponse.json({ error: 'Invalid group' }, { status: 400 });
+  }
+
+  const { user } = await getRouteUser(request);
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const admin = createServiceRoleClient();
+  if (!admin) {
+    return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
+  }
+
+  if (!(await isTravelShieldLocationEnabled(admin))) {
+    return NextResponse.json({ error: 'Feature disabled' }, { status: 403 });
+  }
+
+  const { data: mem } = await admin
+    .from('travelshield_members')
+    .select('member_id')
+    .eq('group_id', groupId)
+    .eq('account_id', user.id)
+    .eq('status', 'active')
+    .maybeSingle();
+  if (!mem) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  const { data: pings, error } = await admin
+    .from('travelshield_location_pings')
+    .select(
+      'account_id, latitude, longitude, accuracy_meters, battery_level, connection_type, is_moving, speed_mps, heading, altitude, created_at',
+    )
+    .eq('group_id', groupId)
+    .order('created_at', { ascending: false })
+    .limit(400);
+
+  if (error) {
+    return NextResponse.json({ error: 'Query failed' }, { status: 500 });
+  }
+
+  const latest = new Map<string, (typeof pings)[0]>();
+  for (const p of pings ?? []) {
+    const aid = String((p as { account_id: string }).account_id);
+    if (!latest.has(aid)) latest.set(aid, p);
+  }
+
+  return NextResponse.json({ locations: Array.from(latest.values()) });
+}

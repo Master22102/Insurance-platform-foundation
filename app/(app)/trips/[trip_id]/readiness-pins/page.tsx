@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/auth/supabase-client';
 import { useAuth } from '@/lib/auth/auth-context';
 import { normalizeCountryToCode, summarizeVisaRules } from '@/lib/readiness/entry-requirements';
+import AppPageRoot from '@/components/layout/AppPageRoot';
 
 const CHECK_ITEMS = [
   { key: 'passport', label: 'Passport readiness', detail: 'Check validity and blank pages for each destination.' },
@@ -26,6 +27,7 @@ function statusStyle(status: ItemStatus): { label: string; color: string; bg: st
 export default function ReadinessPinsPage() {
   const { user } = useAuth();
   const params = useParams();
+  const searchParams = useSearchParams();
   const tripId = params?.trip_id as string;
   const [loading, setLoading] = useState(true);
   const [originCountryRaw, setOriginCountryRaw] = useState<string>('');
@@ -34,6 +36,7 @@ export default function ReadinessPinsPage() {
   const [assistMode, setAssistMode] = useState<'self' | 'guided' | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [expandedDestination, setExpandedDestination] = useState<string | null>(null);
+  const [signalProfile, setSignalProfile] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     if (!user || !tripId) return;
@@ -42,7 +45,7 @@ export default function ReadinessPinsPage() {
     Promise.all([
       supabase
         .from('user_profiles')
-        .select('primary_nationality, country_of_residence')
+        .select('primary_nationality, country_of_residence, preferences')
         .eq('user_id', user.id)
         .maybeSingle(),
       supabase
@@ -52,11 +55,14 @@ export default function ReadinessPinsPage() {
         .maybeSingle(),
       supabase
         .from('route_segments')
-        .select('origin_text, destination_text')
+        .select('origin, destination')
         .eq('trip_id', tripId),
     ]).then(([profileRes, tripRes, segmentsRes]) => {
       if (!active) return;
       const profile = profileRes.data as any;
+      const prefs = profile?.preferences as Record<string, unknown> | undefined;
+      const sp = prefs?.signal_profile as Record<string, unknown> | undefined;
+      setSignalProfile(sp && typeof sp === 'object' ? sp : null);
       const origin = String(
         profile?.primary_nationality ||
         profile?.country_of_residence ||
@@ -68,7 +74,7 @@ export default function ReadinessPinsPage() {
       const tripDest = String((tripRes.data as any)?.destination_summary || '').trim();
       if (tripDest) values.push(...tripDest.split(/[;,]/).map((s) => s.trim()).filter(Boolean));
       for (const seg of (segmentsRes.data || [])) {
-        const v = String((seg as any)?.destination_text || '').trim();
+        const v = String((seg as any)?.destination || '').trim();
         if (v) values.push(v);
       }
 
@@ -90,6 +96,19 @@ export default function ReadinessPinsPage() {
     () => summarizeVisaRules(originCode, destinations),
     [originCode, destinations],
   );
+  const hasJapanDestination = useMemo(() => {
+    const blob = [...destinations.map((d) => d.name), ...destinations.map((d) => d.code || '')].join(' ');
+    return /japan|tokyo|osaka|nrt|kix|fukuoka|okinawa|cts/i.test(blob);
+  }, [destinations]);
+
+  useEffect(() => {
+    if (searchParams?.get('section') !== 'pet') return;
+    const t = setTimeout(() => {
+      document.getElementById('pet')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchParams]);
+
   const destinationCards = useMemo(() => {
     return destinations.map((d, idx) => {
       const signal = visaSignals[idx] || { label: `${d.name}: review entry requirements manually.`, severity: 'info' as const };
@@ -186,7 +205,8 @@ export default function ReadinessPinsPage() {
   };
 
   return (
-    <div style={{ maxWidth: 680, margin: '0 auto', padding: '24px 16px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <AppPageRoot>
+    <div style={{ maxWidth: 680, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <Link
         href={`/trips/${tripId}`}
         style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#64748b', textDecoration: 'none', marginBottom: 14 }}
@@ -294,6 +314,60 @@ export default function ReadinessPinsPage() {
         ))}
       </div>
 
+      {signalProfile?.pet_travel === true && (
+        <section
+          id="pet"
+          style={{
+            marginBottom: 16,
+            padding: '14px 16px',
+            borderRadius: 10,
+            border: '1px solid #fde68a',
+            background: '#fffbeb',
+          }}
+        >
+          <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#92400e' }}>Traveling with a pet</h2>
+          <p style={{ margin: '0 0 12px', fontSize: 13, color: '#78350f', lineHeight: 1.55 }}>
+            You mentioned bringing a pet. Rules vary by destination and carrier — start early on paperwork and carrier limits.
+          </p>
+          <div
+            style={{
+              marginBottom: 12,
+              padding: '10px 12px',
+              borderRadius: 8,
+              border: '1px solid #fcd34d',
+              background: '#fff7ed',
+            }}
+          >
+            <strong style={{ fontSize: 12, color: '#9a3412' }}>Carrier restrictions</strong>
+            <p style={{ margin: '6px 0 0', fontSize: 12, color: '#7c2d12', lineHeight: 1.5 }}>
+              United Airlines and American Airlines do not accept checked pets for most leisure travelers — in-cabin only for eligible
+              animals. Large pets may not fit airline rules on those carriers.
+            </p>
+          </div>
+          <div style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #e2e8f0', background: 'white' }}>
+            <strong style={{ fontSize: 12, color: '#334155' }}>Documentation to plan for</strong>
+            <ul style={{ margin: '8px 0 0', paddingLeft: 18, fontSize: 12, color: '#475569', lineHeight: 1.55 }}>
+              <li>Health certificate (often within 10 days of travel — confirm with your carrier)</li>
+              <li>Microchip (commonly required for US, EU, and Japan entry)</li>
+              <li>Rabies vaccination record and any titer timing rules</li>
+              {hasJapanDestination && (
+                <li style={{ fontWeight: 700, color: '#92400e' }}>
+                  Japan: notify Animal Quarantine Service well before arrival. Without correct advance steps, quarantine holds can be lengthy.
+                </li>
+              )}
+            </ul>
+          </div>
+          <a
+            href="https://www.aphis.usda.gov/aphis/pet-travel"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: 'inline-block', marginTop: 12, fontSize: 13, fontWeight: 600, color: '#1d4ed8' }}
+          >
+            USDA APHIS pet travel requirements (official) →
+          </a>
+        </section>
+      )}
+
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <button
           type="button"
@@ -355,6 +429,7 @@ export default function ReadinessPinsPage() {
         </p>
       )}
     </div>
+    </AppPageRoot>
   );
 }
 

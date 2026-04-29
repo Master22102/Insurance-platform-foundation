@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useState, useEffect, useMemo, useCallback, Suspense, type ReactNode } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -9,10 +9,29 @@ import { formatUsd, PRICING } from '@/lib/config/pricing';
 import DeepScanPanel from '@/components/DeepScanPanel';
 import CoverageMapStatusBanner from '@/components/CoverageMapStatusBanner';
 import CoverageMatrixPanel from '@/components/coverage/CoverageMatrixPanel';
+import ItineraryConflictAlerts from '@/components/coverage/ItineraryConflictAlerts';
+import ItineraryConflictSummaryStrip from '@/components/coverage/ItineraryConflictSummaryStrip';
+import TripActivitiesRiskStrip from '@/components/coverage/TripActivitiesRiskStrip';
 import NewTripPage from '../new/page';
 import RouteValidationBanner from '@/components/trips/RouteValidationBanner';
 import { validateRouteSegments, type RouteIssue } from '@/lib/route-validation';
 import VoiceNarrationPanel from '@/components/voice/VoiceNarrationPanel';
+import RightNowPanel from '@/components/context/RightNowPanel';
+import RightNowCrossTabStrip from '@/components/context/RightNowCrossTabStrip';
+import ActiveGroupCard from '@/components/travelshield/ActiveGroupCard';
+import CreateTravelShieldPrompt from '@/components/travelshield/CreateTravelShieldPrompt';
+import TripPresencePanel from '@/components/presence/TripPresencePanel';
+import EmergencySosSheet from '@/components/emergency/EmergencySosSheet';
+import SafetyCardPanel from '@/components/emergency/SafetyCardPanel';
+import CreatorSearchPanel from '@/components/creators/CreatorSearchPanel';
+import { useIsMobile, useIsTablet, useIsNarrowAppShell } from '@/lib/hooks/useIsMobile';
+import { mobileStyles, tabletStyles } from '@/lib/styles/responsive';
+import { useTripContext } from '@/lib/context-engine/use-trip-context';
+import {
+  addDismissal,
+  mergeDismissalsIntoPreferences,
+  parseDismissalsFromPreferences,
+} from '@/lib/context-engine/dismiss-store';
 
 function mapVoiceSegmentType(t: unknown): string {
   if (typeof t !== 'string') return 'flight';
@@ -619,6 +638,11 @@ function OverviewTab({
   routeIssues = [],
   tripIdForRoute,
   showRouteBanner,
+  rightNowSlot,
+  travelshieldSlot,
+  presenceSlot,
+  isMobile,
+  onOpenDiscoverActivities,
 }: {
   trip: any;
   incidents: any[];
@@ -628,6 +652,11 @@ function OverviewTab({
   routeIssues?: RouteIssue[];
   tripIdForRoute?: string;
   showRouteBanner?: boolean;
+  rightNowSlot?: ReactNode;
+  travelshieldSlot?: ReactNode;
+  presenceSlot?: ReactNode;
+  isMobile?: boolean;
+  onOpenDiscoverActivities?: () => void;
 }) {
   const duration = daysBetween(trip.departure_date, trip.return_date);
   const until = daysUntil(trip.departure_date);
@@ -635,10 +664,67 @@ function OverviewTab({
   const travelers: Array<{ name: string; nationality: string }> = trip.metadata?.travelers || [];
   const visaAdvisories = getVisaAdvisories(travelers, trip.destination_summary, profileNationality);
 
+  const mobileSection = (node: ReactNode) =>
+    isMobile && node ? (
+      <div
+        style={{
+          background: 'white',
+          borderRadius: 14,
+          border: '0.5px solid #e5e7eb',
+          padding: '12px 14px',
+          overflow: 'hidden',
+        }}
+      >
+        {node}
+      </div>
+    ) : (
+      node
+    );
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 12 : 16 }}>
+      {mobileSection(rightNowSlot)}
+      {mobileSection(travelshieldSlot)}
+      {mobileSection(presenceSlot)}
+      {onOpenDiscoverActivities ? (
+        <div
+          style={{
+            background: 'white',
+            borderRadius: isMobile ? 14 : 12,
+            border: isMobile ? '0.5px solid #e5e7eb' : '0.5px solid #e8e8e8',
+            padding: isMobile ? '12px 14px' : '16px 20px',
+            overflow: 'hidden',
+          }}
+        >
+          <button
+            type="button"
+            onClick={onOpenDiscoverActivities}
+            style={{
+              width: '100%',
+              border: 'none',
+              background: 'transparent',
+              padding: isMobile ? '4px 0' : 0,
+              cursor: 'pointer',
+              textAlign: 'left',
+              minHeight: isMobile ? 44 : 48,
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+            }}
+          >
+            <p style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: '#1A2B4A' }}>Discover Activities</p>
+            <p style={{ margin: 0, fontSize: 13, color: '#64748b', lineHeight: 1.5 }}>
+              Browse creator-led travel ideas and experiences for this destination.
+            </p>
+            <span style={{ display: 'inline-block', marginTop: 10, fontSize: 13, fontWeight: 600, color: '#2E5FA3' }}>
+              Open discovery →
+            </span>
+          </button>
+        </div>
+      ) : null}
       {showRouteBanner && tripIdForRoute && routeIssues ? (
         <RouteValidationBanner issues={routeIssues} tripId={tripIdForRoute} />
+      ) : null}
+      {trip?.trip_id ? (
+        <ItineraryConflictSummaryStrip tripId={trip.trip_id} coverageTabHref={`/trips/${trip.trip_id}?tab=Coverage`} />
       ) : null}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {until !== null && <StatChip label="Days until departure" value={until} />}
@@ -1298,7 +1384,18 @@ function clauseFamilyConfig(family: string) {
   return CLAUSE_FAMILY_LABELS[key] || CLAUSE_FAMILY_LABELS.default;
 }
 
-function CoverageTab({ trip, onUnlock }: { trip: any; onUnlock: () => void }) {
+function CoverageTab({
+  trip,
+  onUnlock,
+  isMobile,
+  profilePreferences,
+}: {
+  trip: any;
+  onUnlock: () => void;
+  isMobile?: boolean;
+  profilePreferences?: unknown;
+}) {
+  const { canQuickScan, isAtLifetimeCap, getLifetimeScansRemaining } = useAuth();
   const [policies, setPolicies] = useState<any[]>([]);
   const [clausesByPolicy, setClausesByPolicy] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
@@ -1420,14 +1517,32 @@ function CoverageTab({ trip, onUnlock }: { trip: any; onUnlock: () => void }) {
             Upload your travel insurance, credit card benefit guide, or airline contract to see your coverage breakdown here.
           </p>
           <CoverageMapStatusBanner tripId={trip.trip_id} context="trip_coverage" />
-          <Link href={`/policies/upload?trip_id=${trip.trip_id}`} style={{
-            display: 'inline-block', padding: '10px 24px',
-            background: '#1A2B4A', color: 'white',
-            borderRadius: 8, fontSize: 14, fontWeight: 600,
-            textDecoration: 'none', fontFamily: 'system-ui, -apple-system, sans-serif',
-          }}>
-            Upload a policy
-          </Link>
+          {canQuickScan() && !isAtLifetimeCap() ? (
+            <p style={{ fontSize: 13, color: '#475569', margin: '0 0 16px', lineHeight: 1.55 }}>
+              Want a fast read first?{' '}
+              <Link
+                href={`/scan?trip_id=${encodeURIComponent(trip.trip_id)}`}
+                style={{ color: '#2E5FA3', fontWeight: 700, textDecoration: 'none' }}
+              >
+                Quick Scan a PDF for this trip
+              </Link>{' '}
+              ({getLifetimeScansRemaining()} lifetime preview{getLifetimeScansRemaining() === 1 ? '' : 's'} left — not a deep scan).
+            </p>
+          ) : !isAtLifetimeCap() ? null : (
+            <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 16px', lineHeight: 1.5 }}>
+              Lifetime Quick Scan previews are used up on this account; add policies for full trip analysis after unlock.
+            </p>
+          )}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
+            <Link href={`/policies/upload?trip_id=${trip.trip_id}`} style={{
+              display: 'inline-block', padding: '10px 24px',
+              background: '#1A2B4A', color: 'white',
+              borderRadius: 8, fontSize: 14, fontWeight: 600,
+              textDecoration: 'none', fontFamily: 'system-ui, -apple-system, sans-serif',
+            }}>
+              Upload a policy
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -1436,11 +1551,40 @@ function CoverageTab({ trip, onUnlock }: { trip: any; onUnlock: () => void }) {
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', display: 'flex', flexDirection: 'column', gap: 12 }}>
       <CoverageMapStatusBanner tripId={trip.trip_id} context="trip_coverage" matrixGapCount={matrixGapHint} />
-      <CoverageMatrixPanel
-        tripId={trip.trip_id}
-        policyCount={policies.length}
-        onIntelligenceMeta={(m) => setMatrixGapHint(m.gapWarningCritical)}
-      />
+      {canQuickScan() && !isAtLifetimeCap() ? (
+        <div
+          style={{
+            padding: '10px 14px',
+            borderRadius: 10,
+            border: '1px solid #e2e8f0',
+            background: '#f8fafc',
+            fontSize: 13,
+            color: '#475569',
+            lineHeight: 1.5,
+          }}
+        >
+          <strong style={{ color: '#1A2B4A' }}>Quick Scan</strong> — fast document preview scoped to this trip.{' '}
+          <Link href={`/scan?trip_id=${encodeURIComponent(trip.trip_id)}`} style={{ color: '#2E5FA3', fontWeight: 700, textDecoration: 'none' }}>
+            Open Quick Scan →
+          </Link>
+        </div>
+      ) : null}
+      <div
+        style={
+          isMobile
+            ? { width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' as const }
+            : undefined
+        }
+      >
+        <CoverageMatrixPanel
+          tripId={trip.trip_id}
+          policyCount={policies.length}
+          profilePreferences={profilePreferences}
+          onIntelligenceMeta={(m) => setMatrixGapHint(m.gapWarningCritical)}
+        />
+      </div>
+      <ItineraryConflictAlerts tripId={trip.trip_id} />
+      <TripActivitiesRiskStrip tripId={trip.trip_id} />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
         <p style={{ fontSize: 12, fontWeight: 600, color: '#999', margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           {policies.length} {policies.length === 1 ? 'policy' : 'policies'}
@@ -1589,10 +1733,7 @@ function CoverageTab({ trip, onUnlock }: { trip: any; onUnlock: () => void }) {
         Clauses shown are auto-accepted extractions. Coverage amounts and conditions depend on your specific policy terms.
       </div>
 
-      <DeepScanPanel
-        trip={trip}
-        onUnlock={onUnlock}
-      />
+      <DeepScanPanel trip={trip} onUnlock={onUnlock} attachedPolicyCount={policies.length} />
     </div>
   );
 }
@@ -1681,12 +1822,15 @@ function IncidentsTab({ trip, incidents }: { trip: any; incidents: any[] }) {
 }
 
 function TripDetailPageInner() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
   const tripId = params?.trip_id as string;
   const isReservedNewTripPath = tripId === 'new';
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
+  const narrowChrome = useIsNarrowAppShell();
 
   const [trip, setTrip] = useState<any>(null);
   const [incidents, setIncidents] = useState<any[]>([]);
@@ -1696,9 +1840,65 @@ function TripDetailPageInner() {
     const tab = searchParams?.get('tab');
     return TABS.includes(tab || '') ? tab! : 'Overview';
   });
+
+  // `useState` initializer only runs once; sync when `?tab=` appears after hydration (fixes E2E / deep links).
+  const tabFromUrl = searchParams?.get('tab') ?? '';
+  useEffect(() => {
+    if (tabFromUrl && TABS.includes(tabFromUrl)) setActiveTab(tabFromUrl);
+  }, [tabFromUrl]);
   const [editing, setEditing] = useState(false);
   const [showPayModal, setShowPayModal] = useState(false);
+  const [showEmergencySos, setShowEmergencySos] = useState(false);
+  const [showCreatorSearch, setShowCreatorSearch] = useState(false);
   const [archiveResult, setArchiveResult] = useState<ArchiveResult | null>(null);
+  const [travelshieldGroupId, setTravelshieldGroupId] = useState<string | null>(null);
+
+  const { context: tripContext, loading: tripContextLoading, refresh: refreshTripContext } = useTripContext(
+    tripId === 'new' ? undefined : tripId,
+    trip,
+    profile?.preferences,
+    user?.id,
+  );
+
+  const handleDismissContext = async (contextKey: string) => {
+    if (!user || !trip) return;
+    const current = parseDismissalsFromPreferences(profile?.preferences);
+    const next = addDismissal(trip.trip_id, contextKey, current);
+    const prefs = mergeDismissalsIntoPreferences(
+      profile?.preferences && typeof profile.preferences === 'object'
+        ? (profile.preferences as Record<string, unknown>)
+        : {},
+      next,
+    );
+    const { error } = await supabase.from('user_profiles').update({ preferences: prefs }).eq('user_id', user.id);
+    if (error) {
+      console.error('[contextual-intelligence] dismiss save failed', error);
+      return;
+    }
+    await refreshProfile();
+    refreshTripContext();
+  };
+
+  const handleCreateIncidentFromContext = async (tid: string, pre: Record<string, unknown>) => {
+    if (!user) return null;
+    const disruptionType = (pre.disruption_type as string) || 'delay';
+    const title = (pre.title as string) || 'Travel disruption';
+    const { data, error } = await supabase.rpc('create_incident', {
+      p_trip_id: tid,
+      p_title: title,
+      p_description: (pre.description as string) || '',
+      p_classification: 'External',
+      p_control_type: 'External',
+      p_metadata: { disruption_type: disruptionType, from_contextual_intelligence: true, ...pre },
+      p_actor_id: user.id,
+      p_idempotency_key: `ctx-incident-${tid}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    });
+    if (error || !(data as { success?: boolean })?.success) {
+      console.error('[contextual-intelligence] create_incident', error, data);
+      return null;
+    }
+    return (data as { incident_id?: string }).incident_id ?? null;
+  };
 
   useEffect(() => {
     if (!user || !tripId) return;
@@ -1729,6 +1929,33 @@ function TripDetailPageInner() {
       setLoading(false);
     });
   }, [user, tripId, router]);
+
+  const reloadTravelshieldMembership = useCallback(async () => {
+    // Use cookie-authenticated API + service role (same trust path as create-group). Client-side
+    // Supabase REST often omits session or hits RLS/embed quirks in Playwright multi-browser runs.
+    if (!user?.id || !tripId || tripId === 'new') {
+      setTravelshieldGroupId(null);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/travelshield/for-trip/${encodeURIComponent(tripId)}`, {
+        credentials: 'include',
+        cache: 'no-store',
+      });
+      const j = (await res.json().catch(() => ({}))) as { group_id?: string | null };
+      if (!res.ok) {
+        setTravelshieldGroupId(null);
+        return;
+      }
+      setTravelshieldGroupId(typeof j.group_id === 'string' ? j.group_id : null);
+    } catch {
+      setTravelshieldGroupId(null);
+    }
+  }, [user?.id, tripId]);
+
+  useEffect(() => {
+    void reloadTravelshieldMembership();
+  }, [reloadTravelshieldMembership]);
 
   // Draft Home is the canonical flow while a trip is still in DRAFT state.
   // This prevents users from bypassing readiness via the main trip tabs.
@@ -1784,13 +2011,21 @@ function TripDetailPageInner() {
   const dateRange = departure && returnDate ? `${departure} – ${returnDate}` : departure;
 
   return (
-    <div>
+    <div
+      style={{
+        ...(isMobile ? mobileStyles.appContentMobile : isTablet ? tabletStyles.appContent : {}),
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+        overflowX: 'hidden',
+      }}
+    >
       <div style={{ marginBottom: 24 }}>
         <Link href="/trips" style={{
           fontSize: 13, color: '#888', textDecoration: 'none',
           display: 'inline-flex', alignItems: 'center', gap: 4,
           fontFamily: 'system-ui, -apple-system, sans-serif',
           marginBottom: 16,
+          minHeight: isMobile ? 44 : undefined,
         }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <path d="M19 12H5M12 19l-7-7 7-7" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1799,11 +2034,40 @@ function TripDetailPageInner() {
         </Link>
 
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-          <div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: '#1A2B4A', margin: '0 0 8px', letterSpacing: '-0.4px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-              {trip.trip_name}
-            </h1>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <h1 style={{ fontSize: isMobile ? 22 : 24, fontWeight: 700, color: '#1A2B4A', margin: 0, letterSpacing: '-0.4px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                {trip.trip_name}
+              </h1>
+              {!archiveResult && (
+                <button
+                  type="button"
+                  aria-label="Emergency SOS"
+                  onClick={() => setShowEmergencySos(true)}
+                  style={{
+                    width: isMobile ? 44 : 32,
+                    height: isMobile ? 44 : 32,
+                    borderRadius: '50%',
+                    background: '#dc2626',
+                    border: 'none',
+                    color: 'white',
+                    fontSize: 9,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    padding: 0,
+                    fontFamily: 'system-ui, -apple-system, sans-serif',
+                    lineHeight: 1,
+                  }}
+                >
+                  SOS
+                </button>
+              )}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
               <MaturityBadge state={trip.maturity_state || 'DRAFT'} />
               {trip.destination_summary && (
                 <span style={{ fontSize: 13, color: '#666', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
@@ -1820,13 +2084,15 @@ function TripDetailPageInner() {
           <button
             onClick={() => { setEditing(!editing); setActiveTab('Overview'); }}
             style={{
-              padding: '7px 14px',
+              padding: isMobile ? '12px 16px' : '7px 14px',
               background: 'white',
               border: '1px solid #e5e7eb',
               borderRadius: 7,
               fontSize: 13, fontWeight: 500, color: '#555',
               cursor: 'pointer', fontFamily: 'system-ui, -apple-system, sans-serif',
               flexShrink: 0,
+              minHeight: isMobile ? 48 : undefined,
+              minWidth: isMobile ? 44 : undefined,
             }}
           >
             {editing ? 'Cancel edit' : 'Edit trip'}
@@ -1875,6 +2141,48 @@ function TripDetailPageInner() {
             >
               Readiness pins
             </Link>
+            {trip.maturity_state !== 'DRAFT' ? (
+              <Link
+                href={`/trips/${tripId}/draft`}
+                style={{
+                  fontSize: 11, fontWeight: 600, color: '#1d4ed8',
+                  background: 'white', border: '1px solid #bfdbfe', borderRadius: 8,
+                  padding: '6px 10px', textDecoration: 'none',
+                }}
+              >
+                Draft Home (planning)
+              </Link>
+            ) : null}
+            <Link
+              href={`/scan?trip_id=${encodeURIComponent(tripId)}`}
+              style={{
+                fontSize: 11, fontWeight: 600, color: '#0f766e',
+                background: 'white', border: '1px solid #99f6e4', borderRadius: 8,
+                padding: '6px 10px', textDecoration: 'none',
+              }}
+            >
+              Quick Scan (this trip)
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {!archiveResult && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#1A2B4A' }}>Emergency surfaces</p>
+              {!isMobile ? (
+                <button
+                  type="button"
+                  onClick={() => setShowEmergencySos(true)}
+                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #fecaca', background: '#fff1f2', color: '#9f1239', fontWeight: 700, fontSize: 12, minHeight: 44 }}
+                >
+                  Open SOS
+                </button>
+              ) : null}
+            </div>
+            <SafetyCardPanel tripId={trip.trip_id} />
           </div>
         </div>
       )}
@@ -1919,27 +2227,72 @@ function TripDetailPageInner() {
         />
       )}
 
-      <div style={{
-        display: 'flex', borderBottom: '1px solid #eaeaea', marginBottom: 24, gap: 0,
-        overflowX: 'auto',
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          marginBottom: 24,
+          gap: narrowChrome ? 8 : 0,
+          overflowX: 'auto',
+          WebkitOverflowScrolling: narrowChrome ? 'touch' : undefined,
+          borderBottom: narrowChrome ? 'none' : '1px solid #eaeaea',
+          position: narrowChrome ? 'sticky' : 'static',
+          top: narrowChrome ? 0 : undefined,
+          zIndex: narrowChrome ? 25 : undefined,
+          background: narrowChrome ? '#ffffff' : undefined,
+          paddingTop: narrowChrome ? 4 : 0,
+          paddingBottom: narrowChrome ? 10 : 0,
+          marginLeft: narrowChrome ? -12 : undefined,
+          marginRight: narrowChrome ? -12 : undefined,
+          paddingLeft: narrowChrome ? 12 : undefined,
+          paddingRight: narrowChrome ? 12 : undefined,
+        }}
+      >
         {TABS.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            style={{
-              padding: '10px 16px', background: 'none', border: 'none',
-              cursor: 'pointer', fontSize: 14, fontWeight: activeTab === tab ? 600 : 400,
-              color: activeTab === tab ? '#1A2B4A' : '#888',
-              borderBottom: `2px solid ${activeTab === tab ? '#1A2B4A' : 'transparent'}`,
-              marginBottom: -1, whiteSpace: 'nowrap',
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-            }}
+            style={
+              narrowChrome
+                ? {
+                    padding: '10px 16px',
+                    background: activeTab === tab ? '#1A2B4A' : '#f3f4f6',
+                    border: 'none',
+                    borderRadius: 9999,
+                    cursor: 'pointer',
+                    fontSize: 13,
+                    fontWeight: activeTab === tab ? 600 : 500,
+                    color: activeTab === tab ? '#ffffff' : '#475569',
+                    whiteSpace: 'nowrap',
+                    fontFamily: 'system-ui, -apple-system, sans-serif',
+                    minHeight: 44,
+                    flexShrink: 0,
+                  }
+                : {
+                    padding: '10px 16px', background: 'none', border: 'none',
+                    cursor: 'pointer', fontSize: 14, fontWeight: activeTab === tab ? 600 : 400,
+                    color: activeTab === tab ? '#1A2B4A' : '#888',
+                    borderBottom: `2px solid ${activeTab === tab ? '#1A2B4A' : 'transparent'}`,
+                    marginBottom: -1, whiteSpace: 'nowrap',
+                    fontFamily: 'system-ui, -apple-system, sans-serif',
+                  }
+            }
           >
             {tab}
           </button>
         ))}
       </div>
+
+      {activeTab !== 'Overview' && user && trip?.trip_id ? (
+        <RightNowCrossTabStrip
+          tripId={trip.trip_id}
+          context={tripContext}
+          loading={tripContextLoading}
+          onOpenOverview={() => setActiveTab('Overview')}
+          onDismiss={handleDismissContext}
+          onCreateIncident={handleCreateIncidentFromContext}
+          onContextRefresh={refreshTripContext}
+        />
+      ) : null}
 
       {activeTab === 'Overview' && (
         <OverviewTab
@@ -1951,10 +2304,58 @@ function TripDetailPageInner() {
           routeIssues={routeValidation.issues}
           tripIdForRoute={trip.trip_id}
           showRouteBanner={routeSegments.length > 0}
+          isMobile={isMobile}
+          onOpenDiscoverActivities={!archiveResult ? () => setShowCreatorSearch(true) : undefined}
+          rightNowSlot={
+            user ? (
+              <RightNowPanel
+                tripId={trip.trip_id}
+                context={tripContext}
+                loading={tripContextLoading}
+                actorId={user.id}
+                onDismiss={handleDismissContext}
+                onCreateIncident={handleCreateIncidentFromContext}
+                onContextRefresh={refreshTripContext}
+              />
+            ) : null
+          }
+          travelshieldSlot={
+            user ? (
+              travelshieldGroupId ? (
+                <ActiveGroupCard groupId={travelshieldGroupId} tripId={trip.trip_id} />
+              ) : (
+                <CreateTravelShieldPrompt
+                  tripId={trip.trip_id}
+                  departureDate={trip.departure_date}
+                  returnDate={trip.return_date}
+                  onCreated={() => void reloadTravelshieldMembership()}
+                />
+              )
+            ) : null
+          }
+          presenceSlot={
+            user ? (
+              <TripPresencePanel
+                tripId={trip.trip_id}
+                returnDate={trip.return_date}
+                routeSegments={routeSegments}
+                baseCurrency={String(
+                  (profile?.preferences as Record<string, unknown> | undefined)?.display_currency || 'USD',
+                ).toUpperCase()}
+              />
+            ) : null
+          }
         />
       )}
       {activeTab === 'Route' && <RouteTab trip={trip} />}
-      {activeTab === 'Coverage' && <CoverageTab trip={trip} onUnlock={() => setShowPayModal(true)} />}
+      {activeTab === 'Coverage' && (
+        <CoverageTab
+          trip={trip}
+          onUnlock={() => setShowPayModal(true)}
+          isMobile={isMobile}
+          profilePreferences={profile?.preferences}
+        />
+      )}
       {activeTab === 'Incidents' && <IncidentsTab trip={trip} incidents={incidents} />}
       {activeTab === 'Claims' && <ClaimsTab trip={trip} />}
 
@@ -1965,6 +2366,59 @@ function TripDetailPageInner() {
           onClose={() => setShowPayModal(false)}
         />
       )}
+      <EmergencySosSheet open={showEmergencySos} onClose={() => setShowEmergencySos(false)} tripId={trip.trip_id} />
+
+      {showCreatorSearch ? (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 260,
+            background: '#ffffff',
+            display: 'flex',
+            flexDirection: 'column',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Discover activities"
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '12px 16px',
+              borderBottom: '1px solid #e5e7eb',
+              gap: 12,
+              flexShrink: 0,
+            }}
+          >
+            <p style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#1A2B4A' }}>Discover activities</p>
+            <button
+              type="button"
+              onClick={() => setShowCreatorSearch(false)}
+              style={{
+                minWidth: 48,
+                minHeight: 48,
+                border: 'none',
+                background: '#f3f4f6',
+                borderRadius: 10,
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+                color: '#334155',
+                padding: '0 12px',
+              }}
+            >
+              Close
+            </button>
+          </div>
+          <div style={{ flex: 1, overflow: 'auto', padding: '12px 12px 100px', boxSizing: 'border-box' }}>
+            <CreatorSearchPanel tripId={trip.trip_id} />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -16,6 +16,9 @@ export type ComputeCoverageGraphRow = {
   /** F-6.5.2 — rows from generate_coverage_intelligence (0 if skipped/failed). */
   intelligence_gaps?: number;
   intelligence_summaries?: number;
+  /** F-6.5.2 Phase 2 — itinerary conflict RPCs (0 if skipped/disabled/failed). */
+  activity_conflicts?: number;
+  geographic_conflicts?: number;
 };
 
 export type RouteClaimRow = {
@@ -104,13 +107,53 @@ export async function computeCoverageGraphWithIntelligence(
   }
 
   const intelRow = asRecord(intel);
+  const baseGaps = typeof intelRow?.gaps_detected === 'number' ? intelRow.gaps_detected : 0;
+  const baseSummaries =
+    typeof intelRow?.summaries_generated === 'number' ? intelRow.summaries_generated : 0;
+
+  let activityConflicts = 0;
+  let geographicConflicts = 0;
+
+  try {
+    const { data: actData, error: actErr } = await client.rpc('detect_activity_conflicts', {
+      p_snapshot_id: snapId,
+      p_trip_id: tripId,
+      p_actor_id: actorId,
+    });
+    if (actErr) {
+      console.warn('[detect_activity_conflicts]', actErr.message);
+    } else {
+      const ar = asRecord(actData);
+      if (typeof ar?.activity_conflicts === 'number') activityConflicts = ar.activity_conflicts;
+    }
+  } catch (e) {
+    console.warn('[detect_activity_conflicts]', e);
+  }
+
+  try {
+    const { data: geoData, error: geoErr } = await client.rpc('detect_geographic_conflicts', {
+      p_snapshot_id: snapId,
+      p_trip_id: tripId,
+      p_actor_id: actorId,
+    });
+    if (geoErr) {
+      console.warn('[detect_geographic_conflicts]', geoErr.message);
+    } else {
+      const gr = asRecord(geoData);
+      if (typeof gr?.geographic_conflicts === 'number') geographicConflicts = gr.geographic_conflicts;
+    }
+  } catch (e) {
+    console.warn('[detect_geographic_conflicts]', e);
+  }
+
   return {
     ok: true,
     data: {
       ...graphResult.data,
-      intelligence_gaps: typeof intelRow?.gaps_detected === 'number' ? intelRow.gaps_detected : 0,
-      intelligence_summaries:
-        typeof intelRow?.summaries_generated === 'number' ? intelRow.summaries_generated : 0,
+      intelligence_gaps: baseGaps + activityConflicts + geographicConflicts,
+      intelligence_summaries: baseSummaries,
+      activity_conflicts: activityConflicts,
+      geographic_conflicts: geographicConflicts,
     },
   };
 }

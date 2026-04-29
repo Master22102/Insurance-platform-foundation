@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { hasStorageState, STORAGE_STATE_PATH } from './utils/authState';
+import { getStorageStatePath, hasStorageState } from './utils/authState';
 
 test.describe('Extraction process API contract', () => {
   test('rejects unauthenticated process requests', async ({ playwright, baseURL }) => {
@@ -16,7 +16,7 @@ test.describe('Extraction process API contract', () => {
   });
 
   test.skip(!hasStorageState(), 'Missing .playwright/storageState.json; run npm run e2e:auth first.');
-  test.use({ storageState: STORAGE_STATE_PATH });
+  test.use({ storageState: getStorageStatePath() });
 
   test('requires document_id for authenticated requests', async ({ page }) => {
     const res = await page.request.post('/api/extraction/process', {

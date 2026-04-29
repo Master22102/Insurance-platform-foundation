@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { hasStorageState, STORAGE_STATE_PATH } from './utils/authState';
+import { getStorageStatePath, hasStorageState } from './utils/authState';
 import { ensureOnboarded } from './utils/ensureOnboarded';
 
 test.describe('Group authority surfaces', () => {
   test.skip(!hasStorageState(), 'Missing .playwright/storageState.json; run npm run e2e:auth first.');
-  test.use({ storageState: STORAGE_STATE_PATH });
+  test.use({ storageState: getStorageStatePath() });
 
   test('group controls and deep scan gate remain stable under repeated navigation', async ({ page }) => {
     await ensureOnboarded(page);

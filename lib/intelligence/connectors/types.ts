@@ -1,5 +1,12 @@
 export type ScanTier = 'quick' | 'deep';
 
+/**
+ * Deep Scan connector axes — canonical semantics: `docs/DEEP_SCAN_AXIS_DOCTRINE.md`.
+ * **`hidden_opportunity` (Axis 5):** experiential / discovery intelligence (astronomical events,
+ * natural phenomena, local cultural events off mainstream packages, season-specific experiences).
+ * Do not use this axis for reimbursements, cash benefits, or policy protections — use
+ * `coverage_itinerary_match` (Axis 2) and coverage/signal outputs instead.
+ */
 export type IntelligenceAxis =
   | 'transit_reliability'
   | 'coverage_itinerary_match'
@@ -23,6 +30,10 @@ export interface ConnectorContext {
   tripId?: string;
   itineraryHash?: string;
   locations?: string[];
+  /** Onboarding / profile signals (e.g. pet_travel). */
+  signal_profile?: Record<string, unknown>;
+  /** Route segment destinations for regulatory heuristics. */
+  route_segments?: Array<{ destination?: string; origin?: string }>;
   /** Populated after Deep Scan so `coverage_itinerary_match` can summarize server signals. */
   deepScanSnapshot?: {
     policiesAnalyzed?: number;

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { hasStorageState, STORAGE_STATE_PATH } from './utils/authState';
+import { getStorageStatePath, hasStorageState } from './utils/authState';
 import { ensureOnboarded } from './utils/ensureOnboarded';
 import { hasSupabaseEnv, readAccessTokenFromStorageState, supabaseRestSelect } from './utils/supabaseRest';
 
@@ -42,7 +42,7 @@ async function openPolicyUploadUi(page: Page) {
 
 test.describe('Policy ingestion governance chain', () => {
   test.skip(!hasStorageState(), 'Missing .playwright/storageState.json; run npm run e2e:auth first.');
-  test.use({ storageState: STORAGE_STATE_PATH });
+  test.use({ storageState: getStorageStatePath() });
 
   test('manual policy input reaches deterministic terminal extraction state', async ({ page }) => {
     test.setTimeout(240_000);

@@ -7,6 +7,8 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
 import { useSpeechCapture } from '@/lib/speech/useSpeechCapture';
 import { CoverageCatalogPanel } from '@/components/trips/CoverageCatalogPanel';
+import { useIsMobile, useIsTablet } from '@/lib/hooks/useIsMobile';
+import { mobileStyles, tabletStyles } from '@/lib/styles/responsive';
 
 type TripType = 'solo' | 'group';
 type BuildMethod = 'narrate' | 'manual';
@@ -119,6 +121,7 @@ const inputStyle: React.CSSProperties = {
   border: '1px solid #ddd', borderRadius: 8,
   outline: 'none', color: '#111', background: 'white',
   fontFamily: 'system-ui, -apple-system, sans-serif',
+  minHeight: 48,
 };
 
 const labelStyle: React.CSSProperties = {
@@ -141,7 +144,21 @@ function BackButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: 13, padding: 0, marginBottom: 20, fontFamily: 'system-ui, -apple-system, sans-serif', display: 'flex', alignItems: 'center', gap: 4 }}
+      style={{
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        color: '#888',
+        fontSize: 13,
+        padding: 0,
+        marginBottom: 20,
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+        minHeight: 44,
+        minWidth: 44,
+      }}
     >
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
         <path d="M19 12H5M12 19l-7-7 7-7" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -152,6 +169,8 @@ function BackButton({ onClick }: { onClick: () => void }) {
 }
 
 export default function NewTripPage() {
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
   const { user, profile } = useAuth();
   const router = useRouter();
 
@@ -469,7 +488,13 @@ export default function NewTripPage() {
   const currentStep = stepMap[phase];
 
   return (
-    <div style={{ maxWidth: 540, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div
+      style={{
+        ...(isMobile ? mobileStyles.appContentMobile : isTablet ? tabletStyles.appContent : { padding: '24px 16px 40px' }),
+        maxWidth: 540,
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+      }}
+    >
       <div style={{ marginBottom: 24 }}>
         <Link href="/trips" style={{
           fontSize: 13, color: '#888', textDecoration: 'none',
@@ -741,7 +766,19 @@ export default function NewTripPage() {
                           onClick={() => {
                             setNormalizedRouteSegments(normalizedRouteSegments.filter((_, i) => i !== idx));
                           }}
-                          style={{ border: 'none', background: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 16 }}
+                          style={{
+                            border: 'none',
+                            background: 'none',
+                            color: '#94a3b8',
+                            cursor: 'pointer',
+                            fontSize: 16,
+                            width: 44,
+                            height: 44,
+                            borderRadius: 10,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
                           aria-label={`Remove leg ${idx + 1}`}
                         >
                           ×
@@ -758,10 +795,11 @@ export default function NewTripPage() {
                       background: 'white',
                       color: '#1e40af',
                       borderRadius: 8,
-                      padding: '6px 10px',
+                      padding: '12px 10px',
                       fontSize: 12,
                       fontWeight: 600,
                       cursor: 'pointer',
+                      minHeight: 44,
                     }}
                   >
                     + Add leg
@@ -786,7 +824,11 @@ export default function NewTripPage() {
                           type="button"
                           onClick={() => setDestination(p)}
                           style={{
-                            padding: '5px 11px',
+                            padding: '10px 12px',
+                            minHeight: 44,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                             fontSize: 12,
                             fontWeight: 600,
                             borderRadius: 999,
@@ -826,6 +868,7 @@ export default function NewTripPage() {
                       onClick={() => setTravelMode(mode.key)}
                       style={{
                         padding: '7px 14px',
+                        minHeight: 44,
                         border: `1px solid ${travelMode === mode.key ? '#2E5FA3' : '#ddd'}`,
                         borderRadius: 8,
                         background: travelMode === mode.key ? '#eff4fc' : 'white',
@@ -930,7 +973,20 @@ export default function NewTripPage() {
                   {travelers.length > 1 && (
                     <button
                       onClick={() => setTravelers(travelers.filter((_, j) => j !== i))}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ccc', fontSize: 16, padding: '0 4px' }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: '#ccc',
+                        fontSize: 16,
+                        padding: 0,
+                        width: 44,
+                        height: 44,
+                        borderRadius: 10,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
                     >
                       ×
                     </button>
@@ -946,6 +1002,7 @@ export default function NewTripPage() {
                 background: 'white', color: '#555',
                 border: '1px dashed #ddd', borderRadius: 8,
                 fontSize: 13, fontWeight: 500, cursor: 'pointer', marginBottom: 18,
+                minHeight: 44,
               }}
             >
               + Add another traveler
@@ -959,6 +1016,7 @@ export default function NewTripPage() {
                 background: isCreating ? '#93afd4' : '#1A2B4A',
                 color: 'white', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600,
                 cursor: isCreating ? 'not-allowed' : 'pointer',
+                minHeight: 48,
               }}
             >
               {isCreating ? 'Creating trip…' : 'Create trip'}
@@ -966,7 +1024,7 @@ export default function NewTripPage() {
 
             <button
               onClick={handleCreate}
-              style={{ width: '100%', padding: '9px 0', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#aaa', marginTop: 8 }}
+              style={{ width: '100%', padding: '9px 0', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#aaa', marginTop: 8, minHeight: 44 }}
             >
               Skip and create without travelers
             </button>

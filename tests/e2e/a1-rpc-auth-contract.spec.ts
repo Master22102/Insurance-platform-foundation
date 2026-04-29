@@ -1,7 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { hasStorageState, STORAGE_STATE_PATH } from './utils/authState';
+import { getStorageStatePath, hasStorageState } from './utils/authState';
 import { setupRoutingReadyIncident } from './utils/routingReadyIncident';
-import { hasSupabaseEnv, readAccessTokenFromStorageState, supabaseRpc } from './utils/supabaseRest';
+import {
+  E2E_AUTH_SKIP_REASON,
+  hasSupabaseEnv,
+  readAccessTokenFromStorageState,
+  supabaseRpc,
+} from './utils/supabaseRest';
 
 /**
  * A1 — Negative RPC checks: SECURITY DEFINER helpers must bind actor to JWT.
@@ -10,13 +15,13 @@ import { hasSupabaseEnv, readAccessTokenFromStorageState, supabaseRpc } from './
 test.describe('A1 RPC auth contract (actor vs JWT)', () => {
   test.skip(!hasStorageState(), 'Missing .playwright/storageState.json; run npm run e2e:auth first.');
   test.skip(!hasSupabaseEnv(), 'Missing Supabase public env vars.');
-  test.use({ storageState: STORAGE_STATE_PATH });
+  test.use({ storageState: getStorageStatePath() });
 
   test('advance_trip_maturity returns forbidden when p_actor_id mismatches auth user', async ({
     request,
   }) => {
     const accessToken = readAccessTokenFromStorageState();
-    test.skip(!accessToken, 'Could not read access token from storage state.');
+    test.skip(!accessToken, E2E_AUTH_SKIP_REASON);
     if (!accessToken) return;
 
     const badActor = '00000000-0000-0000-0000-000000000001';
@@ -37,7 +42,7 @@ test.describe('A1 RPC auth contract (actor vs JWT)', () => {
 
   test('route_claim returns forbidden when p_actor_id mismatches auth user', async ({ request }) => {
     const accessToken = readAccessTokenFromStorageState();
-    test.skip(!accessToken, 'Could not read access token from storage state.');
+    test.skip(!accessToken, E2E_AUTH_SKIP_REASON);
     if (!accessToken) return;
 
     const stamp = Date.now();

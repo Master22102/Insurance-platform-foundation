@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/auth/supabase-client';
+import { useIsMobile, useIsTablet } from '@/lib/hooks/useIsMobile';
+import { mobileStyles, tabletStyles } from '@/lib/styles/responsive';
 
 const CLAIM_STATUSES = ['CLAIM_ROUTING_READY', 'SUBMITTED', 'DISPUTED'];
 
@@ -61,6 +63,8 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function ClaimsPage() {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
   const [incidents, setIncidents] = useState<ClaimIncident[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -105,7 +109,15 @@ export default function ClaimsPage() {
   const disputed = incidents.filter((i) => i.canonical_status === 'DISPUTED');
 
   return (
-    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div
+      style={{
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        ...(isMobile ? mobileStyles.appContentMobile : isTablet ? tabletStyles.appContent : { padding: '0 0 32px' }),
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+        overflowX: 'hidden',
+      }}
+    >
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, color: '#1A2B4A', margin: '0 0 4px', letterSpacing: '-0.4px' }}>
           Claims
@@ -143,15 +155,35 @@ export default function ClaimsPage() {
             <p style={{ fontSize: 14, color: '#888', margin: '0 0 20px', lineHeight: 1.6, maxWidth: 380 }}>
               When an incident gathers enough evidence, it moves here for claim routing. The path is: report an incident, document it, and the system will guide you on what to file.
             </p>
-            <Link href="/incidents" style={{
-              padding: '10px 22px', background: '#1A2B4A', color: 'white',
-              borderRadius: 8, textDecoration: 'none', fontSize: 14, fontWeight: 600,
-            }}>
+            <Link
+              href="/incidents"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 48,
+                padding: '12px 22px',
+                background: '#1A2B4A',
+                color: 'white',
+                borderRadius: 10,
+                textDecoration: 'none',
+                fontSize: 14,
+                fontWeight: 600,
+                boxSizing: 'border-box',
+              }}
+            >
               View your incidents
             </Link>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12, marginTop: 8 }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(240px, 1fr))',
+              gap: 12,
+              marginTop: 8,
+            }}
+          >
             {[
               { step: '1', title: 'Report an incident', desc: 'Start from a trip page when something goes wrong.' },
               { step: '2', title: 'Document it', desc: 'Add narration, upload receipts, and gather evidence.' },
@@ -193,6 +225,7 @@ export default function ClaimsPage() {
 }
 
 function ClaimSection({ title, count, incidents, accent }: { title: string; count: number; incidents: ClaimIncident[]; accent: string }) {
+  const isMobile = useIsMobile();
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -213,7 +246,8 @@ function ClaimSection({ title, count, incidents, accent }: { title: string; coun
               <div
                 style={{
                   background: 'white', border: '0.5px solid #e8e8e8',
-                  borderRadius: 10, padding: '14px 18px',
+                  borderRadius: 10, padding: '16px 18px',
+                  minHeight: isMobile ? 56 : undefined,
                   display: 'flex', alignItems: 'center', gap: 12,
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)')}

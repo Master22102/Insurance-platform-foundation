@@ -44,7 +44,8 @@ export async function setupRoutingReadyIncident(
     p_description: 'Carrier delay and missed connection',
     p_classification: 'External',
     p_control_type: 'External',
-    p_metadata: { disruption_type: 'flight_delay', e2e: true },
+    /* trip_cancellation aligns with e2e_seed_minimal_coverage_for_trip (cancellation_rule → graph) + route_claim */
+    p_metadata: { disruption_type: 'trip_cancellation', e2e: true },
     p_actor_id: actorId,
     p_idempotency_key: `e2e-incident-${suiteTag}-${suiteStamp}`,
   });
@@ -83,6 +84,17 @@ export async function setupRoutingReadyIncident(
     expect(r?.success).toBe(true);
     expect(r?.new_status).toBe(status);
   }
+
+  const seed = await supabaseRpc(request, accessToken, 'e2e_seed_minimal_coverage_for_trip', {
+    p_trip_id: tripId,
+    p_actor_id: actorId,
+  });
+  expect(seed.status, JSON.stringify(seed.error)).toBe(200);
+  const seedData = seed.data as Record<string, unknown>;
+  expect(
+    seedData?.success === true,
+    `e2e_seed_minimal_coverage_for_trip failed (apply migration 20260326120000_e2e_seed_minimal_coverage_for_trip.sql): ${JSON.stringify(seed.data)}`,
+  ).toBe(true);
 
   return { actorId, tripId, incidentId };
 }

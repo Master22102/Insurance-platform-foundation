@@ -16,6 +16,8 @@ import {
   fieldsToCategorized,
   mergeCategorized,
 } from '@/lib/onboarding/signal-profile';
+import { useIsMobile, useIsTablet } from '@/lib/hooks/useIsMobile';
+import { mobileStyles, tabletStyles } from '@/lib/styles/responsive';
 
 type Step = 'terms' | 'signal';
 
@@ -87,6 +89,8 @@ async function categorizeSegment(text: string): Promise<CategorizedChips> {
 export default function OnboardingPage() {
   const { user, profile, refreshProfile } = useAuth();
   const router = useRouter();
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
 
   const [step, setStep] = useState<Step>('terms');
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -103,13 +107,15 @@ export default function OnboardingPage() {
   const [narrationParts, setNarrationParts] = useState<string[]>([]);
   const [accumulatedCat, setAccumulatedCat] = useState<CategorizedChips>(emptyCat);
   const [highlightTokens, setHighlightTokens] = useState<Set<string>>(new Set());
-  const [detailPreference, setDetailPreference] = useState<SignalProfile['detail_preference']>('balanced');
   const [editingCard, setEditingCard] = useState<keyof CategorizedChips | null>(null);
   const narrationPartsRef = useRef<string[]>([]);
 
   const [bootTransition, setBootTransition] = useState(false);
   const [termsTransition, setTermsTransition] = useState(false);
   const [finishTransition, setFinishTransition] = useState(false);
+  const [completionBridge, setCompletionBridge] = useState<null | { skipped: boolean; signalProfile?: SignalProfile }>(
+    null,
+  );
 
   const { start: startSpeech, stop: stopSpeech, reset: resetSpeech, lastTranscriptRef } = useSpeechCapture({
     continuous: true,
@@ -135,6 +141,15 @@ export default function OnboardingPage() {
     narrationPartsRef.current = narrationParts;
   }, [narrationParts]);
 
+  /** Pre-auth `/terms-consent` already recorded acceptance — skip duplicate in-app terms step. */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.localStorage.getItem('wayfarer_terms_consent_v1') !== '1') return;
+    setTermsAccepted(true);
+    setPrivacyAccepted(true);
+    setStep('signal');
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (sessionStorage.getItem('wayfarer_onboarding_boot')) return;
@@ -148,9 +163,10 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (!profile?.onboarding_completed) return;
+    if (completionBridge) return;
     const anchorDone = profile.preferences?.onboarding?.anchor_selection?.completed === true;
     router.replace(anchorDone ? '/trips' : '/get-started');
-  }, [profile?.onboarding_completed, profile?.preferences, router]);
+  }, [profile?.onboarding_completed, profile?.preferences, completionBridge, router]);
 
   const toggleVoiceCapture = async () => {
     if (voiceState === 'recording') {
@@ -273,7 +289,10 @@ export default function OnboardingPage() {
       }
 
       await refreshProfile();
-      router.replace('/trips');
+      setCompletionBridge({
+        skipped: !!payload.skipped,
+        signalProfile: payload.skipped ? undefined : payload.signalProfile,
+      });
     } catch (e: any) {
       setError(e?.message || 'Something went wrong. Please try again.');
     } finally {
@@ -283,7 +302,18 @@ export default function OnboardingPage() {
 
   const confirmSignal = async () => {
     const raw = typed.trim();
-    let profile = categorizedToSignalProfile(accumulatedCat, Math.max(1, narrationParts.length || (raw ? 1 : 0)), detailPreference);
+    const existingSp =
+      profile?.preferences && typeof profile.preferences === 'object'
+        ? (profile.preferences as { signal_profile?: SignalProfile }).signal_profile
+        : undefined;
+    const savedDetail = existingSp?.detail_preference;
+    const detailPref: SignalProfile['detail_preference'] =
+      savedDetail === 'simple' || savedDetail === 'balanced' || savedDetail === 'detailed' ? savedDetail : 'balanced';
+    let signalProfileOut = categorizedToSignalProfile(
+      accumulatedCat,
+      Math.max(1, narrationParts.length || (raw ? 1 : 0)),
+      detailPref,
+    );
     try {
       const res = await fetch('/api/voice/parse', {
         method: 'POST',
@@ -293,10 +323,8 @@ export default function OnboardingPage() {
       const j = await res.json();
       if (j.parsed && j.fields) {
         const f = j.fields as Record<string, unknown>;
-        if (typeof f.travel_style === 'string' && f.travel_style.trim()) profile = { ...profile, travel_style: f.travel_style.trim() };
-        if (f.detail_preference === 'simple' || f.detail_preference === 'balanced' || f.detail_preference === 'detailed') {
-          profile = { ...profile, detail_preference: f.detail_preference };
-        }
+        if (typeof f.travel_style === 'string' && f.travel_style.trim())
+          signalProfileOut = { ...signalProfileOut, travel_style: f.travel_style.trim() };
         const mergeStr = (a: string[], b: string[]) => {
           const seen = new Set<string>();
           const out: string[] = [];
@@ -308,9 +336,10 @@ export default function OnboardingPage() {
           }
           return out;
         };
-        if (Array.isArray(f.places)) profile.places = mergeStr(profile.places, f.places as string[]);
-        if (Array.isArray(f.activities)) profile.activities = mergeStr(profile.activities, f.activities as string[]);
-        if (Array.isArray(f.food_interests)) profile.food_interests = mergeStr(profile.food_interests, f.food_interests as string[]);
+        if (Array.isArray(f.places)) signalProfileOut.places = mergeStr(signalProfileOut.places, f.places as string[]);
+        if (Array.isArray(f.activities)) signalProfileOut.activities = mergeStr(signalProfileOut.activities, f.activities as string[]);
+        if (Array.isArray(f.food_interests))
+          signalProfileOut.food_interests = mergeStr(signalProfileOut.food_interests, f.food_interests as string[]);
       }
     } catch {
       /* keep heuristic profile */
@@ -318,7 +347,7 @@ export default function OnboardingPage() {
     setFinishTransition(true);
     window.setTimeout(() => {
       void (async () => {
-        await saveAndFinish({ signalProfile: profile, rawTranscript: raw });
+        await saveAndFinish({ signalProfile: signalProfileOut, rawTranscript: raw });
         setFinishTransition(false);
       })();
     }, 1500);
@@ -333,10 +362,146 @@ export default function OnboardingPage() {
   };
 
   if (!user) return null;
+
+  if (completionBridge && profile?.onboarding_completed) {
+    const sp = completionBridge.signalProfile;
+    const summarize = (label: string, items: string[]) =>
+      items.length ? (
+        <li key={label} style={{ marginBottom: 6, fontSize: 14, color: '#334155', lineHeight: 1.5 }}>
+          <strong style={{ color: '#1A2B4A' }}>{label}:</strong> {items.slice(0, 8).join(', ')}
+          {items.length > 8 ? '…' : ''}
+        </li>
+      ) : null;
+
+    return (
+      <div
+        style={{
+          ...(isMobile ? mobileStyles.appContentMobile : isTablet ? tabletStyles.appContent : { padding: '28px 18px 48px' }),
+          maxWidth: 720,
+          margin: '0 auto',
+          fontFamily: 'system-ui, -apple-system, sans-serif',
+        }}
+      >
+        <p
+          style={{
+            fontSize: 12,
+            fontWeight: 700,
+            color: '#aaa',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            margin: '0 0 8px',
+          }}
+        >
+          All set
+        </p>
+        <h1 style={{ fontSize: 26, fontWeight: 800, color: '#1A2B4A', margin: '0 0 12px', letterSpacing: '-0.5px' }}>
+          Here&apos;s what we saved
+        </h1>
+        <p style={{ fontSize: 14, color: '#555', margin: '0 0 20px', lineHeight: 1.6 }}>
+          {completionBridge.skipped
+            ? 'You skipped the travel preferences step. You can add signals later from account settings when you want more tailored guidance.'
+            : 'Your answers are stored as your signal profile — we use them to tune how much detail you see and to prioritize relevant trip context (not to replace your policies or legal documents).'}
+        </p>
+
+        {!completionBridge.skipped && sp ? (
+          <div
+            style={{
+              background: 'white',
+              border: '1px solid #eaeaea',
+              borderRadius: 14,
+              padding: '18px 20px',
+              marginBottom: 22,
+            }}
+          >
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#64748b', margin: '0 0 12px', letterSpacing: '0.06em' }}>
+              SIGNAL PROFILE (SUMMARY)
+            </p>
+            {(() => {
+              const tagCount =
+                (sp.places?.length || 0) +
+                (sp.activities?.length || 0) +
+                (sp.food_interests?.length || 0) +
+                (sp.interests_other?.length || 0);
+              const hasRich = tagCount > 0 || !!sp.travel_style;
+              if (!hasRich) {
+                return (
+                  <p style={{ fontSize: 14, color: '#64748b', margin: 0, lineHeight: 1.5 }}>
+                    We saved a minimal profile (no extra tags extracted). You can refine this later from account preferences.
+                  </p>
+                );
+              }
+              return (
+              <ul style={{ margin: 0, paddingLeft: 18, listStyle: 'disc' }}>
+                {summarize('Places', sp.places || [])}
+                {summarize('Activities', sp.activities || [])}
+                {summarize('Food & dining', sp.food_interests || [])}
+                {summarize('Other interests', sp.interests_other || [])}
+                {sp.travel_style ? (
+                  <li style={{ marginBottom: 6, fontSize: 14, color: '#334155', lineHeight: 1.5 }}>
+                    <strong style={{ color: '#1A2B4A' }}>Travel style:</strong> {sp.travel_style}
+                  </li>
+                ) : null}
+                <li style={{ marginBottom: 0, fontSize: 14, color: '#334155', lineHeight: 1.5 }}>
+                  <strong style={{ color: '#1A2B4A' }}>Detail level:</strong> {sp.detail_preference || 'balanced'}
+                </li>
+              </ul>
+              );
+            })()}
+          </div>
+        ) : null}
+
+        <div
+          style={{
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: 14,
+            padding: '18px 20px',
+            marginBottom: 24,
+          }}
+        >
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#1A2B4A', margin: '0 0 10px' }}>What happens next</p>
+          <ul style={{ margin: 0, paddingLeft: 18, fontSize: 14, color: '#475569', lineHeight: 1.55 }}>
+            <li style={{ marginBottom: 8 }}>Choose how you want to start: new trip, policy upload, or browse trips.</li>
+            <li style={{ marginBottom: 8 }}>After you have a trip, use Coverage for deep analysis; Quick Scan stays a fast document preview.</li>
+            <li style={{ marginBottom: 0 }}>Nothing here is legal or coverage advice — always read your policy and carrier rules.</li>
+          </ul>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            router.replace('/get-started?from=onboarding');
+          }}
+          style={{
+            width: '100%',
+            padding: '14px 20px',
+            borderRadius: 12,
+            border: 'none',
+            background: 'linear-gradient(180deg, #2E5FA3 0%, #1A2B4A 100%)',
+            color: 'white',
+            fontSize: 16,
+            fontWeight: 800,
+            cursor: 'pointer',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+          }}
+        >
+          Continue
+        </button>
+      </div>
+    );
+  }
+
   if (profile?.onboarding_completed) return null;
 
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div
+      style={{
+        ...(isMobile ? mobileStyles.appContentMobile : isTablet ? tabletStyles.appContent : { padding: '28px 18px 48px' }),
+        maxWidth: 720,
+        margin: '0 auto',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+      }}
+    >
       {bootTransition && <TransitionScreen message="Securing your account…" />}
       {termsTransition && <TransitionScreen message="Setting up your workspace…" />}
       {finishTransition && <TransitionScreen message="Building your dashboard…" />}
@@ -661,17 +826,6 @@ export default function OnboardingPage() {
                   </div>
                 </div>
               )}
-
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Detail preference</label>
-              <select
-                value={detailPreference}
-                onChange={(e) => setDetailPreference(e.target.value as SignalProfile['detail_preference'])}
-                style={{ marginBottom: 14, padding: '8px 10px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13 }}
-              >
-                <option value="simple">Simple</option>
-                <option value="balanced">Balanced</option>
-                <option value="detailed">Detailed</option>
-              </select>
 
               {error && (
                 <div style={{ marginBottom: 12, padding: '10px 12px', background: '#fef9f0', border: '1px solid #fde68a', borderRadius: 10, fontSize: 13, color: '#92400e' }}>

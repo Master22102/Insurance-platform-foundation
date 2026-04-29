@@ -1,16 +1,22 @@
 import { expect, test } from '@playwright/test';
-import { hasStorageState, STORAGE_STATE_PATH } from './utils/authState';
+import { getStorageStatePath, hasStorageState } from './utils/authState';
 import { setupRoutingReadyIncident } from './utils/routingReadyIncident';
-import { hasSupabaseEnv, readAccessTokenFromStorageState, supabaseRestSelect, supabaseRpc } from './utils/supabaseRest';
+import {
+  E2E_AUTH_SKIP_REASON,
+  hasSupabaseEnv,
+  readAccessTokenFromStorageState,
+  supabaseRestSelect,
+  supabaseRpc,
+} from './utils/supabaseRest';
 
 test.describe('Claim packet RPC contract (ownership + idempotency)', () => {
   test.skip(!hasStorageState(), 'Missing .playwright/storageState.json; run npm run e2e:auth first.');
   test.skip(!hasSupabaseEnv(), 'Missing Supabase public env vars.');
-  test.use({ storageState: STORAGE_STATE_PATH });
+  test.use({ storageState: getStorageStatePath() });
 
   test('returns routing_not_ready when incident is not CLAIM_ROUTING_READY', async ({ request }) => {
     const accessToken = readAccessTokenFromStorageState();
-    test.skip(!accessToken, 'Could not read access token from storage state.');
+    test.skip(!accessToken, E2E_AUTH_SKIP_REASON);
     if (!accessToken) return;
 
     const stamp = Date.now();
@@ -33,7 +39,7 @@ test.describe('Claim packet RPC contract (ownership + idempotency)', () => {
 
   test('returns forbidden when actor_id mismatches auth user', async ({ request }) => {
     const accessToken = readAccessTokenFromStorageState();
-    test.skip(!accessToken, 'Could not read access token from storage state.');
+    test.skip(!accessToken, E2E_AUTH_SKIP_REASON);
     if (!accessToken) return;
 
     const stamp = Date.now();
@@ -55,7 +61,7 @@ test.describe('Claim packet RPC contract (ownership + idempotency)', () => {
 
   test('is idempotent for same incident + idempotency key', async ({ request }) => {
     const accessToken = readAccessTokenFromStorageState();
-    test.skip(!accessToken, 'Could not read access token from storage state.');
+    test.skip(!accessToken, E2E_AUTH_SKIP_REASON);
     if (!accessToken) return;
 
     const stamp = Date.now();
@@ -98,7 +104,7 @@ test.describe('Claim packet RPC contract (ownership + idempotency)', () => {
 
   test('creates a new packet when idempotency key changes', async ({ request }) => {
     const accessToken = readAccessTokenFromStorageState();
-    test.skip(!accessToken, 'Could not read access token from storage state.');
+    test.skip(!accessToken, E2E_AUTH_SKIP_REASON);
     if (!accessToken) return;
 
     const stamp = Date.now();

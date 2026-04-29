@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { readAccessTokenFromStorageStateFile } from './utils/supabaseRest';
+import { getStorageStatePath } from './utils/authState';
+import { isPlaywrightJwtExpired, readAccessTokenFromStorageStateFile } from './utils/supabaseRest';
 
 /**
  * When E2E_REQUIRE_CONTRACTS=1, fail before workers start if we cannot run
@@ -10,16 +11,22 @@ import { readAccessTokenFromStorageStateFile } from './utils/supabaseRest';
 export default async function globalRequireContractsSetup(): Promise<void> {
   if (process.env.E2E_REQUIRE_CONTRACTS !== '1') return;
 
-  const storage = path.join(process.cwd(), '.playwright', 'storageState.json');
+  const storage = getStorageStatePath();
   if (!fs.existsSync(storage)) {
     throw new Error(
       '[E2E_REQUIRE_CONTRACTS] Missing .playwright/storageState.json — run `npm run e2e:auth` locally or set PLAYWRIGHT_STORAGE_STATE_B64 in CI (see docs/CI_E2E_SAMPLE.md).',
     );
   }
 
-  if (!readAccessTokenFromStorageStateFile(storage)) {
+  const rawJwt = readAccessTokenFromStorageStateFile(storage);
+  if (!rawJwt) {
     throw new Error(
-      '[E2E_REQUIRE_CONTRACTS] No usable Supabase access_token in storageState (localStorage or sb-*-auth-token cookie) — run `npm run e2e:auth` again (session may be expired).',
+      '[E2E_REQUIRE_CONTRACTS] No usable Supabase access_token in storageState (localStorage or sb-*-auth-token cookie) — run `npm run e2e:auth` again.',
+    );
+  }
+  if (process.env.E2E_IGNORE_JWT_EXPIRY !== '1' && isPlaywrightJwtExpired(rawJwt)) {
+    throw new Error(
+      '[E2E_REQUIRE_CONTRACTS] JWT in storageState is **expired**. Re-run `npm run e2e:auth` (Supabase access tokens are short-lived). Debug-only: E2E_IGNORE_JWT_EXPIRY=1.',
     );
   }
 

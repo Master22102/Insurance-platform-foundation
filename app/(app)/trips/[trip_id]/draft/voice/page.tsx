@@ -240,6 +240,7 @@ export default function VoiceNarrationInterfacePage() {
               style={{
                 flex: 1,
                 padding: '11px 0',
+                minHeight: 48,
                 background: !canConfirm || saving ? '#93afd4' : '#1A2B4A',
                 color: 'white',
                 border: 'none',

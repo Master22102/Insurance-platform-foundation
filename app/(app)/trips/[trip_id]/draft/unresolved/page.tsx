@@ -267,6 +267,7 @@ export default function UnresolvedItemsPanelPage() {
                     onClick={() => router.push(fixHrefForUnresolvedItem(tripId, b.external_key))}
                     style={{
                       padding: '10px 14px',
+                      minHeight: 44,
                       borderRadius: 10,
                       background: '#eff4fc',
                       border: '1px solid #bfdbfe',
@@ -284,6 +285,7 @@ export default function UnresolvedItemsPanelPage() {
                     disabled={!user || (isCrit && b.source === 'system')}
                     style={{
                       padding: '10px 14px',
+                      minHeight: 44,
                       borderRadius: 10,
                       border: '1px solid #bbf7d0',
                       background: isCrit && b.source === 'system' ? '#f5f5f5' : '#f0fdf4',
@@ -306,6 +308,7 @@ export default function UnresolvedItemsPanelPage() {
           onClick={() => setShowAdd((s) => !s)}
           style={{
             padding: '10px 14px',
+            minHeight: 44,
             borderRadius: 10,
             border: '1px dashed #cbd5e1',
             background: 'white',
@@ -323,19 +326,19 @@ export default function UnresolvedItemsPanelPage() {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="Title (e.g. Book hotel)"
-              style={{ width: '100%', padding: 10, marginBottom: 8, borderRadius: 8, border: '1px solid #ddd' }}
+              style={{ width: '100%', padding: 10, minHeight: 48, marginBottom: 8, borderRadius: 8, border: '1px solid #ddd' }}
             />
             <textarea
               value={newDesc}
               onChange={(e) => setNewDesc(e.target.value)}
               placeholder="Details (optional)"
               rows={3}
-              style={{ width: '100%', padding: 10, marginBottom: 8, borderRadius: 8, border: '1px solid #ddd' }}
+              style={{ width: '100%', padding: 10, minHeight: 48, marginBottom: 8, borderRadius: 8, border: '1px solid #ddd' }}
             />
             <select
               value={newKind}
               onChange={(e) => setNewKind(e.target.value as 'blocker' | 'warning')}
-              style={{ marginBottom: 8, padding: 8, borderRadius: 8 }}
+              style={{ marginBottom: 8, padding: 8, minHeight: 48, borderRadius: 8 }}
             >
               <option value="blocker">Blocker</option>
               <option value="warning">Warning</option>
@@ -347,6 +350,7 @@ export default function UnresolvedItemsPanelPage() {
                 onClick={() => addCustom()}
                 style={{
                   padding: '10px 16px',
+                  minHeight: 44,
                   background: '#1A2B4A',
                   color: 'white',
                   border: 'none',
@@ -357,7 +361,11 @@ export default function UnresolvedItemsPanelPage() {
               >
                 Save
               </button>
-              <button type="button" onClick={() => setShowAdd(false)} style={{ padding: '10px 16px' }}>
+              <button
+                type="button"
+                onClick={() => setShowAdd(false)}
+                style={{ padding: '10px 16px', minHeight: 44, borderRadius: 8, border: '1px solid #e5e7eb', background: 'white', fontWeight: 900, cursor: 'pointer' }}
+              >
                 Cancel
               </button>
             </div>
@@ -384,6 +392,7 @@ export default function UnresolvedItemsPanelPage() {
           onClick={() => router.push(`/trips/${tripId}/draft/readiness`)}
           style={{
             padding: '12px 0',
+            minHeight: 48,
             background: '#1A2B4A',
             color: 'white',
             border: 'none',

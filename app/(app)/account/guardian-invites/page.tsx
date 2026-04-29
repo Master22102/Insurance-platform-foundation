@@ -4,6 +4,12 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/auth/supabase-client';
 import { useAuth } from '@/lib/auth/auth-context';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
+import AppPageRoot from '@/components/layout/AppPageRoot';
 
 type InviteRow = {
   request_id: string;
@@ -18,8 +24,8 @@ type InviteRow = {
   subject_approved: boolean;
   guardian_approved: boolean;
   trips:
-    | { trip_id: string; destination_summary: string | null }
-    | Array<{ trip_id: string; destination_summary: string | null }>
+    | { trip_id: string; trip_name: string | null; destination_summary: string | null }
+    | Array<{ trip_id: string; trip_name: string | null; destination_summary: string | null }>
     | null;
 };
 
@@ -29,7 +35,6 @@ export default function GuardianInvitesInboxPage() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [message, setMessage] = useState('');
-
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
@@ -48,7 +53,7 @@ export default function GuardianInvitesInboxPage() {
         requires_dual_approval,
         subject_approved,
         guardian_approved,
-        trips ( trip_id, destination_summary )
+        trips ( trip_id, trip_name, destination_summary )
       `,
       )
       .eq('guardian_id', user.id)
@@ -84,123 +89,126 @@ export default function GuardianInvitesInboxPage() {
   const pending = rows.filter((r) => r.status === 'pending');
   const done = rows.filter((r) => r.status !== 'pending');
 
+  const tripLabel = useCallback((r: InviteRow) => {
+    const t = Array.isArray(r.trips) ? r.trips[0] : r.trips;
+    const name = t?.trip_name?.trim();
+    const dest = t?.destination_summary?.trim();
+    if (name && dest) return `${name} · ${dest}`;
+    return name || dest || 'Group trip';
+  }, []);
+
   return (
-    <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <Link href="/account" style={{ fontSize: 13, color: '#64748b', textDecoration: 'none' }}>
+    <AppPageRoot style={{ maxWidth: '32rem', margin: '0 auto' }}>
+    <div className="px-4 py-10 space-y-6">
+      <Link href="/account" className="text-sm text-muted-foreground hover:text-foreground">
         ← Back to account
       </Link>
-      <h1 style={{ fontSize: 22, color: '#1A2B4A', margin: '14px 0 6px' }}>Guardian approvals</h1>
-      <p style={{ margin: 0, fontSize: 13, color: '#64748b', lineHeight: 1.55 }}>
-        For minor accounts, organizers may need your approval before a child is added to a group trip. Approve or decline
-        here; the student must still confirm when dual consent is required.
-      </p>
-      {message ? (
-        <p style={{ margin: '12px 0 0', fontSize: 13, color: '#475569' }}>{message}</p>
-      ) : null}
+
+      <div>
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-violet-600" />
+          <h1 className="text-2xl font-semibold tracking-tight">Guardian approvals</h1>
+        </div>
+        <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+          When organizers add a student to a school or supervised trip, your approval may be required alongside the
+          student&apos;s confirmation (dual consent).
+        </p>
+      </div>
+
+      {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
 
       {loading ? (
-        <p style={{ marginTop: 20, fontSize: 13, color: '#64748b' }}>Loading…</p>
+        <p className="text-sm text-muted-foreground">Loading…</p>
       ) : (
         <>
-          <section style={{ marginTop: 20 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Pending your approval
-            </p>
+          <section className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pending your approval</p>
             {pending.length === 0 ? (
-              <p style={{ fontSize: 13, color: '#94a3b8' }}>Nothing pending.</p>
+              <p className="text-sm text-muted-foreground">Nothing pending.</p>
             ) : (
-              <ul style={{ listStyle: 'none', padding: 0, margin: '10px 0 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {pending.map((r) => (
-                  <li
-                    key={r.request_id}
-                    style={{
-                      border: '1px solid #ffedd5',
-                      borderRadius: 12,
-                      padding: '12px 14px',
-                      background: '#fffbeb',
-                    }}
-                  >
-                    <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#9a3412' }}>
-                      {(Array.isArray(r.trips) ? r.trips[0]?.destination_summary : r.trips?.destination_summary)?.trim() || 'Group trip'} · subject{' '}
-                      <code style={{ fontSize: 11 }}>{r.subject_id.slice(0, 8)}…</code>
-                    </p>
-                    <p style={{ margin: '6px 0 0', fontSize: 12, color: '#92400e', lineHeight: 1.45 }}>
-                      Type: <strong>{r.trip_type}</strong> · Expires {new Date(r.expires_at).toLocaleString()}
-                    </p>
-                    <p style={{ margin: '8px 0 0', fontSize: 11, color: '#78350f', lineHeight: 1.45 }}>
-                      Subject approved: <strong>{r.subject_approved ? 'yes' : 'no'}</strong> · Guardian approved:{' '}
-                      <strong>{r.guardian_approved ? 'yes' : 'no'}</strong>
-                    </p>
-                    <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-                      <button
-                        type="button"
-                        disabled={busyId === r.request_id}
-                        onClick={() => void resolve(r.request_id, 'approve')}
-                        style={{
-                          border: '1px solid #bbf7d0',
-                          background: '#f0fdf4',
-                          color: '#166534',
-                          borderRadius: 8,
-                          padding: '8px 14px',
-                          fontSize: 12,
-                          fontWeight: 700,
-                          cursor: busyId === r.request_id ? 'not-allowed' : 'pointer',
-                        }}
+              <ul className="flex flex-col gap-4 list-none p-0 m-0">
+                {pending.map((r) => {
+                  const student = `Student (${r.subject_id.slice(0, 8)}…)`;
+                  const organizer = `Organizer (${r.requester_id.slice(0, 8)}…)`;
+                  const schoolStyle = r.trip_type === 'school';
+                  return (
+                    <li key={r.request_id}>
+                      <Card
+                        className={cn(
+                          'overflow-hidden border-violet-200 dark:border-violet-900',
+                          schoolStyle && 'bg-gradient-to-br from-violet-50/90 to-background dark:from-violet-950/25',
+                        )}
                       >
-                        Approve as guardian
-                      </button>
-                      <button
-                        type="button"
-                        disabled={busyId === r.request_id}
-                        onClick={() => void resolve(r.request_id, 'deny')}
-                        style={{
-                          border: '1px solid #fecaca',
-                          background: '#fef2f2',
-                          color: '#991b1b',
-                          borderRadius: 8,
-                          padding: '8px 14px',
-                          fontSize: 12,
-                          fontWeight: 700,
-                          cursor: busyId === r.request_id ? 'not-allowed' : 'pointer',
-                        }}
-                      >
-                        Decline
-                      </button>
-                      <Link
-                        href={`/trips/${r.trip_id}`}
-                        style={{
-                          border: '1px solid #fdba74',
-                          borderRadius: 8,
-                          padding: '8px 14px',
-                          fontSize: 12,
-                          fontWeight: 600,
-                          color: '#9a3412',
-                          textDecoration: 'none',
-                          alignSelf: 'center',
-                          background: 'white',
-                        }}
-                      >
-                        View trip shell
-                      </Link>
-                    </div>
-                  </li>
-                ))}
+                        <CardHeader className="pb-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <CardTitle className="text-base">{tripLabel(r)}</CardTitle>
+                            <Badge variant="secondary" className="text-[10px] capitalize">
+                              {r.trip_type}
+                            </Badge>
+                          </div>
+                          <CardDescription>
+                            Expires {new Date(r.expires_at).toLocaleString()}
+                            {r.trip_type === 'school' ? ' · School trips use a 48-hour verification window.' : null}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-2 text-sm">
+                          <p>
+                            <span className="text-muted-foreground">Organizer:</span> {organizer}
+                          </p>
+                          <p>
+                            <span className="text-muted-foreground">Student:</span> {student}
+                          </p>
+                          <Separator />
+                          <p className="text-muted-foreground leading-snug">
+                            This will allow <strong className="text-foreground">{student}</strong> to join{' '}
+                            <strong className="text-foreground">{tripLabel(r)}</strong> as a participant.
+                          </p>
+                          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                            <span>Student approved: {r.subject_approved ? 'yes' : 'no'}</span>
+                            <span>·</span>
+                            <span>Guardian approved: {r.guardian_approved ? 'yes' : 'no'}</span>
+                          </div>
+                        </CardContent>
+                        <CardFooter className="flex flex-wrap gap-2 border-t bg-muted/20">
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={busyId === r.request_id}
+                            onClick={() => void resolve(r.request_id, 'approve')}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={busyId === r.request_id}
+                            onClick={() => void resolve(r.request_id, 'deny')}
+                          >
+                            Deny
+                          </Button>
+                          <Button type="button" size="sm" variant="secondary" asChild>
+                            <Link href={`/trips/${r.trip_id}`}>View trip</Link>
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </section>
 
-          <section style={{ marginTop: 28 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Recent history
-            </p>
+          <section className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recent history</p>
             {done.length === 0 ? (
-              <p style={{ fontSize: 13, color: '#94a3b8' }}>No completed items yet.</p>
+              <p className="text-sm text-muted-foreground">No completed items yet.</p>
             ) : (
-              <ul style={{ listStyle: 'none', padding: 0, margin: '10px 0 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <ul className="list-none p-0 m-0 space-y-2">
                 {done.slice(0, 15).map((r) => (
-                  <li key={r.request_id} style={{ fontSize: 12, color: '#475569' }}>
-                    <strong>{r.status.toUpperCase()}</strong> · {(Array.isArray(r.trips) ? r.trips[0]?.destination_summary : r.trips?.destination_summary) || r.trip_id.slice(0, 8)} · subject{' '}
-                    <code>{r.subject_id.slice(0, 8)}…</code>
+                  <li key={r.request_id} className="text-sm text-muted-foreground border rounded-md px-3 py-2">
+                    <strong className="text-foreground">{r.status.toUpperCase()}</strong> · {tripLabel(r)} · student{' '}
+                    <code className="text-xs">{r.subject_id.slice(0, 8)}…</code>
                   </li>
                 ))}
               </ul>
@@ -209,5 +217,6 @@ export default function GuardianInvitesInboxPage() {
         </>
       )}
     </div>
+    </AppPageRoot>
   );
 }

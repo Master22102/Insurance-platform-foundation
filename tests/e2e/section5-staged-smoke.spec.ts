@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { hasStorageState, STORAGE_STATE_PATH } from './utils/authState';
+import { getStorageStatePath, hasStorageState } from './utils/authState';
 import { ensureOnboarded } from './utils/ensureOnboarded';
 
 type TripKind = 'solo' | 'group';
@@ -190,7 +190,7 @@ async function ensureTripIdForKind(page: Page, kind: TripKind): Promise<string> 
 
 test.describe('Section 5 staged routes smoke (solo + group)', () => {
   test.skip(!hasStorageState(), 'Missing .playwright/storageState.json; run npm run e2e:auth first.');
-  test.use({ storageState: STORAGE_STATE_PATH });
+  test.use({ storageState: getStorageStatePath() });
 
   for (const kind of ['solo', 'group'] as const) {
     test(`${kind} staged routes render and FOCL link exists`, async ({ page }) => {

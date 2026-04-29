@@ -165,3 +165,47 @@ Adds **10** surfaces (IDs below). Prior 7.3 surfaces unchanged.
 *v1.0 numbered surfaces (Trip Dashboard, Incident Capture, Coverage, Card Benefits, Evidence, Claim Routing, Claim Progress, Claim Packet, Itinerary Risk, Regulatory, Carrier Discrepancy, etc.) remain as in bible; combine with S-DRAFT-*, S-CREATOR-*, S-WEATHER-*, S-EMERGENCY-*, S-DISRUPT-*, S-CHECKLIST-* per reconciliation table in Section 7.3 Amendment v1.2.*
 
 **Implementation note:** When adding a route or major UI, add/update a row in `feature_registry` / internal registry and link **surface_id** + **stress families** before merge.
+
+---
+
+## Amendment v1.3 — Onboarding & Get Started surfaces (April 2026)
+
+Adds 3 surfaces. Prior v1.0 + v1.1 + v1.2 surfaces unchanged.
+
+| surface_id | Name | Domain | Feature refs | Notes |
+|------------|------|--------|--------------|-------|
+| S-ONBOARD-001 | Signal Capture — Compass Round | Traveler | F-Onboarding | Pre-auth. Three rounds max. Voice narration + chip categorization. Compass rose UI. Stress: voice down → type-instead fallback; Sonnet down → chips only, round counter still enforced. |
+| S-ONBOARD-002 | Chip Review & Edit Sheet | Traveler | F-Onboarding | Post-round, pre-confirmation. Bottom sheet editor per category. Five categories: Places, My Thing, Food, Companions, Avoid. Venue intent section in Places + Food cards. Soft cap 15 chips per category. |
+| S-GETSTARTED-001 | Get Started — Anchor Selection | Traveler | F-Onboarding | Post-onboarding-complete, pre-first-trip. Two states: trip-loaded (personalized hero, flag animation, route map card) and no-trip (compass hero, generic invite). Anchor selection persisted to `user_profiles.preferences.onboarding.anchor_selection`. Returning users who completed onboarding skip straight to `/trips`. |
+
+### Governance declarations — S-ONBOARD-001
+
+- **Profile types required:** New user, pre-authentication
+- **Permission scope:** Public (pre-auth); no entitlements consumed
+- **Operational mode behavior:** ELEVATED — rate-limited but allowed. PROTECTIVE — allowed; parse jobs may queue. RECOVERY — read-only; narration blocked.
+- **Structural dependencies:** `voice_artifacts` table; `user_profiles.preferences`; OpenRouter Sonnet via `OPENROUTER_ONBOARDING_MODEL` (not the generic voice-parse model)
+- **Stress degradation:** Voice unavailable → type-instead fallback silently activates. Sonnet unavailable → chips saved without response voice layer; round counter still enforced; user notified "We'll organize your answers — continue."
+- **Primary stress family:** C (Interpretive)
+- **Secondary stress families:** A (Infrastructure), M (Feature lifecycle)
+
+### Governance declarations — S-ONBOARD-002
+
+- **Profile types required:** New user, post-round-1-complete
+- **Permission scope:** Public (pre-auth)
+- **Operational mode behavior:** All modes — chip review is local state, no server dependency until confirmation
+- **Structural dependencies:** Local `accumulatedCat` state; `voice_artifacts` for suggestions frequency query
+- **Stress degradation:** Suggestions unavailable → "Others also add" section hidden; core chip edit remains functional
+- **Primary stress family:** M (Feature lifecycle)
+- **Secondary stress families:** C (Interpretive)
+
+### Governance declarations — S-GETSTARTED-001
+
+- **Profile types required:** New user, onboarding-complete
+- **Permission scope:** Authenticated
+- **Operational mode behavior:** All modes — anchor selection is a single DB write; always available
+- **Structural dependencies:** `user_profiles.preferences`; signal profile from `voice_artifacts`
+- **Stress degradation:** Signal profile unavailable → no-trip state shown regardless; anchor selection still functions
+- **Primary stress family:** A (Infrastructure)
+- **Secondary stress families:** M (Feature lifecycle)
+
+---

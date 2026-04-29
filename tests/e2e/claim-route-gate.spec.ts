@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { hasStorageState, STORAGE_STATE_PATH } from './utils/authState';
+import { getStorageStatePath, hasStorageState } from './utils/authState';
 import { ensureOnboarded } from './utils/ensureOnboarded';
 
 /**
@@ -8,7 +8,7 @@ import { ensureOnboarded } from './utils/ensureOnboarded';
  */
 test.describe('Claim route page gate (browser)', () => {
   test.skip(!hasStorageState(), 'Missing .playwright/storageState.json; run npm run e2e:auth first.');
-  test.use({ storageState: STORAGE_STATE_PATH });
+  test.use({ storageState: getStorageStatePath() });
 
   test('does not stay on /route for unlikely UUIDs (redirects to incident or trips)', async ({ page }) => {
     test.setTimeout(120_000);

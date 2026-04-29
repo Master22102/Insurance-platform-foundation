@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import AppPageRoot from '@/components/layout/AppPageRoot';
 import { useRouter } from 'next/navigation';
 
 interface RetentionPolicy {
@@ -136,7 +137,8 @@ export default function TrustSafetyPage() {
   const tripPolicies = policies.filter((p) => p.target_table === 'trips');
 
   return (
-    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', paddingBottom: 48 }}>
+    <AppPageRoot>
+    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
         <button
@@ -358,5 +360,6 @@ export default function TrustSafetyPage() {
         </Card>
       </div>
     </div>
+    </AppPageRoot>
   );
 }
